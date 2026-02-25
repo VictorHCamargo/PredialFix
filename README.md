@@ -18,4 +18,4 @@ Este projeto foi idealizado e é mantido pela equipe de desenvolvimento Back-End
 * 🎨 **Figma:** [Design e Protótipo](https://www.figma.com/design/wOat0a545ZSXz97stFXDYt/Untitled?node-id=6-40&t=IVpmibyYZMTjSO8z-1)
 * 💻 **GitHub:** [Repositório do Projeto](https://github.com/VictorHCamargo/PredialFix)
 * 📄 **Documentação (Word):** [Documentação Completa](./public/docs/Documentação.pdf)
-* 📋 **Trello:** [Quadro de Tarefas](https://trello.com/b/Kj0VAyD6/predialfix)
+* 📋 **Trello:** [Quadro de Tarefas](https://trello.com/invite/b/699f49744466b87a66481adb/ATTI1157e274c23bef217de53dbebbfcde277BF424A6/predialfix)
