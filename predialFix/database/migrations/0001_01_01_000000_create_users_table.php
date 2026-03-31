@@ -11,28 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            
-            // 1. Chave estrangeira ligando o usuário ao perfil
-            $table->foreignId('id_profile')->constrained('profiles');
-            
-            // 2. Trocamos 'name' por 'nome'
-            $table->string('nome');
-            
-            $table->string('email')->unique();
-            
-            // 3. Adicionamos o CPF (único para cada pessoa)
-            $table->string('cpf')->unique();
-            
-            $table->timestamp('email_verified_at')->nullable();
-            
-            // 4. Trocamos 'password' por 'senha'
-            $table->string('senha');
-            
-            $table->rememberToken();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('id_profile')->constrained('profiles');
+                $table->string('nome');
+                $table->string('email')->unique();
+                $table->string('cpf')->unique();
+                $table->timestamp('email_verified_at')->nullable();
+                $table->string('senha');
+                $table->rememberToken();
+                $table->timestamps();
+            });
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

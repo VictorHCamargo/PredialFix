@@ -30,13 +30,17 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Sobrescreve o nome da coluna de senha padrão do Laravel.
-     * Como mudamos de 'password' para 'senha', precisamos disso para o login funcionar.
-     */
     public function getAuthPasswordName()
     {
         return 'senha';
+    }
+    public function getAuthPassword()
+    {
+        return $this->senha;
+    }
+    public function getNameAttribute()
+    {
+        return $this->nome;
     }
     public function perfil()
     {
