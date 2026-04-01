@@ -10,7 +10,7 @@
     
     <div class="hidden md:flex md:w-1/2 bg-white dark:bg-gray-950 relative flex-col overflow-hidden transition-colors duration-300">
         
-        <div class="absolute inset-0 bg-no-repeat bg-cover bg-center opacity-30 dark:opacity-20 transition-all duration-300
+        <div class="absolute inset-0 bg-no-repeat bg-cover bg-center dark:opacity-50 transition-all duration-300
                     bg-[image:var(--bg-claro)] 
                     dark:bg-[image:var(--bg-escuro)]"
              style="--bg-claro: url('{{ asset('images/background_senai_light.png') }}'); 
