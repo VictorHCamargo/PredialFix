@@ -10,10 +10,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['nome', 'email', 'cpf', 'id_profile', 'senha'])]
+#[Fillable(['nome', 'name', 'email', 'cpf', 'id_profile', 'senha', 'password'])]
 #[Hidden(['senha', 'remember_token'])]
 class User extends Authenticatable
 {
+    protected $fillable = ['nome', 'name', 'email', 'cpf', 'id_profile', 'senha', 'password'];
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -42,6 +44,17 @@ class User extends Authenticatable
     {
         return $this->nome;
     }
+
+    public function setNameAttribute($value)
+    {
+        $this->attributes['nome'] = $value;
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['senha'] = $value;
+    }
+
     public function perfil()
     {
         return $this->belongsTo(Profile::class, 'id_profile');
