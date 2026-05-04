@@ -36,10 +36,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Simula uma requisição de login
     Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login realizado com sucesso!')),
       );
+      Navigator.of(context).pushReplacementNamed('/request');
     });
   }
 
