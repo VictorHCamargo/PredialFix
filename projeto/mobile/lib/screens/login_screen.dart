@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
+import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,10 +37,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Simula uma requisição de login
     Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login realizado com sucesso!')),
+      
+      // Navega para o Dashboard após login bem-sucedido
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const DashboardScreen(),
+        ),
       );
+      Navigator.of(context).pushReplacementNamed('/request');
     });
   }
 
