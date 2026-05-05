@@ -25,16 +25,10 @@
 </head>
 <body class="min-h-screen flex flex-col bg-gray-100 font-sans">
 
-    <!-- Barra superior -->
-    <div class="w-full bg-senai-dark text-white text-xs px-4 py-1 select-none">Cadastro</div>
-
-    <!-- Layout dividido -->
     <div class="flex flex-1 min-h-0">
 
-        <!-- ── Painel Esquerdo ── -->
         <div class="hidden md:flex flex-col w-1/2 bg-white relative overflow-hidden">
 
-            <!-- Logo -->
             <div class="absolute top-6 left-6 flex items-center gap-3 z-10">
                 <div class="bg-senai-red text-white font-black text-2xl px-3 py-1 tracking-tight select-none">
                     SENAI
@@ -44,7 +38,6 @@
                 </div>
             </div>
 
-            <!-- Rede de pontos -->
             <svg class="network-canvas" viewBox="0 0 500 700" preserveAspectRatio="xMidYMid slice"
                  xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -77,10 +70,8 @@
             </svg>
         </div>
 
-        <!-- ── Painel Direito – Formulário de Cadastro ── -->
         <div class="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-100 px-8 py-10 relative overflow-hidden">
 
-            <!-- Rede de pontos (suave) -->
             <svg class="network-canvas opacity-20" viewBox="0 0 500 700" preserveAspectRatio="xMidYMid slice"
                  xmlns="http://www.w3.org/2000/svg">
                 <line style="stroke:#E3000F;stroke-width:.8;opacity:.2" x1="50" y1="80"  x2="300" y2="200"/>
@@ -90,19 +81,16 @@
                 <circle style="fill:#E3000F;opacity:.4" cx="450" cy="80"  r="3"/>
             </svg>
 
-            <!-- Card -->
             <div class="relative z-10 w-full max-w-sm flex flex-col items-center gap-1">
 
                 <h1 class="text-2xl font-semibold text-gray-800 mb-1">Cadastro de Funcionário</h1>
 
-                <!-- Logo SENAI -->
                 <div class="bg-senai-red text-white font-black text-3xl px-5 py-2 tracking-tight mb-2 select-none">
                     SENAI
                 </div>
 
                 <p class="text-gray-600 text-sm mb-5">Preencha os dados para criar uma conta.</p>
 
-                <!-- Erros de validação -->
                 @if ($errors->any())
                     <div class="w-full bg-red-100 border border-red-300 text-red-700 text-sm rounded px-4 py-3 mb-4">
                         <ul class="list-disc pl-4 space-y-1">
@@ -116,7 +104,6 @@
                 <form method="POST" action="{{ route('register') }}" class="w-full flex flex-col gap-4">
                     @csrf
 
-                    <!-- Nome completo -->
                     <div class="flex flex-col gap-1">
                         <label for="nome" class="text-gray-700 text-sm font-medium">
                             Nome Completo <span class="text-senai-red">*</span>
@@ -134,7 +121,6 @@
                         />
                     </div>
 
-                    <!-- E-mail -->
                     <div class="flex flex-col gap-1">
                         <label for="email" class="text-gray-700 text-sm font-medium">
                             E-mail Institucional <span class="text-senai-red">*</span>
@@ -152,7 +138,6 @@
                         />
                     </div>
 
-                    <!-- Senha -->
                     <div class="flex flex-col gap-1">
                         <label for="senha" class="text-gray-700 text-sm font-medium">
                             Senha <span class="text-senai-red">*</span>
@@ -169,7 +154,6 @@
                         />
                     </div>
 
-                    <!-- Confirmar senha -->
                     <div class="flex flex-col gap-1">
                         <label for="senha_confirmation" class="text-gray-700 text-sm font-medium">
                             Confirmar Senha <span class="text-senai-red">*</span>
@@ -186,7 +170,6 @@
                         />
                     </div>
 
-                    <!-- Código de Entrada -->
                     <div class="flex flex-col gap-1">
                         <label for="cod_entrada" class="text-gray-700 text-sm font-medium">
                             Código de Entrada
@@ -204,7 +187,6 @@
                         />
                     </div>
 
-                    <!-- Botão Cadastrar -->
                     <button
                         type="submit"
                         class="mt-2 w-full bg-senai-red hover:bg-red-700 text-white font-bold text-base py-3 rounded-full
@@ -213,7 +195,6 @@
                         Cadastrar
                     </button>
 
-                    <!-- Link para Login -->
                     <p class="text-center text-sm text-gray-500 mt-1">
                         Já possui conta?
                         <a href="{{ route('login') }}" class="text-senai-red font-medium hover:underline">

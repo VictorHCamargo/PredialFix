@@ -1,56 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Chamados – PredialFix SENAI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { senai: { red: '#E3000F', dark: '#1a1a1a' } },
-                    fontFamily: { sans: ['Segoe UI', 'system-ui', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-</head>
-<body class="min-h-screen flex flex-col bg-white font-sans">
-
-    <div class="w-full bg-senai-dark text-white text-xs px-4 py-1 select-none">Gerenciar</div>
-
-    <!-- Navbar -->
-    <nav class="bg-senai-red flex items-center justify-between px-4 shadow-md">
-        <div class="flex items-center gap-1 py-2">
-            <div class="bg-white text-senai-red font-black text-2xl px-3 py-1 tracking-tight select-none leading-none">SENAI</div>
-        </div>
-        <div class="flex items-center h-full">
-            <a href="{{ route('dashboard') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 hover:bg-red-700 transition">Home</a>
-            <a href="{{ route('chamados.create') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 hover:bg-red-700 transition">Novo Chamado</a>
-            <a href="{{ route('chamados.index') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 bg-red-700 transition">Gerenciar Chamados</a>
-        </div>
-        <form method="POST" action="{{ route('logout') }}" class="flex items-center">
-            @csrf
-            <button type="submit" class="text-white text-sm font-medium px-5 py-4 flex items-center gap-2 hover:bg-red-700 transition">
-                Sair
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
-                </svg>
-            </button>
-        </form>
-    </nav>
+<x-layouts.base-layout tittle="Gerenciar">
+    <x-navbar />
 
     <!-- Conteúdo -->
     <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
 
-        {{--
-            O controller passa APENAS $chamados (Collection).
-            As estatísticas são derivadas aqui via filter() — sem variáveis extras.
-        --}}
         @php
             $abertos       = $chamados->where('status', 'aberto')->count();
             $emExecucao    = $chamados->where('status', 'em_andamento')->count();
@@ -239,23 +192,7 @@
         </div>
     </main>
 
-    <!-- Rodapé -->
-    <footer class="bg-senai-red mt-8">
-        <div class="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="text-white">
-                <h3 class="font-bold text-sm uppercase tracking-wide mb-3">Edifício Sede FIESP</h3>
-                <p class="text-red-100 text-sm leading-relaxed">Av. Paulista, 1313, São Paulo/SP<br>CEP 01311-923</p>
-            </div>
-            <div class="text-white">
-                <h3 class="font-bold text-sm uppercase tracking-wide mb-3">Central de Relacionamento</h3>
-                <p class="text-red-100 text-sm leading-relaxed">
-                    (11) 3322-0050 (Telefone/WhatsApp)<br>
-                    0800-055-1000 (Interior de SP,<br>somente telefone fixo)
-                </p>
-            </div>
-        </div>
-        <div class="bg-red-900 text-center text-red-200 text-xs py-3">Copyright 2026 &copy; Todos os direitos reservados.</div>
-    </footer>
+   <x-footer />
 
     <script>
         document.getElementById('btn-filtrar').addEventListener('click', () => {
@@ -280,5 +217,4 @@
             document.querySelectorAll('.chamado-row').forEach(r => r.style.display = '');
         }
     </script>
-</body>
-</html>
+</x-layouts.base-layout>

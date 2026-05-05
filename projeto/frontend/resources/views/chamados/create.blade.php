@@ -18,31 +18,7 @@
 </head>
 <body class="min-h-screen flex flex-col bg-white font-sans">
 
-    <div class="w-full bg-senai-dark text-white text-xs px-4 py-1 select-none">novo chamado</div>
-
-    <!-- Navbar -->
-    <nav class="bg-senai-red flex items-center justify-between px-4 shadow-md">
-        <div class="flex items-center gap-1 py-2">
-            <div class="bg-white text-senai-red font-black text-2xl px-3 py-1 tracking-tight select-none leading-none">SENAI</div>
-        </div>
-        <div class="flex items-center h-full">
-            <a href="{{ route('dashboard') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 hover:bg-red-700 transition">Home</a>
-            <a href="{{ route('chamados.create') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 bg-red-700 transition">Novo Chamado</a>
-            <a href="{{ route('chamados.index') }}"
-               class="text-white text-sm font-medium px-5 py-4 border-r border-red-400 hover:bg-red-700 transition">Gerenciar Chamados</a>
-        </div>
-        <form method="POST" action="{{ route('logout') }}" class="flex items-center">
-            @csrf
-            <button type="submit" class="text-white text-sm font-medium px-5 py-4 flex items-center gap-2 hover:bg-red-700 transition">
-                Sair
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
-                </svg>
-            </button>
-        </form>
-    </nav>
+    <x-navbar />
 
     <!-- Conteúdo -->
     <main class="flex-1 px-6 py-8 max-w-3xl w-full">
