@@ -11,7 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+
+        // Registra o alias 'auth.custom' para o nosso middleware de autenticação.
+        // Usado nas rotas: Route::middleware('auth.custom')->group(...)
+        $middleware->alias([
+            'auth.custom' => \App\Http\Middleware\EnsureAuthenticated::class,
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
