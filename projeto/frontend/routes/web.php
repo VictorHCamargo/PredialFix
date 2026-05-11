@@ -6,7 +6,7 @@ use App\Models\Chamado;
 use App\Http\Controllers\ChamadoController;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('dashboard');
 });
 
 Route::get('/dashboard', function () {
@@ -23,15 +23,12 @@ Route::get('/dashboard', function () {
         'cancelados'       => Chamado::where('status', 'cancelado')->count(),
     ]);
 })
-    ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/chamados',[ChamadoController::class, 'index'])->name('chamados.index');
-    Route::get('/chamados/create',[ChamadoController::class, 'create'])->name('chamados.create');
-});
-
-require __DIR__ . '/auth.php';
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+//     Route::get('/chamados',[ChamadoController::class, 'index'])->name('chamados.index');
+//     Route::get('/chamados/create',[ChamadoController::class, 'create'])->name('chamados.create');
+// });

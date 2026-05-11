@@ -1,7 +1,6 @@
 <x-layouts.base-layout tittle="Gerenciar">
     <x-navbar />
 
-    <!-- Conteúdo -->
     <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
 
         @php
