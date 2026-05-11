@@ -1,7 +1,7 @@
 <x-layouts.base-layout tittle="Dashboard">
     <x-navbar />
-
-    <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
+        <h1>Hello </h1>
+    <!-- <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
 
@@ -16,7 +16,6 @@
 
             @foreach ($stats as $stat)
             <div class="bg-white rounded shadow flex items-center gap-3 px-4 py-4">
-                <!-- Ícone vermelho -->
                 <div class="bg-senai-red rounded w-10 h-10 flex-shrink-0 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -98,7 +97,7 @@
                 Relatar novo Problema
             </a>
         </div>
-    </main>
+    </main> -->
 
     <x-footer />
 

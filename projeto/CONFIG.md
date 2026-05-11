@@ -1,13 +1,13 @@
-# 🚀 Guia de Configuração do Projeto Laravel
+# 🚀 Guia de Configuração do Projeto Laravel — Laragon
 
-> Guia completo para rodar o projeto em qualquer máquina, do zero ao servidor.
+> Guia completo para rodar o projeto **PredialFix** no Laragon (Windows), do zero ao servidor local.
 
 ---
 
 ## 📋 Índice
 
 1. [Pré-requisitos](#-pré-requisitos-antes-de-qualquer-coisa)
-2. [Clonando o Projeto](#-clonando-o-projeto)
+2. [Clonando o Projeto no Laragon](#-clonando-o-projeto-no-laragon)
 3. [Instalando as Dependências](#-instalando-as-dependências)
 4. [Configurações Pós-instalação](#-configurações-pós-instalação)
 5. [Rodando o Projeto](#-rodando-o-projeto)
@@ -19,43 +19,66 @@
 
 ## ✅ Pré-requisitos (antes de qualquer coisa)
 
-Antes de clonar o projeto, certifique-se de ter instalado na sua máquina:
+### Laragon instalado e configurado
 
-| Ferramenta | Versão mínima | Como verificar | Download |
-|---|---|---|---|
-| **PHP** | `^8.3` | `php -v` | [php.net](https://www.php.net/downloads) |
-| **Composer** | `^2.x` | `composer -V` | [getcomposer.org](https://getcomposer.org) |
-| **Node.js** | `^18.x` | `node -v` | [nodejs.org](https://nodejs.org) |
-| **NPM** | `^9.x` | `npm -v` | *(vem junto com Node)* |
-| **Git** | qualquer | `git --version` | [git-scm.com](https://git-scm.com) |
+Este projeto roda dentro do **Laragon**. Certifique-se de que o Laragon está instalado e com os seguintes serviços ativos:
+
+- **Apache** (ou Nginx) — servidor web
+- **MySQL** — banco de dados
+- **PHP 8.3+** — versão selecionada no menu do Laragon
+
+> 💡 Para trocar a versão do PHP no Laragon: clique com o botão direito na bandeja do sistema → **PHP** → selecione `8.3.x`.
+
+### Ferramentas necessárias no PATH
+
+Abra o terminal do Laragon (**botão Terminal** na interface) e verifique:
+
+| Ferramenta | Versão mínima | Como verificar |
+|---|---|---|
+| **PHP** | `^8.3` | `php -v` |
+| **Composer** | `^2.x` | `composer -V` |
+| **Node.js** | `^18.x` | `node -v` |
+| **NPM** | `^9.x` | `npm -v` |
+| **Git** | qualquer | `git --version` |
+
+> 💡 O terminal do Laragon já inclui PHP, Composer, Node e Git no PATH automaticamente. Use sempre ele para os comandos deste guia.
 
 ### Extensões PHP obrigatórias
-
-O Laravel exige algumas extensões do PHP. Verifique se estão habilitadas:
 
 ```bash
 php -m | grep -E "pdo_mysql|mysqli|mbstring|openssl|fileinfo|gd|intl|curl"
 ```
 
-As extensões necessárias são: `pdo_mysql`, `mysqli`, `mbstring`, `openssl`, `fileinfo`,`gb`,`intl`, `curl`.
+As extensões necessárias são: `pdo_mysql`, `mysqli`, `mbstring`, `openssl`, `fileinfo`, `gd`, `intl`, `curl`.
 
-> 💡 **Dica Windows:** Se estiver usando o XAMPP ou similar, abra o `php.ini` e remova o `;` (ponto e vírgula) na frente das extensões listadas acima para habilitá-las.
+> 💡 Se alguma estiver faltando, abra o `php.ini` correspondente à versão ativa no Laragon (Menu → PHP → `php.ini`) e remova o `;` na frente da extensão.
 
 ---
 
-## 📥 Clonando o Projeto
+## 📥 Clonando o Projeto no Laragon
+
+O Laragon serve automaticamente qualquer pasta dentro de `C:\laragon\www`. O projeto **deve** ser clonado nesse caminho para funcionar corretamente.
 
 ```bash
-# Clone o repositório
-git clone <URL_DO_REPOSITORIO> nome-da-pasta
+# Acesse a pasta www do Laragon
+cd C:/laragon/www
+
+# Clone o repositório (a pasta criada será o nome do projeto)
+git clone <URL_DO_REPOSITORIO> frontend
 
 # Entre na pasta do projeto
-cd nome-da-pasta
+cd frontend
 ```
+
+> ⚠️ O nome da pasta (`frontend` no exemplo) define a URL local. Com o **Pretty URLs** ativado no Laragon, o projeto ficará acessível em `http://localhost:8000`. Se preferir outro nome, ajuste o clone e o `APP_URL` no `.env` de acordo.
+
+Após clonar, clique em **Reload** na interface do Laragon para que ele reconheça o novo projeto.
 
 ---
 
 ## 📦 Instalando as Dependências
+
+Use sempre o **terminal do Laragon** (botão Terminal na interface).
 
 ### 1. Dependências PHP (Composer)
 
@@ -68,7 +91,7 @@ composer install
 ### 2. Dependências JavaScript (NPM)
 
 ```bash
-npm install
+npm install --ignore-scripts
 ```
 
 ---
@@ -79,10 +102,8 @@ Siga os passos **nesta ordem** para não ter problemas.
 
 ### Passo 1 — Criar o arquivo `.env`
 
-O `.env` contém as configurações sensíveis do projeto e **não é versionado no Git**.
-
 ```bash
-cp .env.example .env
+copy .env.example .env
 ```
 
 ### Passo 2 — Gerar a chave da aplicação
@@ -93,40 +114,45 @@ php artisan key:generate
 
 > ⚠️ **Obrigatório!** Sem essa chave, sessões, cookies e dados criptografados não funcionam.
 
-### Passo 3 — Criar o arquivo do banco de dados (SQLite)
+### Passo 3 — Criar o banco de dados no MySQL
 
-Este projeto usa **SQLite** — não precisa instalar MySQL ou PostgreSQL!
+Este projeto usa **MySQL** (fornecido pelo Laragon). Você precisa criar o banco antes de rodar as migrations.
 
+**Opção A — via HeidiSQL** (já vem com o Laragon):
+1. Abra o HeidiSQL pelo menu do Laragon
+2. Conecte na instância local (usuário `root`, senha em branco por padrão)
+3. Clique com o botão direito → **Criar novo banco de dados**
+4. Nome: `predial_fix_tb_g2v` → Colação: `utf8mb4_unicode_ci`
+
+**Opção B — via terminal:**
 ```bash
-# Linux/macOS
-touch database/database.sqlite
-
-# Windows (PowerShell)
-New-Item -ItemType File -Path "database/database.sqlite"
-
-# Windows (CMD)
-type nul > database\database.sqlite
+mysql -u root -e "CREATE DATABASE predial_fix_tb_g2v CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-### Passo 4 — Verificar as configurações do `.env`
+### Passo 4 — Configurar o `.env`
 
-Abra o arquivo `.env` e confirme que estas variáveis estão corretas:
+Abra o arquivo `.env` e ajuste as seguintes variáveis:
 
 ```env
-APP_NAME=Laravel
+APP_NAME=PredialFix
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=predial_fix_tb_g2v
+DB_USERNAME=root
+DB_PASSWORD=
 
 SESSION_DRIVER=database
 CACHE_STORE=database
 QUEUE_CONNECTION=database
 ```
 
-> 💡 `DB_HOST`, `DB_PORT`, `DB_USERNAME` e `DB_PASSWORD` podem ser ignorados quando `DB_CONNECTION=sqlite`.
+> 💡 `DB_PASSWORD` fica em branco pois o MySQL do Laragon não tem senha por padrão. Se você configurou senha, preencha aqui.
+
 
 ### Passo 5 — Rodar as Migrations (criar as tabelas)
 
@@ -134,19 +160,13 @@ QUEUE_CONNECTION=database
 php artisan migrate
 ```
 
-Se pedir confirmação em ambiente de produção, adicione `--force`:
+### Passo 6 — Compilar os assets frontend (Vite)
 
 ```bash
-php artisan migrate --force
-```
-
-### Passo 6 — Compilar os assets frontend
-
-```bash
-# Para desenvolvimento (compila uma vez)
+# Para gerar os assets uma única vez (recomendado antes de subir)
 npm run build
 
-# OU para desenvolvimento com hot-reload (mantém rodando)
+# OU para desenvolvimento com hot-reload (mantém rodando em segundo plano)
 npm run dev
 ```
 
@@ -154,51 +174,55 @@ npm run dev
 
 ## 🟢 Rodando o Projeto
 
-### Opção A — Comando único (recomendado para desenvolvimento)
+Como o Laragon já fornece o servidor web (Apache/Nginx), **não é necessário rodar `php artisan serve`**. Basta abrir o navegador na URL do projeto.
 
-O projeto possui um script `dev` configurado no `composer.json` que sobe tudo de uma vez:
+### Acessando o projeto
+
+Com o Laragon rodando (Apache + MySQL ativos), acesse:
+
+```
+http://localhost:8000
+```
+
+
+### Rodando filas e logs em desenvolvimento
+
+Para processar filas e visualizar logs em tempo real, abra o **terminal do Laragon** e execute:
 
 ```bash
 composer run dev
 ```
 
 Isso inicia simultaneamente:
-- `php artisan serve` → servidor PHP em `http://localhost:8000`
+- `php artisan serve` → servidor PHP auxiliar em `http://localhost:8000` *(opcional no Laragon, mas não causa conflito)*
 - `php artisan queue:listen` → processador de filas
 - `php artisan pail` → visualizador de logs em tempo real
 - `npm run dev` → Vite com hot-reload
 
-### Opção B — Separado (caso tenha problemas com o comando acima)
+> 💡 Se preferir rodar apenas o necessário sem o `artisan serve`, abra dois terminais:
+>
+> **Terminal 1:** `php artisan queue:listen --tries=1`
+>
+> **Terminal 2:** `npm run dev`
 
-Abra **dois terminais** e rode em cada um:
+### Setup completo automatizado (apenas na primeira vez)
 
-**Terminal 1:**
-```bash
-php artisan serve
-```
-
-**Terminal 2:**
-```bash
-npm run dev
-```
-
-### Opção C — Setup completo automatizado
-
-O projeto também tem um script que faz tudo de uma vez (clone → configure → rode):
+O projeto tem um script que executa toda a configuração de uma vez:
 
 ```bash
 composer run setup
 ```
 
-> ⚠️ Use apenas em projetos novos — esse script roda migrations com `--force`.
+Ele roda na sequência: `composer install` → copia `.env.example` → `key:generate` → `migrate --force` → `npm install` → `npm run build`.
+
+> ⚠️ Use apenas em projetos recém-clonados — esse script roda migrations com `--force`.
+> **Não substitui** a criação manual do banco de dados MySQL (Passo 3).
 
 ---
 
 ## 🔀 Breeze vs Filament — Qual usar?
 
-Este projeto usa **as duas ferramentas**, mas para propósitos diferentes. Entenda quando usar cada uma:
-
----
+Este projeto usa **as duas ferramentas**, mas para propósitos diferentes.
 
 ### 🌿 Laravel Breeze
 
@@ -208,7 +232,6 @@ Este projeto usa **as duas ferramentas**, mas para propósitos diferentes. Enten
 - Telas de login e cadastro do usuário comum
 - Área do cliente/usuário da aplicação
 - Páginas Blade com Tailwind CSS + Alpine.js
-- Projetos que precisam de uma UI customizável e simples
 
 **Onde está no projeto:**
 ```
@@ -219,30 +242,25 @@ app/Http/Controllers/Auth/    → controllers de autenticação
 
 **Rota de acesso:** `http://localhost:8000/login`
 
----
-
 ### 🎛️ Filament
 
-**O que é:** Painel administrativo completo (admin panel) para **gestão interna** dos dados, com tabelas, formulários e dashboards prontos.
+**O que é:** Painel administrativo completo para **gestão interna** dos dados.
 
 **Quando usar:**
-- Painel de administração (CRUD de usuários, perfis, etc.)
+- Painel de administração (CRUD de usuários, chamados, equipamentos, etc.)
 - Área restrita para gestores/admins
-- Quando precisa de interfaces de gerenciamento rápidas e completas
 - Relatórios e dashboards internos
 
 **Onde está no projeto:**
 ```
-app/Filament/Resources/       → recursos CRUD (UserResource, ProfileResource)
+app/Filament/Resources/       → recursos CRUD
 app/Providers/Filament/       → configuração do painel admin
 config/filament.php           → configurações globais do Filament
 ```
 
 **Rota de acesso:** `http://localhost:8000/admin`
 
-> ⚠️ Para acessar o painel `/admin`, o usuário precisa ter permissão. Configure no `AdminPanelProvider.php` ou use `canAccessPanel()` no model `User`.
-
----
+> ⚠️ Para acessar o painel `/admin`, o usuário precisa ter permissão. Configure no `AdminPanelProvider.php` ou implemente `canAccessPanel()` no model `User`.
 
 ### Resumo rápido
 
@@ -250,10 +268,8 @@ config/filament.php           → configurações globais do Filament
 |---|---|---|
 | **Para quem?** | Usuário final | Administrador |
 | **Complexidade** | Simples | Completo |
-| **Customização** | Alta (Blade/CSS livre) | Média (componentes próprios) |
 | **CRUD automático** | ❌ | ✅ |
 | **Rota padrão** | `/login`, `/dashboard` | `/admin` |
-| **Ideal para** | Frontend da app | Backoffice / gestão |
 
 ---
 
@@ -294,15 +310,15 @@ php artisan tinker
 php artisan key:generate
 ```
 
-### ❌ "Database file not found" ou erros de SQLite
-```bash
-# Linux/macOS
-touch database/database.sqlite
-
-# Windows (PowerShell)
-New-Item -ItemType File -Path "database/database.sqlite"
+### ❌ Erros de conexão com MySQL / "Access denied"
+Verifique se o MySQL está ativo no Laragon e confira as credenciais no `.env`:
+```env
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=
 ```
-Depois rode `php artisan migrate`.
+Confirme também que o banco `predial_fix_tb_g2v` foi criado (Passo 3).
 
 ### ❌ "Class not found" ou erros de autoload
 ```bash
@@ -312,11 +328,12 @@ composer dump-autoload
 ### ❌ Página em branco ou erro 500
 ```bash
 # Verifique os logs
-tail -n 50 storage/logs/laravel.log
-
-# Ou use o pail
 php artisan pail
+
+# Ou abra direto o arquivo de log
+tail -n 50 storage/logs/laravel.log
 ```
+Certifique-se também de que `APP_DEBUG=true` está no `.env`.
 
 ### ❌ Assets CSS/JS não carregam
 ```bash
@@ -324,10 +341,18 @@ npm run build
 ```
 Ou verifique se o `npm run dev` está rodando em paralelo.
 
-### ❌ "Permission denied" em storage ou bootstrap/cache (Linux/macOS)
+### ❌ "Permission denied" em storage ou bootstrap/cache
+No terminal do Laragon (como Administrador):
 ```bash
-chmod -R 775 storage bootstrap/cache
+icacls storage /grant Everyone:(OI)(CI)F /T
+icacls bootstrap/cache /grant Everyone:(OI)(CI)F /T
 ```
+
+### ❌ `http://localhost:8000` não abre / erro 404
+- Confirme que o Laragon está rodando (Apache ativo)
+- Confirme que a pasta do projeto está em `C:\laragon\www\frontend`
+- Clique em **Reload** na interface do Laragon
+- Verifique se o Pretty URLs está ativo (Menu → Apache → Virtual Hosts)
 
 ### ❌ Filament admin não abre / redireciona para login
 Certifique-se de que existe um usuário no banco e que ele tem acesso ao painel. No `User.php`, implemente:
@@ -340,4 +365,5 @@ public function canAccessPanel(Panel $panel): bool
 
 ---
 
-> 📌 **Dica final:** Sempre que clonar o projeto em uma nova máquina, siga a ordem: **Pré-requisitos → Clone → `composer install` → `npm install` → `.env` → `key:generate` → `sqlite` → `migrate` → `npm run build` → `composer run dev`**
+> 📌 **Checklist rápido para nova máquina:**
+> **Laragon ativo** → **Clone em `C:\laragon\www`** → `composer install` → `npm install --ignore-scripts` → `copy .env.example .env` → Criar banco MySQL → Configurar `.env` → `php artisan key:generate` → `php artisan migrate` → `npm run build` → Acessar `http://localhost:8000`
