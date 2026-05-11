@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -50,6 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // Simula uma requisição de cadastro
     Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cadastro realizado com sucesso!')),
@@ -61,16 +63,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppTheme.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            margin: const EdgeInsets.all(AppTheme.paddingLarge),
+            padding: const EdgeInsets.all(AppTheme.paddingXLarge),
+            decoration: AppTheme.getCardDecoration(borderRadius: AppTheme.radiusLarge),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -81,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onTap: () => Navigator.of(context).pop(),
                     child: const Icon(
                       Icons.arrow_back,
-                      color: Colors.grey,
+                      color: AppTheme.textSecondaryColor,
                     ),
                   ),
                 ),
@@ -93,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppTheme.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -101,16 +100,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Subtítulo
                 const Text(
                   'Bem-Vindo ao PredialFix!',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textSecondaryColor,
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Logo SENAI
                 Container(
                   height: 60,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE63946),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                   child: const Center(
                     child: Text(
@@ -124,31 +126,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppTheme.paddingXLarge),
 
                 // Texto de instrução
                 const Text(
                   'Preencha os dados abaixo para se cadastrar.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondaryColor,
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Campo Nome
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu Nome Completo:',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('Nome Completo'),
                 ),
                 const SizedBox(height: 16),
 
@@ -156,19 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu Email:',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('Email'),
                 ),
                 const SizedBox(height: 16),
 
@@ -176,19 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _cpfController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu CPF:',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('CPF'),
                 ),
                 const SizedBox(height: 16),
 
@@ -197,16 +166,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Digite uma Senha:',
+                    labelText: 'Senha',
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: AppTheme.inputBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
                     suffixIcon: GestureDetector(
                       onTap: () {
@@ -216,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _obscurePassword
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: Colors.grey,
+                        color: AppTheme.textSecondaryColor,
                       ),
                     ),
                   ),
@@ -228,16 +194,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
-                    labelText: 'Confirme sua Senha:',
+                    labelText: 'Confirmar Senha',
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: AppTheme.inputBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
                     suffixIcon: GestureDetector(
                       onTap: () {
@@ -250,27 +213,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _obscureConfirmPassword
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: Colors.grey,
+                        color: AppTheme.textSecondaryColor,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppTheme.paddingXLarge),
 
                 // Botão Cadastrar
                 SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegister,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE63946),
-                      disabledBackgroundColor: const Color(0xFFE63946)
-                          .withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -281,17 +236,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           )
-                        : const Text(
-                            'Cadastrar',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                        : const Text('Cadastrar'),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Link para login
                 Row(
@@ -299,14 +247,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const Text(
                       'Já tem conta? ',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(
+                        color: AppTheme.textSecondaryColor,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
                       child: const Text(
                         'Faça login',
                         style: TextStyle(
-                          color: Color(0xFFE63946),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
