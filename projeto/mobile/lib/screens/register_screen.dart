@@ -34,9 +34,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _cpfController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
       return;
     }
 
@@ -69,7 +69,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Container(
             margin: const EdgeInsets.all(AppTheme.paddingLarge),
             padding: const EdgeInsets.all(AppTheme.paddingXLarge),
-            decoration: AppTheme.getCardDecoration(borderRadius: AppTheme.radiusLarge),
+            decoration: AppTheme.getCardDecoration(
+              borderRadius: AppTheme.radiusLarge,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -169,9 +171,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Senha',
                     filled: true,
                     fillColor: AppTheme.inputBackgroundColor,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
                       borderSide: BorderSide.none,
                     ),
                     suffixIcon: GestureDetector(
@@ -197,16 +204,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Confirmar Senha',
                     filled: true,
                     fillColor: AppTheme.inputBackgroundColor,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
                       borderSide: BorderSide.none,
                     ),
                     suffixIcon: GestureDetector(
                       onTap: () {
                         setState(
-                          () =>
-                              _obscureConfirmPassword = !_obscureConfirmPassword,
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
                         );
                       },
                       child: Icon(
@@ -247,9 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const Text(
                       'Já tem conta? ',
-                      style: TextStyle(
-                        color: AppTheme.textSecondaryColor,
-                      ),
+                      style: TextStyle(color: AppTheme.textSecondaryColor),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),

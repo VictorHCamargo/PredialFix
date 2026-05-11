@@ -5,17 +5,17 @@ class AppTheme {
   static const Color primaryColor = Color(0xFFE63946);
   static const Color primaryDark = Color(0xFFD62828);
   static const Color accentColor = Color(0xFF457B9D);
-  
+
   // Cores de fundo
   static const Color backgroundColor = Color(0xFFF8F9FA);
   static const Color cardBackgroundColor = Colors.white;
   static const Color inputBackgroundColor = Color(0xFFF5F5F5);
-  
+
   // Cores de texto
   static const Color textPrimaryColor = Colors.black87;
   static const Color textSecondaryColor = Colors.grey;
   static const Color textHintColor = Color(0xFF9CA3AF);
-  
+
   // Cores de status
   static const Color successColor = Color(0xFF10B981);
   static const Color warningColor = Color(0xFFF59E0B);
@@ -42,7 +42,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: inputBackgroundColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -68,14 +71,8 @@ class AppTheme {
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
-        hintStyle: const TextStyle(
-          color: textHintColor,
-          fontSize: 14,
-        ),
-        helperStyle: const TextStyle(
-          color: textSecondaryColor,
-          fontSize: 12,
-        ),
+        hintStyle: const TextStyle(color: textHintColor, fontSize: 14),
+        helperStyle: const TextStyle(color: textSecondaryColor, fontSize: 12),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -86,10 +83,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       textTheme: const TextTheme(
@@ -133,7 +127,10 @@ class AppTheme {
   }
 
   // Decoração de campo
-  static InputDecoration getFieldDecoration(String label, {String? helperText}) {
+  static InputDecoration getFieldDecoration(
+    String label, {
+    String? helperText,
+  }) {
     return InputDecoration(
       labelText: label,
       helperText: helperText,
