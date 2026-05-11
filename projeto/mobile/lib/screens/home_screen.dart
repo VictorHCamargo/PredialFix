@@ -9,196 +9,240 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(currentPage: MenuPage.home),
-      appBar: AppBar(
-        title: const Text('Página Inicial'),
-      ),
+      appBar: AppBar(title: const Text('Home'), elevation: 4),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card de Boas-vindas
-            Container(
-              decoration: AppTheme.getCardDecoration(),
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Grid de Cards com Estatísticas
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  const Text(
-                    'Bem-vindo ao PredialFix!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimaryColor,
-                    ),
+                  _buildStatCard(
+                    'Chamados Féitos',
+                    '32',
+                    AppTheme.primaryColor,
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Sistema de gerenciamento de chamados prediais. Aqui você pode abrir novos chamados, acompanhar seu status e avaliar o atendimento.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textSecondaryColor,
-                      height: 1.6,
-                    ),
+                  _buildStatCard(
+                    'Chamados Féitos',
+                    '32',
+                    AppTheme.primaryColor,
+                  ),
+                  _buildStatCard(
+                    'Chamados Féitos',
+                    '32',
+                    AppTheme.primaryColor,
+                  ),
+                  _buildStatCard(
+                    'Chamados Féitos',
+                    '32',
+                    AppTheme.primaryColor,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppTheme.paddingLarge),
 
-            // Secção de Ações Rápidas
-            const Text(
-              'Ações Rápidas',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
+            // Seção Chamados Recentes
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: const Text(
+                'Chamados Recentes',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
 
-            // Grid de Ações
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _buildActionCard(
-                  context,
-                  icon: Icons.add_circle_outline,
-                  title: 'Novo Chamado',
-                  onTap: () => Navigator.pushNamed(context, '/request'),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.assignment,
-                  title: 'Meus Chamados',
-                  onTap: () => Navigator.pushNamed(context, '/manage'),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.star,
-                  title: 'Avaliações',
-                  onTap: () => Navigator.pushNamed(context, '/ratings'),
-                ),
-                _buildActionCard(
-                  context,
-                  icon: Icons.help_outline,
-                  title: 'Suporte',
-                  onTap: () => Navigator.pushNamed(context, '/support'),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.paddingLarge),
-
-            // Informações Úteis
-            const Text(
-              'Informações Úteis',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
+            // Lista de Chamados Recentes
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  _buildChamadoRecenteCard(
+                    tipo: 'Tipo',
+                    titulo: 'Tomada em Curto Circuito',
+                    localizacao: 'Bloco A, Sala 1',
+                    data: '02/01/2026',
+                    status: 'Elétrica',
+                    statusColor: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildChamadoRecenteCard(
+                    tipo: 'Tipo',
+                    titulo: 'Tomada em Curto Circuito',
+                    localizacao: 'Bloco A, Sala 1',
+                    data: '02/01/2026',
+                    status: 'Elétrica',
+                    statusColor: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildChamadoRecenteCard(
+                    tipo: 'Tipo',
+                    titulo: 'Tomada em Curto Circuito',
+                    localizacao: 'Bloco A, Sala 1',
+                    data: '02/01/2026',
+                    status: 'Elétrica',
+                    statusColor: AppTheme.primaryColor,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            _buildInfoCard(
-              icon: Icons.info_outline,
-              title: 'Como usar o sistema?',
-              description: 'Clique em "Novo Chamado" para abrir um novo pedido de manutenção.',
-            ),
-            const SizedBox(height: 8),
-            _buildInfoCard(
-              icon: Icons.schedule,
-              title: 'Tempo de resposta',
-              description: 'Chamados críticos são atendidos dentro de 2 horas.',
-            ),
-            const SizedBox(height: 8),
-            _buildInfoCard(
-              icon: Icons.phone,
-              title: 'Contato SENAI',
-              description: 'Tel: (11) 3222-0039 | WhatsApp: 0800-055-1000',
-            ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: AppTheme.getCardDecoration(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 36,
-              color: AppTheme.primaryColor,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
+  Widget _buildStatCard(String label, String count, Color color) {
     return Container(
-      decoration: AppTheme.getCardDecoration(),
-      padding: const EdgeInsets.all(AppTheme.paddingMedium),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 28,
-            color: AppTheme.primaryColor,
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quadrado de cor
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  label,
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimaryColor,
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  count,
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
-                    height: 1.4,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimaryColor,
                   ),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChamadoRecenteCard({
+    required String tipo,
+    required String titulo,
+    required String localizacao,
+    required String data,
+    required String status,
+    required Color statusColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header com tipo e localização
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tipo,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                localizacao,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Footer com data e status
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                data,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+              Text(
+                status,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
+              ),
+            ],
           ),
         ],
       ),

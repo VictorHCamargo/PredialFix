@@ -9,9 +9,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(currentPage: MenuPage.profile),
-      appBar: AppBar(
-        title: const Text('Meu Perfil'),
-      ),
+      appBar: AppBar(title: const Text('Meu Perfil')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingLarge),
         child: Column(

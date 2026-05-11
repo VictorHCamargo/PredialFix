@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'register_screen.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,9 +27,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_cpfController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _codeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
       return;
     }
 
@@ -40,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      
+
       // Navega para Home após login bem-sucedido
       Navigator.of(context).pushReplacementNamed('/home');
     });
@@ -48,74 +47,111 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallerScreen = screenHeight < 700;
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: Center(
+      backgroundColor: Colors.white,
+      body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.all(AppTheme.paddingLarge),
-            padding: const EdgeInsets.all(AppTheme.paddingXLarge),
-            decoration: AppTheme.getCardDecoration(borderRadius: AppTheme.radiusLarge),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Título
+                SizedBox(height: isSmallerScreen ? 24 : 48),
+
+                // Título Principal
                 const Text(
                   'Portal de Chamados',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimaryColor,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // Subtítulo
                 const Text(
                   'Bem-Vindo ao PredialFix!',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
+                    fontWeight: FontWeight.w500,
                     color: AppTheme.textSecondaryColor,
                   ),
                 ),
-                const SizedBox(height: AppTheme.paddingLarge),
+                const SizedBox(height: 32),
 
-                // Logo SENAI
+                // Logo SENAI com estilo Figma
                 Container(
-                  height: 60,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Center(
                     child: Text(
                       'SENAI',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
+                        letterSpacing: 1,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: AppTheme.paddingXLarge),
+                const SizedBox(height: 24),
 
-                // Texto de instrução
+                // Instruções de login
                 const Text(
                   'Faça seu Login de Docente.',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppTheme.textSecondaryColor,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textPrimaryColor,
                   ),
                 ),
-                const SizedBox(height: AppTheme.paddingLarge),
+                const SizedBox(height: 28),
 
                 // Campo CPF
                 TextField(
                   controller: _cpfController,
-                  decoration: AppTheme.getFieldDecoration('Digite seu CPF'),
                   keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Digite seu CPF',
+                    filled: true,
+                    fillColor: AppTheme.inputBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppTheme.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    hintStyle: const TextStyle(
+                      color: AppTheme.textHintColor,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -123,16 +159,70 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: AppTheme.getFieldDecoration('Digite sua Senha'),
+                  decoration: InputDecoration(
+                    hintText: 'Digite sua Senha',
+                    filled: true,
+                    fillColor: AppTheme.inputBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppTheme.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    hintStyle: const TextStyle(
+                      color: AppTheme.textHintColor,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 // Campo Código de Entrada
                 TextField(
                   controller: _codeController,
-                  decoration: AppTheme.getFieldDecoration('Código de Entrada'),
+                  decoration: InputDecoration(
+                    hintText: 'Digite seu Código de Entrada',
+                    filled: true,
+                    fillColor: AppTheme.inputBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppTheme.primaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    hintStyle: const TextStyle(
+                      color: AppTheme.textHintColor,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: AppTheme.paddingXLarge),
+                const SizedBox(height: 28),
 
                 // Botão Entrar
                 SizedBox(
@@ -140,6 +230,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 52,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      disabledBackgroundColor: AppTheme.primaryColor
+                          .withOpacity(0.6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -150,10 +249,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           )
-                        : const Text('Entrar'),
+                        : const Text(
+                            'Entrar',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
-                const SizedBox(height: AppTheme.paddingLarge),
+                const SizedBox(height: 24),
 
                 // Link para cadastro
                 Row(
@@ -161,7 +267,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text(
                       'Não tem conta? ',
-                      style: TextStyle(color: AppTheme.textSecondaryColor),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textSecondaryColor,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -174,13 +283,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Cadastre-se',
                         style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
                 ),
+                SizedBox(height: isSmallerScreen ? 24 : 48),
               ],
             ),
           ),

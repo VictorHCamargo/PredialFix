@@ -22,9 +22,9 @@ class _SupportScreenState extends State<SupportScreen> {
 
   void _submitSupport() {
     if (_subjectController.text.isEmpty || _messageController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
       return;
     }
 
@@ -42,9 +42,7 @@ class _SupportScreenState extends State<SupportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(currentPage: MenuPage.support),
-      appBar: AppBar(
-        title: const Text('Suporte'),
-      ),
+      appBar: AppBar(title: const Text('Suporte')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingLarge),
         child: Column(
@@ -157,8 +155,9 @@ class _SupportScreenState extends State<SupportScreen> {
                         vertical: 14,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -189,17 +188,20 @@ class _SupportScreenState extends State<SupportScreen> {
             const SizedBox(height: 12),
             _buildFaqItem(
               question: 'Como abrir um novo chamado?',
-              answer: 'Clique em "Novo Chamado" na página inicial e preencha o formulário.',
+              answer:
+                  'Clique em "Novo Chamado" na página inicial e preencha o formulário.',
             ),
             const SizedBox(height: 8),
             _buildFaqItem(
               question: 'Qual é o tempo de resposta?',
-              answer: 'Chamados críticos em até 2 horas, alta em 4 horas e outros em 24 horas.',
+              answer:
+                  'Chamados críticos em até 2 horas, alta em 4 horas e outros em 24 horas.',
             ),
             const SizedBox(height: 8),
             _buildFaqItem(
               question: 'Posso cancelar um chamado?',
-              answer: 'Sim, você pode cancelar um chamado que ainda não foi iniciado.',
+              answer:
+                  'Sim, você pode cancelar um chamado que ainda não foi iniciado.',
             ),
           ],
         ),
@@ -215,11 +217,7 @@ class _SupportScreenState extends State<SupportScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: AppTheme.primaryColor,
-        ),
+        Icon(icon, size: 24, color: AppTheme.primaryColor),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -249,10 +247,7 @@ class _SupportScreenState extends State<SupportScreen> {
     );
   }
 
-  Widget _buildFaqItem({
-    required String question,
-    required String answer,
-  }) {
+  Widget _buildFaqItem({required String question, required String answer}) {
     return Container(
       decoration: AppTheme.getCardDecoration(),
       padding: const EdgeInsets.all(AppTheme.paddingMedium),

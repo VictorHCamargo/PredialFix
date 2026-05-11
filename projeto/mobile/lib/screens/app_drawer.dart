@@ -9,8 +9,8 @@ class AppDrawer extends StatelessWidget {
 
   static const _drawerItems = [
     _DrawerItem('Home', '/home', MenuPage.home),
-    _DrawerItem('Novo Chamado', '/request', MenuPage.createRequest),
-    _DrawerItem('Meus Chamados', '/manage', MenuPage.manage),
+    _DrawerItem('Criar Chamado', '/request', MenuPage.createRequest),
+    _DrawerItem('Gerenciar', '/manage', MenuPage.manage),
     _DrawerItem('Avaliações', '/ratings', MenuPage.ratings),
     _DrawerItem('Suporte', '/support', MenuPage.support),
     _DrawerItem('Perfil', '/profile', MenuPage.profile),
@@ -22,9 +22,10 @@ class AppDrawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
+            // Header com informações do usuário
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
+              padding: const EdgeInsets.all(16),
               color: AppTheme.primaryColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,21 +34,21 @@ class AppDrawer extends StatelessWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: const Icon(
                       Icons.person,
                       color: Colors.white,
-                      size: 32,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'João Silva',
+                    'Nome do Professor',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
@@ -56,61 +57,82 @@ class AppDrawer extends StatelessWidget {
                     'Docente',
                     style: TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white70,
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+
+            const Divider(height: 1, color: Color(0xFFE0E0E0)),
+
+            // Menu Items
             Expanded(
-              child: ListView.separated(
+              child: ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: _drawerItems.length,
-                separatorBuilder: (context, index) => const Divider(
-                  height: 1,
-                  indent: 0,
-                ),
                 itemBuilder: (context, index) {
                   final item = _drawerItems[index];
                   final selected = item.page == currentPage;
-                  return ListTile(
-                    title: Text(
-                      item.title,
-                      style: TextStyle(
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                        color: selected ? AppTheme.primaryColor : AppTheme.textPrimaryColor,
-                        fontSize: 14,
-                      ),
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppTheme.primaryColor.withOpacity(0.1)
+                          : Colors.transparent,
                     ),
-                    selected: selected,
-                    selectedTileColor: AppTheme.primaryColor.withOpacity(0.1),
-                    leading: selected
-                        ? Icon(Icons.check_circle,
-                            color: AppTheme.primaryColor)
-                        : null,
-                    onTap: () {
-                      Navigator.pop(context);
-                      if (selected) return;
-                      Navigator.pushReplacementNamed(context, item.route);
-                    },
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      title: Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: selected
+                              ? AppTheme.primaryColor
+                              : AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        if (selected) return;
+                        Navigator.pushReplacementNamed(context, item.route);
+                      },
+                    ),
                   );
                 },
               ),
             ),
-            const Divider(height: 1),
+
+            const Divider(height: 1, color: Color(0xFFE0E0E0)),
+
+            // Logout Button
             ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               title: const Text(
                 'Sair',
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
                   fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.errorColor,
                 ),
               ),
-              leading: const Icon(Icons.logout, color: AppTheme.errorColor),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/',
+                  (route) => false,
+                );
               },
             ),
           ],

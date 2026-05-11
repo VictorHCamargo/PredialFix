@@ -41,9 +41,7 @@ class _RatingScreenState extends State<RatingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const AppDrawer(currentPage: MenuPage.ratings),
-      appBar: AppBar(
-        title: const Text('Avaliações'),
-      ),
+      appBar: AppBar(title: const Text('Avaliações')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTheme.paddingLarge),
         child: Column(
@@ -161,7 +159,9 @@ class _RatingScreenState extends State<RatingScreen> {
                       filled: true,
                       fillColor: AppTheme.inputBackgroundColor,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
                         borderSide: BorderSide.none,
                       ),
                     ),
@@ -218,10 +218,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 const SizedBox(height: 4),
                 Text(
                   data,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
