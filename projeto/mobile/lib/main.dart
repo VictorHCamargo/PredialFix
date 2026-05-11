@@ -5,7 +5,9 @@ import 'screens/manage_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/request_screen.dart';
 import 'screens/rating_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/support_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,13 +20,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PredialFix',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE63946)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.appTheme,
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
         '/request': (context) => const RequestScreen(),
         '/manage': (context) => const ManageScreen(),

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../theme/app_theme.dart';
 import 'app_drawer.dart';
 
 class RequestScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class RequestScreen extends StatefulWidget {
 
 class _RequestScreenState extends State<RequestScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
@@ -61,6 +63,7 @@ class _RequestScreenState extends State<RequestScreen> {
 
   @override
   void dispose() {
+    _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
   }
@@ -86,6 +89,8 @@ class _RequestScreenState extends State<RequestScreen> {
 
     _formKey.currentState?.reset();
     setState(() {
+      _descriptionController.clear();
+      _locationController.clear();
       _selectedIncident = null;
       _selectedSection = null;
       _selectedPriority = null;
@@ -93,21 +98,6 @@ class _RequestScreenState extends State<RequestScreen> {
       _selectedWorkType = null;
       _pickedImageBytes = null;
     });
-  }
-
-  InputDecoration _fieldDecoration(String label, [String? helperText]) {
-    return InputDecoration(
-      labelText: label,
-      helperText: helperText,
-      helperStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-      filled: true,
-      fillColor: const Color(0xFFF8F8F8),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-    );
   }
 
   Widget _buildDropdownField({
@@ -119,9 +109,9 @@ class _RequestScreenState extends State<RequestScreen> {
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value,
-      decoration: _fieldDecoration(label, helperText),
-      dropdownColor: Colors.white,
-      borderRadius: BorderRadius.circular(12),
+      decoration: AppTheme.getFieldDecoration(label, helperText: helperText),
+      dropdownColor: AppTheme.cardBackgroundColor,
+      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
       items: options
           .map((option) => DropdownMenuItem<String>(
                 value: option,
@@ -140,55 +130,45 @@ class _RequestScreenState extends State<RequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const headerColor = Color(0xFFE63946);
-
     return Scaffold(
       drawer: const AppDrawer(currentPage: MenuPage.createRequest),
-      backgroundColor: const Color(0xFFF2F2F4),
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: headerColor,
-        elevation: 0,
-        title: const Text('Abrir Chamados'),
+        title: const Text('Abrir Chamado'),
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color.fromRGBO(0, 0, 0, 0.05),
-                          blurRadius: 18,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
+              padding: const EdgeInsets.all(AppTheme.paddingLarge),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      decoration: AppTheme.getCardDecoration(),
+                      padding: const EdgeInsets.all(AppTheme.paddingLarge),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Olá, Nome do Professor.',
+                            'Olá, Docente!',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimaryColor,
                             ),
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'Relate o problema abaixo.',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            'Relate o problema abaixo para abrir um novo chamado.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondaryColor,
+                            ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppTheme.paddingLarge),
                           _buildDropdownField(
                             label: 'Tipo de Incidente',
                             value: _selectedIncident,
@@ -200,10 +180,34 @@ class _RequestScreenState extends State<RequestScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _locationController,
-                            decoration: _fieldDecoration('Local'),
+                            decoration: AppTheme.getFieldDecoration('Local do Problema'),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Informe o local';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _descriptionController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              labelText: 'Descrição Detalhada',
+                              filled: true,
+                              fillColor: AppTheme.inputBackgroundColor,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Descreva o problema';
                               }
                               return null;
                             },
@@ -221,7 +225,6 @@ class _RequestScreenState extends State<RequestScreen> {
                           const SizedBox(height: 16),
                           _buildDropdownField(
                             label: 'Nível de Prioridade',
-                            helperText: '(Baixa, Média, Alta, Crítica)',
                             value: _selectedPriority,
                             options: _priorityOptions,
                             onChanged: (value) => setState(() {
@@ -231,7 +234,6 @@ class _RequestScreenState extends State<RequestScreen> {
                           const SizedBox(height: 16),
                           _buildDropdownField(
                             label: 'Nível de Complexidade',
-                            helperText: '(Simples, Média, Complexa)',
                             value: _selectedComplexity,
                             options: _complexityOptions,
                             onChanged: (value) => setState(() {
@@ -241,19 +243,19 @@ class _RequestScreenState extends State<RequestScreen> {
                           const SizedBox(height: 16),
                           _buildDropdownField(
                             label: 'Tipo de Trabalho',
-                            helperText: '(Preventiva, Corretiva, Melhoria)',
                             value: _selectedWorkType,
                             options: _workTypeOptions,
                             onChanged: (value) => setState(() {
                               _selectedWorkType = value;
                             }),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppTheme.paddingLarge),
                           const Text(
-                            'Foto',
+                            'Adicionar Foto (Opcional)',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimaryColor,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -263,18 +265,20 @@ class _RequestScreenState extends State<RequestScreen> {
                               height: 170,
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF3F3F3),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFDDDDDD)),
+                                color: AppTheme.inputBackgroundColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                border: Border.all(
+                                  color: AppTheme.textSecondaryColor.withOpacity(0.3),
+                                ),
                               ),
                               child: _pickedImageBytes == null
                                   ? Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.cloud_upload_outlined,
                                           size: 44,
-                                          color: Colors.grey,
+                                          color: AppTheme.primaryColor.withOpacity(0.6),
                                         ),
                                         const SizedBox(height: 12),
                                         const Text(
@@ -282,21 +286,21 @@ class _RequestScreenState extends State<RequestScreen> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
+                                            color: AppTheme.textPrimaryColor,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
                                         const Text(
-                                          'Adicione uma imagem',
+                                          'Adicione uma imagem da área',
                                           style: TextStyle(
                                             fontSize: 13,
-                                            color: Colors.grey,
+                                            color: AppTheme.textSecondaryColor,
                                           ),
                                         ),
                                       ],
                                     )
                                   : ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                                       child: Image.memory(
                                         _pickedImageBytes!,
                                         fit: BoxFit.cover,
@@ -307,76 +311,46 @@ class _RequestScreenState extends State<RequestScreen> {
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    height: 52,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitRequest,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: headerColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                      ),
-                      child: const Text(
-                        'Enviar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 52,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _submitRequest,
+                        child: const Text('Enviar Chamado'),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
             ),
           ),
           Container(
             width: double.infinity,
-            color: headerColor,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            color: AppTheme.primaryColor,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.paddingMedium,
+              vertical: AppTheme.paddingMedium,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'EDIFÍCIO SEDE FIESP',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    Text(
-                      'CENTRAL DE RELACIONAMENTO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10),
                 Text(
-                  'Av. Paulista, 1313, São Paulo/SP\nCEP 01311-930',
+                  'SENAI - Central de Relacionamento',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Tel 3222-0039 | Telefones/WhatsApp\n0800-055-1000 (Interior de SP,\nsomente tarifa local)',
+                  'Av. Paulista, 1313 - São Paulo/SP\nCEP 01311-930\nTel: (11) 3222-0039 | WhatsApp: 0800-055-1000',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 12,
+                    fontSize: 11,
+                    height: 1.6,
                   ),
                 ),
               ],

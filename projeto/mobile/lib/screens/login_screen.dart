@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'register_screen.dart';
-import 'dashboard_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,29 +41,21 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       
-      // Navega para o Dashboard após login bem-sucedido
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const DashboardScreen(),
-        ),
-      );
-      Navigator.of(context).pushReplacementNamed('/request');
+      // Navega para Home após login bem-sucedido
+      Navigator.of(context).pushReplacementNamed('/home');
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppTheme.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            margin: const EdgeInsets.all(AppTheme.paddingLarge),
+            padding: const EdgeInsets.all(AppTheme.paddingXLarge),
+            decoration: AppTheme.getCardDecoration(borderRadius: AppTheme.radiusLarge),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -72,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppTheme.textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -80,16 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Subtítulo
                 const Text(
                   'Bem-Vindo ao PredialFix!',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textSecondaryColor,
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Logo SENAI
                 Container(
                   height: 60,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE63946),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                   ),
                   child: const Center(
                     child: Text(
@@ -103,31 +99,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppTheme.paddingXLarge),
 
                 // Texto de instrução
                 const Text(
                   'Faça seu Login de Docente.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.textSecondaryColor,
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Campo CPF
                 TextField(
                   controller: _cpfController,
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu CPF:',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('Digite seu CPF'),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
@@ -136,55 +123,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'Digite Sua Senha:',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('Digite sua Senha'),
                 ),
                 const SizedBox(height: 16),
 
                 // Campo Código de Entrada
                 TextField(
                   controller: _codeController,
-                  decoration: InputDecoration(
-                    labelText: 'Digite seu Código de Entrada',
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
+                  decoration: AppTheme.getFieldDecoration('Código de Entrada'),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppTheme.paddingXLarge),
 
                 // Botão Entrar
                 SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE63946),
-                      disabledBackgroundColor: const Color(0xFFE63946)
-                          .withOpacity(0.6),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -195,17 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           )
-                        : const Text(
-                            'Entrar',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                        : const Text('Entrar'),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppTheme.paddingLarge),
 
                 // Link para cadastro
                 Row(
@@ -213,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text(
                       'Não tem conta? ',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppTheme.textSecondaryColor),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -226,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Cadastre-se',
                         style: TextStyle(
-                          color: Color(0xFFE63946),
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
