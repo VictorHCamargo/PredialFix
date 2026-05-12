@@ -70,22 +70,22 @@
                     @enderror
                 </div>
 
-                {{-- Campo Código de Entrada --}}
+                {{-- Campo Senha --}}
                 <div class="mb-6">
-                    <label for="cod_entrada" class="block text-sm font-medium text-gray-700 mb-1">
-                        Código de Entrada
+                    <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">
+                        Senha
                     </label>
                     <input
-                        id="cod_entrada"
-                        type="number"
-                        name="cod_entrada"
-                        autocomplete="off"
-                        placeholder="Digite seu código"
+                        id="senha"
+                        type="password"
+                        name="senha"
+                        autocomplete="current-password"
+                        placeholder="Digite sua senha"
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
-                               @error('cod_entrada') border-red-400 bg-red-50 @else border-gray-300 @enderror"
+                               @error('senha') border-red-400 bg-red-50 @else border-gray-300 @enderror"
                     >
-                    @error('cod_entrada')
+                    @error('senha')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -112,6 +112,13 @@
                     Entrar
                 </button>
             </form>
+
+            {{-- Link para registro --}}
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Não tem conta? <a href="{{ route('register') }}" class="text-red-600 font-semibold hover:underline">Registre-se aqui</a>
+                </p>
+            </div>
         </div>
 
         <p class="text-center text-xs text-gray-400 mt-6">
