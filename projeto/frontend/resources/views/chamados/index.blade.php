@@ -1,7 +1,38 @@
-<x-layouts.base-layout tittle="Gerenciar">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Chamados – PredialFix SENAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { senai: { red: '#E3000F', dark: '#1a1a1a' } },
+                    fontFamily: { sans: ['Segoe UI', 'system-ui', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50 font-sans">
+
     <x-navbar />
 
-    <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
+    <main class="flex-1 px-6 py-8 max-w-6xl mx-auto w-full">
+
+        @if (session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6">
+                {{ session('info') }}
+            </div>
+        @endif
 
         @php
             $abertos       = $chamados->where('status', 'aberto')->count();
@@ -38,14 +69,11 @@
             @endforeach
         </div>
 
-        <!-- Tabela + botões Avaliar -->
-        <div class="flex gap-4 items-start mb-8">
-
-            <!-- Tabela -->
-            <div class="flex-1 border border-gray-300 rounded overflow-hidden">
+        <!-- Tabela de Chamados -->
+        <div class="border border-gray-300 rounded overflow-hidden bg-white mb-8">
 
                 <!-- Barra de filtro -->
-                <div class="border-b border-gray-300 px-3 py-2 flex items-center gap-2 flex-wrap">
+                <div class="border-b border-gray-300 px-3 py-2 flex items-center gap-2 flex-wrap bg-gray-50">
                     <button id="btn-filtrar"
                             class="flex items-center gap-1 text-gray-700 text-xs font-medium border border-gray-300
                                    rounded px-3 py-1 hover:bg-gray-100 transition">
@@ -58,7 +86,6 @@
                     </button>
 
                     <div id="painel-filtros" class="hidden flex gap-2 flex-wrap ml-2">
-                        {{-- Filtro de status usa os valores do controller: aberto|em_andamento|concluido|cancelado --}}
                         <select id="filtro-status"
                                 class="border border-gray-300 rounded px-2 py-1 text-xs text-gray-700
                                        focus:outline-none focus:ring-1 focus:ring-senai-red">
@@ -81,42 +108,41 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left border-collapse">
                         <thead>
-                            <tr class="bg-white">
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Tipo</th>
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Descrição</th>
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Local</th>
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Data de Abertura</th>
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Status</th>
-                                {{-- "Detalhes" usa descricao — model Chamado não tem coluna 'detalhes' --}}
-                                <th class="px-3 py-2 text-gray-700 font-semibold border border-gray-300 text-xs">Detalhes</th>
+                            <tr class="bg-white border-b border-gray-300">
+                                <th class="px-3 py-2 text-gray-700 font-semibold border-r border-gray-300 text-xs">Tipo</th>
+                                <th class="px-3 py-2 text-gray-700 font-semibold border-r border-gray-300 text-xs">Descrição</th>
+                                <th class="px-3 py-2 text-gray-700 font-semibold border-r border-gray-300 text-xs">Local</th>
+                                <th class="px-3 py-2 text-gray-700 font-semibold border-r border-gray-300 text-xs">Abertura</th>
+                                <th class="px-3 py-2 text-gray-700 font-semibold border-r border-gray-300 text-xs">Status</th>
+                                <th class="px-3 py-2 text-gray-700 font-semibold text-xs">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($chamados as $chamado)
-                            <tr class="border border-gray-200 hover:bg-gray-50 transition chamado-row"
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition chamado-row"
                                 data-status="{{ $chamado->status }}"
                                 data-descricao="{{ strtolower($chamado->descricao) }}">
 
-                                <td class="px-3 py-2 text-gray-700 border border-gray-200 text-xs">
-                                    {{ $chamado->tipoProblema->nome ?? '—' }}
+                                <td class="px-3 py-2 text-gray-700 border-r border-gray-300 text-xs">
+                                    {{ $chamado->tipoProblema->categoria ?? '—' }}
                                 </td>
 
-                                <td class="px-3 py-2 text-gray-700 border border-gray-200 text-xs max-w-[130px] truncate"
+                                <td class="px-3 py-2 text-gray-700 border-r border-gray-300 text-xs max-w-[140px] truncate"
                                     title="{{ $chamado->descricao }}">
                                     {{ Str::limit($chamado->descricao, 18) }}
                                 </td>
 
-                                <td class="px-3 py-2 text-gray-700 border border-gray-200 text-xs">
-                                    {{ $chamado->local->nome ?? '—' }}
+                                <td class="px-3 py-2 text-gray-700 border-r border-gray-300 text-xs">
+                                    {{ $chamado->local->sala_setor ?? '—' }} - Bloco {{ $chamado->local->bloco ?? '' }}
                                 </td>
 
-                                <td class="px-3 py-2 text-gray-700 border border-gray-200 text-xs">
+                                <td class="px-3 py-2 text-gray-700 border-r border-gray-300 text-xs">
                                     {{ $chamado->data_abertura
                                         ? \Carbon\Carbon::parse($chamado->data_abertura)->format('d/m/Y')
                                         : '—' }}
                                 </td>
 
-                                <td class="px-3 py-2 border border-gray-200 text-xs">
+                                <td class="px-3 py-2 border-r border-gray-300 text-xs">
                                     @php
                                         $map = [
                                             'aberto'       => ['Aberto',       'text-blue-600'],
@@ -129,19 +155,34 @@
                                     <span class="{{ $cls }} font-medium">{{ $lbl }}</span>
                                 </td>
 
-                                {{--
-                                    "Detalhes" na imagem mostra mensagens como "Técnico a caminho",
-                                    "Aguardando Equipamentos" — isso viria de feedback ou campo extra.
-                                    Usando descricao resumida como fallback seguro enquanto não há coluna dedicada.
-                                --}}
-                                <td class="px-3 py-2 text-gray-600 border border-gray-200 text-xs max-w-[160px] truncate"
-                                    title="{{ $chamado->descricao }}">
-                                    {{ Str::limit($chamado->descricao, 28) }}
+                                <td class="px-3 py-2 text-xs space-y-1">
+                                    <div class="flex gap-2 flex-wrap">
+                                        @if ($chamado->status === 'concluido' && !$chamado->feedback)
+                                            <a href="{{ route('avaliar.create', $chamado->id_chamado) }}"
+                                               class="bg-senai-red hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-semibold transition">
+                                                Avaliar
+                                            </a>
+                                        @endif
+
+                                        <button onclick="abrirModalStatus({{ $chamado->id_chamado }}, '{{ $chamado->status }}')"
+                                                class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-semibold transition">
+                                            Status
+                                        </button>
+
+                                        <form method="POST" action="{{ route('chamados.destroy', $chamado->id_chamado) }}" style="display:inline;"
+                                              onsubmit="return confirm('Tem certeza que quer deletar este chamado?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-semibold transition">
+                                                Deletar
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="px-3 py-6 text-center text-gray-400 border border-gray-200 text-sm">
+                                <td colspan="6" class="px-3 py-6 text-center text-gray-400 border-b border-gray-200 text-sm">
                                     Nenhum chamado encontrado.
                                 </td>
                             </tr>
@@ -150,36 +191,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Coluna de botões Avaliar — alinhada linha a linha com a tabela -->
-            <div class="flex flex-col gap-0 pt-[38px] min-w-[100px]">
-                @forelse ($chamados as $chamado)
-                    {{--
-                        Chamado concluído → botão ativo (vermelho)
-                        Demais status    → botão desabilitado (cinza com X)
-                        Link aponta para chamados.show que já existe no controller
-                    --}}
-                    @if ($chamado->status === 'concluido')
-                        <a href="{{ route('chamados.show', $chamado->id_chamado) }}"
-                           class="flex items-center justify-center bg-senai-red text-white text-xs font-bold
-                                  rounded px-4 py-[9px] mb-[1px] hover:bg-red-700 transition shadow">
-                            Avaliar
-                        </a>
-                    @else
-                        <span class="flex items-center justify-center gap-1 text-gray-400 text-xs font-semibold
-                                     border border-gray-300 rounded px-4 py-[9px] mb-[1px] cursor-not-allowed select-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                            Avaliar
-                        </span>
-                    @endif
-                @empty
-                @endforelse
-            </div>
-
-        </div>
 
         <!-- Botão Relatar novo Problema -->
         <div class="flex justify-center">
@@ -191,7 +202,23 @@
         </div>
     </main>
 
-   <x-footer />
+    <!-- Rodapé -->
+    <footer class="bg-senai-red mt-8">
+        <div class="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="text-white">
+                <h3 class="font-bold text-sm uppercase tracking-wide mb-3">Edifício Sede FIESP</h3>
+                <p class="text-red-100 text-sm leading-relaxed">Av. Paulista, 1313, São Paulo/SP<br>CEP 01311-923</p>
+            </div>
+            <div class="text-white">
+                <h3 class="font-bold text-sm uppercase tracking-wide mb-3">Central de Relacionamento</h3>
+                <p class="text-red-100 text-sm leading-relaxed">
+                    (11) 3322-0050 (Telefone/WhatsApp)<br>
+                    0800-055-1000 (Interior de SP,<br>somente telefone fixo)
+                </p>
+            </div>
+        </div>
+        <div class="bg-red-900 text-center text-red-200 text-xs py-3">Copyright 2026 &copy; Todos os direitos reservados.</div>
+    </footer>
 
     <script>
         document.getElementById('btn-filtrar').addEventListener('click', () => {
@@ -215,5 +242,73 @@
             document.getElementById('filtro-busca').value  = '';
             document.querySelectorAll('.chamado-row').forEach(r => r.style.display = '');
         }
+
+        function abrirModalStatus(chamadoId, statusAtual) {
+            const modal = document.getElementById('modalStatus');
+            document.getElementById('modalChamadoId').value = chamadoId;
+            document.getElementById('modalStatusAtual').textContent = statusAtual;
+            document.getElementById('novoStatus').value = statusAtual;
+            modal.classList.remove('hidden');
+        }
+
+        function fecharModalStatus() {
+            document.getElementById('modalStatus').classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalStatus');
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
     </script>
-</x-layouts.base-layout>
+
+    <!-- Modal para alterar status -->
+    <div id="modalStatus" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded shadow-lg max-w-md w-full mx-4">
+            <div class="px-6 py-4 border-b border-gray-300">
+                <h2 class="text-lg font-semibold text-gray-800">Alterar Status do Chamado</h2>
+            </div>
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-600 mb-4">
+                    Status atual: <span id="modalStatusAtual" class="font-semibold text-gray-800"></span>
+                </p>
+                <form id="formStatus" method="POST" class="space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" id="modalChamadoId">
+                    <select id="novoStatus" name="status" required
+                            class="w-full border border-gray-400 rounded px-4 py-2 text-sm text-gray-700
+                                   focus:outline-none focus:ring-2 focus:ring-senai-red">
+                        <option value="">-- Selecione um status --</option>
+                        <option value="aberto">Aberto</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                    <div class="flex gap-3 justify-end">
+                        <button type="button" onclick="fecharModalStatus()"
+                                class="text-gray-600 hover:text-gray-800 font-semibold px-4 py-2 border border-gray-300 rounded transition">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                                class="bg-senai-red hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('formStatus').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const chamadoId = document.getElementById('modalChamadoId').value;
+            const form = this;
+            form.action = `/chamados/${chamadoId}/status`;
+            form.submit();
+        });
+    </script>
+</body>
+</html>

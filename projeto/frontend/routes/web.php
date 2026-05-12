@@ -48,8 +48,17 @@ Route::middleware('auth.custom')->group(function () {
     // Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Chamados (descomente quando precisar)
-    // Route::get('/chamados', [ChamadoController::class, 'index'])->name('chamados.index');
-    // Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
+    // Chamados
+    Route::get('/chamados', [ChamadoController::class, 'index'])->name('chamados.index');
+    Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
+    Route::post('/chamados', [ChamadoController::class, 'store'])->name('chamados.store');
+    Route::get('/chamados/{id}', [ChamadoController::class, 'show'])->name('chamados.show');
+    Route::patch('/chamados/{id}/status', [ChamadoController::class, 'updateStatus'])->name('chamados.updateStatus');
+    Route::delete('/chamados/{id}', [ChamadoController::class, 'destroy'])->name('chamados.destroy');
+
+    // Avaliações
+    Route::get('/avaliar', [\App\Http\Controllers\FeedbackController::class, 'index'])->name('avaliar.index');
+    Route::get('/avaliar/{id}', [\App\Http\Controllers\FeedbackController::class, 'create'])->name('avaliar.create');
+    Route::post('/avaliar', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('avaliar.store');
 
 });

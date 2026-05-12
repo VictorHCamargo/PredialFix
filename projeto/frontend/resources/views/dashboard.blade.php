@@ -1,7 +1,7 @@
 <x-layouts.base-layout tittle="Dashboard">
     <x-navbar />
-        <h1>Hello </h1>
-    <!-- <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
+
+  <main class="flex-1 px-6 py-8 max-w-5xl mx-auto w-full">
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
 
@@ -97,7 +97,7 @@
                 Relatar novo Problema
             </a>
         </div>
-    </main> -->
+    </main> 
 
     <x-footer />
 

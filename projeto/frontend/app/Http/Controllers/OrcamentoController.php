@@ -12,7 +12,7 @@ class OrcamentoController extends Controller
     {
         $data = $request->validate([
             'valor' => 'required|numeric',
-            'descricao' => 'nullable|string',
+            'descricao' => 'required|string',
             'data_verificacao' => 'required|date',
         ]);
 

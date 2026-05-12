@@ -18,8 +18,11 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
+            'nome' => 'Test User',
             'email' => 'test@example.com',
+            'cod_entrada' => 1234,
         ]);
+
+        $this->call(ChamadosSeeder::class);
     }
 }

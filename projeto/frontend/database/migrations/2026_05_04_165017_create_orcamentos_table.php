@@ -16,7 +16,7 @@ return new class extends Migration
             $table->decimal('valor', 10, 2);
             $table->boolean('aprovacao')->default(false);
             $table->date('data_verificacao');
-            $table->text('descricao')->nullable();
+            $table->text('descricao');
             $table->timestamps();
         });
     }

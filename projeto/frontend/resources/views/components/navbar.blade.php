@@ -39,7 +39,7 @@
             Home
         </x-nav-item>
 
-        <!-- <x-nav-item
+        <x-nav-item
             href="{{ route('chamados.create') }}"
             route="chamados.create"
             :color="$itemColor"
@@ -54,7 +54,16 @@
             :border="false"
         >
             Gerenciar Chamados
-        </x-nav-item> -->
+        </x-nav-item>
+
+        <x-nav-item
+            href="{{ route('avaliar.index') }}"
+            route="avaliar.index"
+            :color="$itemColor"
+            :border="false"
+        >
+            Avaliar
+        </x-nav-item>
 
         {{ $slot ?? '' }}
 

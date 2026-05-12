@@ -10,10 +10,15 @@ class Chamado extends Model {
         'descricao',
         'prioridade',
         'status',
+        'data_abertura',
+        'data_conclusao',
         'id_local',
         'id_tipo',
         'id_equipamento',
         'id_usuario',
+        'secao_tecnica',
+        'complexidade',
+        'tipo_trabalho',
     ];
 
     public function usuario() {

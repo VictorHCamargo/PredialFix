@@ -21,137 +21,176 @@
     <x-navbar />
 
     <!-- Conteúdo -->
-    <main class="flex-1 px-6 py-8 max-w-3xl w-full">
+    <main class="flex-1 px-6 py-8 max-w-2xl mx-auto w-full">
 
-        <h1 class="text-xl font-semibold text-gray-800 mb-6">
+        <h1 class="text-lg font-semibold text-gray-800 mb-6">
             Olá, <span class="font-bold">{{ Auth::user()->nome }}</span>. Relate o problema abaixo.
         </h1>
 
         @if ($errors->any())
-            <div class="bg-red-100 border border-red-300 text-red-700 text-sm rounded px-4 py-3 mb-5">
+            <div class="bg-red-100 border border-red-300 text-red-700 text-xs rounded px-4 py-3 mb-5">
                 <ul class="list-disc pl-4 space-y-1">
                     @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
                 </ul>
             </div>
         @endif
 
-        {{--
-            Campos alinhados 100% com ChamadoController::store():
-              descricao     → required|string
-              prioridade    → required|in:baixa,media,alta
-              id_local      → required|exists:locais,id_local
-              id_tipo       → required|exists:tipo_problemas,id_tipo
-              id_equipamento→ nullable|exists:equipamentos,id_equipamento
-        --}}
         <form method="POST" action="{{ route('chamados.store') }}" enctype="multipart/form-data" class="flex flex-col gap-5">
             @csrf
 
-            <!-- id_tipo -->
-            <div class="flex flex-col gap-1">
-                <label for="id_tipo" class="text-gray-800 text-sm font-semibold">
-                    Tipo de Incidente: <span class="text-senai-red">*</span>
+            <!-- Descrição do Problema -->
+            <div class="flex flex-col gap-2">
+                <label for="descricao" class="text-gray-800 text-sm font-semibold">
+                    Descrição do Problema *
                 </label>
-                <div class="relative w-52">
+                <textarea id="descricao" name="descricao" required placeholder="Descreva em detalhes o problema encontrado"
+                          class="w-full border border-gray-400 rounded px-4 py-2 text-sm text-gray-700 
+                                 focus:outline-none focus:ring-2 focus:ring-senai-red resize-none"
+                          rows="4">{{ old('descricao') }}</textarea>
+                @error('descricao')
+                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- Tipo de Incidente -->
+            <div class="flex flex-col gap-2">
+                <label for="id_tipo" class="text-gray-800 text-sm font-semibold">
+                    Tipo de Incidente:
+                </label>
+                <div class="relative w-56">
                     <select id="id_tipo" name="id_tipo" required
                             class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
                                    text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
                         <option value="" disabled {{ old('id_tipo') ? '' : 'selected' }}>Selecione</option>
                         @foreach ($tipos as $tipo)
                             <option value="{{ $tipo->id_tipo }}" {{ old('id_tipo') == $tipo->id_tipo ? 'selected' : '' }}>
-                                {{ $tipo->nome }}
+                                {{ $tipo->categoria }}
                             </option>
                         @endforeach
                     </select>
-                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500 text-xs">▼</span>
+                    <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
                 </div>
             </div>
 
-            <!-- id_local -->
-            <div class="flex flex-col gap-1">
+            <!-- Local -->
+            <div class="flex flex-col gap-2">
                 <label for="id_local" class="text-gray-800 text-sm font-semibold">
-                    Local <span class="text-senai-red">*</span>
+                    Local
                 </label>
-                <select id="id_local" name="id_local" required
-                        class="w-full max-w-xl border border-gray-400 rounded px-4 py-2 text-sm text-gray-700
-                               focus:outline-none focus:ring-2 focus:ring-senai-red bg-white cursor-pointer">
-                    <option value="" disabled {{ old('id_local') ? '' : 'selected' }}>Selecione o local</option>
-                    @foreach ($locais as $local)
-                        <option value="{{ $local->id_local }}" {{ old('id_local') == $local->id_local ? 'selected' : '' }}>
-                            {{ $local->nome }}
-                        </option>
-                    @endforeach
-                </select>
+                <div class="relative w-56">
+                    <select id="id_local" name="id_local" required
+                            class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
+                                   text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
+                        <option value="" disabled {{ old('id_local') ? '' : 'selected' }}>Selecione</option>
+                        @foreach ($locais as $local)
+                            <option value="{{ $local->id_local }}" {{ old('id_local') == $local->id_local ? 'selected' : '' }}>
+                                {{ $local->sala_setor }} - Bloco {{ $local->bloco }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
+                </div>
             </div>
 
-            <!-- prioridade → SOMENTE: baixa | media | alta -->
-            <div class="flex flex-col gap-1">
-                <label for="prioridade" class="text-gray-800 text-sm font-semibold">
-                    Nível de Prioridade <span class="text-senai-red">*</span>
+            <!-- Seção Técnica -->
+            <div class="flex flex-col gap-2">
+                <label for="secao_tecnica" class="text-gray-800 text-sm font-semibold">
+                    Seção Técnica
                 </label>
                 <div class="flex items-center gap-3">
-                    <div class="relative w-52">
+                    <div class="relative w-56">
+                        <select id="secao_tecnica" name="secao_tecnica"
+                                class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
+                                       text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
+                            <option value="" {{ old('secao_tecnica') ? '' : 'selected' }}>Selecione</option>
+                            <option value="eletrica" {{ old('secao_tecnica') === 'eletrica' ? 'selected' : '' }}>Elétrica</option>
+                            <option value="hidraulica" {{ old('secao_tecnica') === 'hidraulica' ? 'selected' : '' }}>Hidráulica</option>
+                            <option value="civil" {{ old('secao_tecnica') === 'civil' ? 'selected' : '' }}>Civil</option>
+                            <option value="mecanica" {{ old('secao_tecnica') === 'mecanica' ? 'selected' : '' }}>Mecânica</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
+                    </div>
+                    <span class="text-gray-500 text-xs">(Elétrica, Hidraulica, Civil, etc)</span>
+                </div>
+            </div>
+
+            <!-- Nível de Prioridade -->
+            <div class="flex flex-col gap-2">
+                <label for="prioridade" class="text-gray-800 text-sm font-semibold">
+                    Nível de Prioridade
+                </label>
+                <div class="flex items-center gap-3">
+                    <div class="relative w-56">
                         <select id="prioridade" name="prioridade" required
                                 class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
                                        text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
                             <option value="" disabled {{ old('prioridade') ? '' : 'selected' }}>Selecione</option>
                             <option value="baixa" {{ old('prioridade') === 'baixa' ? 'selected' : '' }}>Baixa</option>
                             <option value="media" {{ old('prioridade') === 'media' ? 'selected' : '' }}>Média</option>
-                            <option value="alta"  {{ old('prioridade') === 'alta'  ? 'selected' : '' }}>Alta</option>
-                            {{-- "critica" removido: controller rejeita com in:baixa,media,alta --}}
+                            <option value="alta" {{ old('prioridade') === 'alta' ? 'selected' : '' }}>Alta</option>
                         </select>
-                        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500 text-xs">▼</span>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
                     </div>
-                    <span class="text-gray-500 text-xs">(Baixa, Média, Alta)</span>
+                    <span class="text-gray-500 text-xs">(Baixa, Média, Alta, Crítica)</span>
                 </div>
             </div>
 
-            <!-- id_equipamento → nullable, lista de Equipamento::where('status','ativo') -->
-            <div class="flex flex-col gap-1">
-                <label for="id_equipamento" class="text-gray-800 text-sm font-semibold">
-                    Equipamento
-                    <span class="text-gray-400 text-xs font-normal">(opcional)</span>
+            <!-- Nível de Complexidade -->
+            <div class="flex flex-col gap-2">
+                <label for="complexidade" class="text-gray-800 text-sm font-semibold">
+                    Nível de Complexidade
                 </label>
-                <div class="relative w-52">
-                    <select id="id_equipamento" name="id_equipamento"
-                            class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
-                                   text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
-                        <option value="">Nenhum</option>
-                        @foreach ($equipamentos as $equipamento)
-                            <option value="{{ $equipamento->id_equipamento }}"
-                                {{ old('id_equipamento') == $equipamento->id_equipamento ? 'selected' : '' }}>
-                                {{ $equipamento->nome }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500 text-xs">▼</span>
+                <div class="flex items-center gap-3">
+                    <div class="relative w-56">
+                        <select id="complexidade" name="complexidade"
+                                class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
+                                       text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
+                            <option value="" {{ old('complexidade') ? '' : 'selected' }}>Selecione</option>
+                            <option value="simples" {{ old('complexidade') === 'simples' ? 'selected' : '' }}>Simples</option>
+                            <option value="media" {{ old('complexidade') === 'media' ? 'selected' : '' }}>Média</option>
+                            <option value="complexa" {{ old('complexidade') === 'complexa' ? 'selected' : '' }}>Complexa</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
+                    </div>
+                    <span class="text-gray-500 text-xs">(Simples, Média, Complexa)</span>
                 </div>
             </div>
 
-            <!-- descricao → required|string -->
-            <div class="flex flex-col gap-1">
-                <label for="descricao" class="text-gray-800 text-sm font-semibold">
-                    Descrição <span class="text-senai-red">*</span>
+            <!-- Tipo de Trabalho -->
+            <div class="flex flex-col gap-2">
+                <label for="tipo_trabalho" class="text-gray-800 text-sm font-semibold">
+                    Tipo de Trabalho
                 </label>
-                <textarea id="descricao" name="descricao" rows="4" required
-                          placeholder="Descreva o problema com detalhes..."
-                          class="w-full max-w-xl border border-gray-400 rounded px-4 py-2 text-sm text-gray-700
-                                 focus:outline-none focus:ring-2 focus:ring-senai-red resize-none">{{ old('descricao') }}</textarea>
+                <div class="flex items-center gap-3">
+                    <div class="relative w-56">
+                        <select id="tipo_trabalho" name="tipo_trabalho"
+                                class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
+                                       text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
+                            <option value="" {{ old('tipo_trabalho') ? '' : 'selected' }}>Selecione</option>
+                            <option value="preventiva" {{ old('tipo_trabalho') === 'preventiva' ? 'selected' : '' }}>Preventiva</option>
+                            <option value="corretiva" {{ old('tipo_trabalho') === 'corretiva' ? 'selected' : '' }}>Corretiva</option>
+                            <option value="melhoria" {{ old('tipo_trabalho') === 'melhoria' ? 'selected' : '' }}>Melhoria</option>
+                        </select>
+                        <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
+                    </div>
+                    <span class="text-gray-500 text-xs">(Preventiva, Corretiva, Melhoria)</span>
+                </div>
             </div>
 
-            <!-- Foto (campo extra de UX — não validado no controller) -->
-            <div class="flex flex-col gap-1">
+            <!-- Foto -->
+            <div class="flex flex-col gap-2">
                 <label class="text-gray-800 text-sm font-semibold">Foto</label>
                 <div id="drop-zone"
                      class="w-24 h-24 border-2 border-dashed border-gray-400 rounded flex flex-col items-center
                             justify-center cursor-pointer hover:border-senai-red hover:bg-red-50 transition relative">
                     <input id="foto" name="foto" type="file" accept="image/*"
                            class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-                    <p class="text-gray-500 text-xs text-center leading-tight px-1">Faça upload</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mt-1" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
                          viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
+                    <p class="text-gray-500 text-xs text-center leading-tight px-1">Faça upload</p>
                     <p class="text-gray-400 text-xs text-center px-1 mt-1">ou arraste uma imagem</p>
                 </div>
                 <div id="preview-container" class="hidden mt-2">
@@ -160,7 +199,8 @@
                 </div>
             </div>
 
-            <div>
+            <!-- Botão Enviar -->
+            <div class="pt-3">
                 <button type="submit"
                         class="bg-senai-red hover:bg-red-700 text-white font-bold text-sm px-8 py-3 rounded
                                transition duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-senai-red focus:ring-offset-2">

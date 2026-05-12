@@ -31,6 +31,9 @@ class ChamadoController extends Controller
             'id_local' => 'required|exists:locais,id_local',
             'id_tipo' => 'required|exists:tipo_problemas,id_tipo',
             'id_equipamento' => 'nullable|exists:equipamentos,id_equipamento',
+            'secao_tecnica' => 'nullable|string',
+            'complexidade' => 'nullable|string',
+            'tipo_trabalho' => 'nullable|string',
         ]);
 
         $data['id_usuario'] = $request->user()->id_usuario;
@@ -48,6 +51,23 @@ class ChamadoController extends Controller
         return view('chamados.show', compact('chamado'));
     }
 
+    public function updateStatus(Request $request, string $id)
+    {
+        $chamado = Chamado::findOrFail($id);
+        
+        $data = $request->validate([
+            'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
+        ]);
+
+        if ($data['status'] === 'concluido' && !$chamado->data_conclusao) {
+            $chamado->data_conclusao = now();
+        }
+
+        $chamado->update($data);
+        
+        return redirect()->route('chamados.index')->with('success', 'Status atualizado com sucesso!');
+    }
+
     public function update(Request $request, string $id)
     {
         $chamado = Chamado::findOrFail($id);
@@ -62,7 +82,14 @@ class ChamadoController extends Controller
 
     public function destroy(string $id)
     {
-        Chamado::findOrFail($id)->delete();
-        return redirect()->route('chamados.index');
+        $chamado = Chamado::findOrFail($id);
+        
+        // Deletar feedback associado se existir
+        if ($chamado->feedback) {
+            $chamado->feedback->delete();
+        }
+        
+        $chamado->delete();
+        return redirect()->route('chamados.index')->with('success', 'Chamado deletado com sucesso!');
     }
 }
