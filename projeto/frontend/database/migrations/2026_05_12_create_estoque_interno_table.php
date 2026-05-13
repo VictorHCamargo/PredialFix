@@ -33,7 +33,6 @@ return new class extends Migration
             
             // Índices
             $table->index('status_item');
-            $table->index('categoria');
             $table->timestamps();
         });
     }

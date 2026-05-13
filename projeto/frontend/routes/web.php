@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /*
@@ -53,6 +55,8 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
     Route::post('/chamados', [ChamadoController::class, 'store'])->name('chamados.store');
     Route::get('/chamados/{id}', [ChamadoController::class, 'show'])->name('chamados.show');
+    Route::get('/chamados/{id}/edit', [ChamadoController::class, 'edit'])->name('chamados.edit');
+    Route::put('/chamados/{id}', [ChamadoController::class, 'update'])->name('chamados.update');
     Route::patch('/chamados/{id}/status', [ChamadoController::class, 'updateStatus'])->name('chamados.updateStatus');
     Route::delete('/chamados/{id}', [ChamadoController::class, 'destroy'])->name('chamados.destroy');
 

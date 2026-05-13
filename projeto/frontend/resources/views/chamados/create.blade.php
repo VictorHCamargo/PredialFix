@@ -52,6 +52,26 @@
                 @enderror
             </div>
 
+            <!-- Tipo de Chamado -->
+            <div class="flex flex-col gap-2">
+                <label for="tipo_chamado" class="text-gray-800 text-sm font-semibold">
+                    Tipo de Chamado *
+                </label>
+                <div class="relative w-56">
+                    <select id="tipo_chamado" name="tipo_chamado" required
+                            class="w-full appearance-none bg-white border border-gray-400 rounded px-4 py-2 pr-8 text-sm
+                                   text-gray-700 focus:outline-none focus:ring-2 focus:ring-senai-red cursor-pointer">
+                        <option value="" disabled {{ old('tipo_chamado') ? '' : 'selected' }}>Selecione</option>
+                        <option value="interno" {{ old('tipo_chamado') === 'interno' ? 'selected' : '' }}>Interno</option>
+                        <option value="externo" {{ old('tipo_chamado') === 'externo' ? 'selected' : '' }}>Externo</option>
+                    </select>
+                    <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">▼</span>
+                </div>
+                @error('tipo_chamado')
+                    <span class="text-red-600 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+
             <!-- Tipo de Incidente -->
             <div class="flex flex-col gap-2">
                 <label for="id_tipo" class="text-gray-800 text-sm font-semibold">

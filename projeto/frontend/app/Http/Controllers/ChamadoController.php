@@ -106,6 +106,26 @@ class ChamadoController extends Controller
     }
 
     /**
+     * Exibir formulário de edição de um chamado
+     */
+    public function edit(string $id)
+    {
+        $chamado = Chamado::findOrFail($id);
+        $user = Auth::user();
+
+        // Apenas o criador do chamado pode editar (e apenas se estiver aberto)
+        if ($chamado->id_usuario !== $user->id_usuario || $chamado->status !== 'aberto') {
+            return redirect()->route('chamados.show', $id)->withErrors(['edit' => 'Você não pode editar este chamado.']);
+        }
+
+        $locais = Local::all();
+        $tipos = TipoProblema::all();
+        $equipamentos = Equipamento::where('status', 'ativo')->get();
+
+        return view('chamados.edit', compact('chamado', 'locais', 'tipos', 'equipamentos'));
+    }
+
+    /**
      * Atualizar status do chamado com validações baseadas no nível de acesso
      */
     public function updateStatus(Request $request, string $id)
