@@ -19,7 +19,7 @@ class User extends Authenticatable {
         'cod_entrada',
         'nivel_acesso',
         'setor',
-        'ativo'
+        'ativo',
     ];
 
     protected $hidden = ['senha', 'remember_token'];
@@ -27,7 +27,7 @@ class User extends Authenticatable {
     protected $casts = [
         'ativo' => 'boolean',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -94,17 +94,9 @@ class User extends Authenticatable {
     }
 
     /**
-     * Relacionamento com feedback
-     */
-    public function feedbacks() {
-        return $this->hasMany(Feedback::class, 'id_usuario');
-    }
-
-    /**
      * Verificar se usuário tem código de entrada válido (pode acessar mais funcionalidades)
      */
     public function temCodigoEntrada() {
         return !is_null($this->cod_entrada) && !empty($this->cod_entrada);
     }
 }
-

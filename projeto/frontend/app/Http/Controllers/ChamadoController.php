@@ -10,13 +10,11 @@ use App\Models\Equipamento;
 use App\Models\HistoricoStatusChamado;
 use Illuminate\Support\Facades\Auth;
 
-class ChamadoController extends Controller
-{
+class ChamadoController extends Controller {
     /**
      * Mostrar lista de chamados com filtros e paginação
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $query = Chamado::with(['usuario', 'local', 'tipoProblema']);
         $user = Auth::user();
 
@@ -42,29 +40,29 @@ class ChamadoController extends Controller
 
         // Ordenar por prioridade (maior primeiro) e depois por data
         $chamados = $query
-            ->orderByRaw("CASE WHEN prioridade='alta' THEN 1 WHEN prioridade='media' THEN 2 WHEN prioridade='baixa' THEN 3 ELSE 4 END")
+            ->orderByRaw(
+                "CASE WHEN prioridade='alta' THEN 1 WHEN prioridade='media' THEN 2 WHEN prioridade='baixa' THEN 3 ELSE 4 END",
+            )
             ->orderBy('data_abertura', 'desc')
             ->paginate(10); // 10 chamados por página
 
         $filtros = [
             'status' => $request->status ?? '',
             'tipo_chamado' => $request->tipo_chamado ?? '',
-            'prioridade' => $request->prioridade ?? ''
+            'prioridade' => $request->prioridade ?? '',
         ];
 
         return view('chamados.index', compact('chamados', 'filtros'));
     }
 
-    public function create()
-    {
+    public function create() {
         $locais = Local::all();
         $tipos = TipoProblema::all();
         $equipamentos = Equipamento::where('status', 'ativo')->get();
         return view('chamados.create', compact('locais', 'tipos', 'equipamentos'));
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
             'descricao' => 'required|string',
             'tipo_chamado' => 'required|in:interno,externo',
@@ -90,8 +88,7 @@ class ChamadoController extends Controller
     /**
      * Mostrar detalhes de um chamado
      */
-    public function show(string $id)
-    {
+    public function show(string $id) {
         $chamado = Chamado::with([
             'usuario',
             'usuarioResponsavel',
@@ -99,7 +96,7 @@ class ChamadoController extends Controller
             'tipoProblema',
             'equipamento',
             'feedback',
-            'historicoStatus.usuario'
+            'historicoStatus.usuario',
         ])->findOrFail($id);
 
         return view('chamados.show', compact('chamado'));
@@ -108,14 +105,15 @@ class ChamadoController extends Controller
     /**
      * Exibir formulário de edição de um chamado
      */
-    public function edit(string $id)
-    {
+    public function edit(string $id) {
         $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
 
         // Apenas o criador do chamado pode editar (e apenas se estiver aberto)
         if ($chamado->id_usuario !== $user->id_usuario || $chamado->status !== 'aberto') {
-            return redirect()->route('chamados.show', $id)->withErrors(['edit' => 'Você não pode editar este chamado.']);
+            return redirect()
+                ->route('chamados.show', $id)
+                ->withErrors(['edit' => 'Você não pode editar este chamado.']);
         }
 
         $locais = Local::all();
@@ -128,15 +126,14 @@ class ChamadoController extends Controller
     /**
      * Atualizar status do chamado com validações baseadas no nível de acesso
      */
-    public function updateStatus(Request $request, string $id)
-    {
+    public function updateStatus(Request $request, string $id) {
         $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
 
         $request->validate([
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
             'status_descricao' => 'nullable|string',
-            'prioridade' => 'nullable|in:baixa,media,alta'
+            'prioridade' => 'nullable|in:baixa,media,alta',
         ]);
 
         $novoStatus = $request->status;
@@ -145,16 +142,22 @@ class ChamadoController extends Controller
 
         // Validar transições de status
         if (!$this->validarTransicaoStatus($user, $statusAtual, $novoStatus)) {
-            return back()->withErrors(['status' => 'Você não tem permissão para realizar esta alteração de status.']);
+            return back()->withErrors([
+                'status' => 'Você não tem permissão para realizar esta alteração de status.',
+            ]);
         }
 
         // Validar descrição obrigatória para certas transições
         if ($novoStatus === 'concluido' && empty($descricao)) {
-            return back()->withErrors(['status_descricao' => 'Descrição obrigatória ao concluir um chamado.']);
+            return back()->withErrors([
+                'status_descricao' => 'Descrição obrigatória ao concluir um chamado.',
+            ]);
         }
 
         if ($novoStatus === 'cancelado' && empty($descricao)) {
-            return back()->withErrors(['status_descricao' => 'Descrição obrigatória ao cancelar um chamado.']);
+            return back()->withErrors([
+                'status_descricao' => 'Descrição obrigatória ao cancelar um chamado.',
+            ]);
         }
 
         // Validar prioridade apenas na transição para em_andamento
@@ -181,17 +184,18 @@ class ChamadoController extends Controller
             'status_novo' => $novoStatus,
             'descricao_mudanca' => $descricao,
             'id_usuario' => $user->id_usuario,
-            'prioridade' => $request->prioridade ?? null
+            'prioridade' => $request->prioridade ?? null,
         ]);
 
-        return redirect()->route('chamados.show', $id)->with('success', 'Status atualizado com sucesso!');
+        return redirect()
+            ->route('chamados.show', $id)
+            ->with('success', 'Status atualizado com sucesso!');
     }
 
     /**
      * Validar transições de status baseadas no nível de acesso
      */
-    private function validarTransicaoStatus($user, $statusAtual, $novoStatus)
-    {
+    private function validarTransicaoStatus($user, $statusAtual, $novoStatus) {
         // Admin pode fazer qualquer transição
         if ($user->isAdmin()) {
             return true;
@@ -215,8 +219,7 @@ class ChamadoController extends Controller
         return false;
     }
 
-    public function update(Request $request, string $id)
-    {
+    public function update(Request $request, string $id) {
         $chamado = Chamado::findOrFail($id);
         $data = $request->validate([
             'descricao' => 'required|string',
@@ -227,17 +230,20 @@ class ChamadoController extends Controller
         ]);
 
         $chamado->update($data);
-        return redirect()->route('chamados.show', $id)->with('success', 'Chamado atualizado com sucesso!');
+        return redirect()
+            ->route('chamados.show', $id)
+            ->with('success', 'Chamado atualizado com sucesso!');
     }
 
-    public function destroy(string $id)
-    {
+    public function destroy(string $id) {
         $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
 
         // Apenas admin ou o criador do chamado podem deletar
         if (!$user->isAdmin() && $chamado->id_usuario !== $user->id_usuario) {
-            return back()->withErrors(['delete' => 'Você não tem permissão para deletar este chamado.']);
+            return back()->withErrors([
+                'delete' => 'Você não tem permissão para deletar este chamado.',
+            ]);
         }
 
         // Deletar histórico associado
@@ -249,6 +255,8 @@ class ChamadoController extends Controller
         }
 
         $chamado->delete();
-        return redirect()->route('chamados.index')->with('success', 'Chamado deletado com sucesso!');
+        return redirect()
+            ->route('chamados.index')
+            ->with('success', 'Chamado deletado com sucesso!');
     }
 }

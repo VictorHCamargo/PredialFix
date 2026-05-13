@@ -7,13 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
-{
+class AuthController extends Controller {
     /**
      * Exibe a tela de login.
      */
-    public function showLogin()
-    {
+    public function showLogin() {
         // Se já estiver logado, manda pro dashboard
         if (Auth::check()) {
             return redirect()->route('dashboard');
@@ -25,17 +23,19 @@ class AuthController extends Controller
     /**
      * Processa o login: verifica email + senha.
      */
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email'  => ['required', 'email'],
-            'senha'  => ['required', 'string'],
-        ], [
-            'email.required'  => 'O e-mail é obrigatório.',
-            'email.email'     => 'Informe um e-mail válido.',
-            'senha.required'  => 'A senha é obrigatória.',
-            'senha.string'    => 'A senha deve ser texto.',
-        ]);
+    public function login(Request $request) {
+        $request->validate(
+            [
+                'email' => ['required', 'email'],
+                'senha' => ['required', 'string'],
+            ],
+            [
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Informe um e-mail válido.',
+                'senha.required' => 'A senha é obrigatória.',
+                'senha.string' => 'A senha deve ser texto.',
+            ],
+        );
 
         // Busca o usuário pelo e-mail
         $user = User::where('email', $request->email)->first();
@@ -65,40 +65,41 @@ class AuthController extends Controller
     /**
      * Exibe a tela de registro com seleção de nível de perfil.
      */
-    public function showRegister()
-    {
+    public function showRegister() {
         return view('auth.register');
     }
 
     /**
      * Processa o registro de novo usuário.
      */
-    public function register(Request $request)
-    {
-        $request->validate([
-            'nome'          => ['required', 'string', 'max:255'],
-            'email'         => ['required', 'email', 'unique:usuarios,email'],
-            'senha'         => ['required', 'string', 'min:8', 'confirmed'],
-            'nivel_acesso'  => ['required', 'in:professor,aluno,visitante'],
-            'setor'         => ['nullable', 'string'],
-        ], [
-            'nome.required'         => 'O nome é obrigatório.',
-            'email.required'        => 'O e-mail é obrigatório.',
-            'email.email'           => 'Informe um e-mail válido.',
-            'email.unique'          => 'Este e-mail já está registrado.',
-            'senha.required'        => 'A senha é obrigatória.',
-            'senha.min'             => 'A senha deve ter no mínimo 8 caracteres.',
-            'senha.confirmed'       => 'As senhas não conferem.',
-            'nivel_acesso.required' => 'Selecione um nível de acesso.',
-        ]);
+    public function register(Request $request) {
+        $request->validate(
+            [
+                'nome' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'unique:usuarios,email'],
+                'senha' => ['required', 'string', 'min:8', 'confirmed'],
+                'nivel_acesso' => ['required', 'in:professor,aluno,visitante'],
+                'setor' => ['nullable', 'string'],
+            ],
+            [
+                'nome.required' => 'O nome é obrigatório.',
+                'email.required' => 'O e-mail é obrigatório.',
+                'email.email' => 'Informe um e-mail válido.',
+                'email.unique' => 'Este e-mail já está registrado.',
+                'senha.required' => 'A senha é obrigatória.',
+                'senha.min' => 'A senha deve ter no mínimo 8 caracteres.',
+                'senha.confirmed' => 'As senhas não conferem.',
+                'nivel_acesso.required' => 'Selecione um nível de acesso.',
+            ],
+        );
 
         $user = User::create([
-            'nome'          => $request->nome,
-            'email'         => $request->email,
-            'senha'         => Hash::make($request->senha),
-            'nivel_acesso'  => $request->nivel_acesso,
-            'setor'         => $request->setor,
-            'ativo'         => true,
+            'nome' => $request->nome,
+            'email' => $request->email,
+            'senha' => Hash::make($request->senha),
+            'nivel_acesso' => $request->nivel_acesso,
+            'setor' => $request->setor,
+            'ativo' => true,
         ]);
 
         // Login automático após registro
@@ -110,8 +111,7 @@ class AuthController extends Controller
     /**
      * Faz o logout do usuário.
      */
-    public function logout(Request $request)
-    {
+    public function logout(Request $request) {
         Auth::logout();
 
         $request->session()->invalidate();

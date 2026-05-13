@@ -4,16 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Local;
-class LocalController extends Controller
-{
-    public function index()
-    {
+class LocalController extends Controller {
+    public function index() {
         $locais = Local::all();
         return view('locais.index', compact('locais'));
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
             'sala_setor' => 'required|string',
             'andar' => 'required|integer',
@@ -24,8 +21,7 @@ class LocalController extends Controller
         return redirect()->route('locais.index');
     }
 
-    public function update(Request $request,string $id)
-    {
+    public function update(Request $request, string $id) {
         $local = Local::findOrFail($id);
         $data = $request->validate([
             'sala_setor' => 'required|string',
@@ -37,8 +33,7 @@ class LocalController extends Controller
         return redirect()->route('locais.index');
     }
 
-    public function destroy(string $id)
-    {
+    public function destroy(string $id) {
         Local::findOrFail($id)->delete();
         return redirect()->route('locais.index');
     }

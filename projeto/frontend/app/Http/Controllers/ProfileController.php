@@ -17,15 +17,12 @@ class ProfileController extends Controller {
      */
     public function show(Request $request): View {
         $user = $request->user();
-        
+
         // Obter chamados do usuário
-        $chamadosCriados = $user->chamadosCriados()
-            ->latest()
-            ->limit(5)
-            ->get();
-        
-        // Obter feedbacks do usuário
-        $feedbacks = $user->feedbacks()
+        $chamadosCriados = $user->chamadosCriados()->latest()->limit(5)->get();
+
+        // Obter feedbacks através dos chamados do usuário
+        $feedbacks = Feedback::whereIn('id_chamado', $user->chamadosCriados()->pluck('id_chamado'))
             ->with('chamado')
             ->latest()
             ->limit(5)
@@ -49,28 +46,27 @@ class ProfileController extends Controller {
     public function update(ProfileUpdateRequest $request): RedirectResponse {
         $request->user()->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.show')->with('success', 'Perfil atualizado com sucesso!');
     }
 
     /**
      * Update user password
      */
     public function updatePassword(Request $request): RedirectResponse {
-        $request->validate([
-            'senha_atual' => ['required', 'string'],
-            'senha_nova' => ['required', 'string', 'min:8', 'confirmed'],
-        ], [
-            'senha_atual.required' => 'A senha atual é obrigatória.',
-            'senha_nova.required' => 'A nova senha é obrigatória.',
-            'senha_nova.min' => 'A nova senha deve ter no mínimo 8 caracteres.',
-            'senha_nova.confirmed' => 'As senhas não conferem.',
-        ]);
+        $request->validate(
+            [
+                'senha_atual' => ['required', 'string'],
+                'senha_nova' => ['required', 'string', 'min:8', 'confirmed'],
+            ],
+            [
+                'senha_atual.required' => 'A senha atual é obrigatória.',
+                'senha_nova.required' => 'A nova senha é obrigatória.',
+                'senha_nova.min' => 'A nova senha deve ter no mínimo 8 caracteres.',
+                'senha_nova.confirmed' => 'As senhas não conferem.',
+            ],
+        );
 
         $user = $request->user();
 
@@ -103,13 +99,6 @@ class ProfileController extends Controller {
         Auth::logout();
 
         $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
-    }
-}
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

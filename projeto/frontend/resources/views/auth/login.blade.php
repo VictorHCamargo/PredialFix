@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PredialFix – Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -10,37 +10,38 @@
             theme: {
                 extend: {
                     colors: {
-                        senai: { red: '#E3000F' }
+                        senai: { red: '#E3000F' },
                     },
                     fontFamily: {
                         sans: ['Segoe UI', 'system-ui', 'sans-serif'],
                     },
-                }
-            }
-        }
+                },
+            },
+        };
     </script>
 </head>
-<body class="min-h-screen bg-gray-100 font-sans flex items-center justify-center">
-
+<body class="flex min-h-screen items-center justify-center bg-gray-100 font-sans">
     <div class="w-full max-w-md">
-
         {{-- Logo / Cabeçalho --}}
-        <div class="text-center mb-8">
-            <div class="inline-block bg-red-600 text-white font-black text-3xl px-5 py-2 tracking-tight mb-3">
-                SENAI
-            </div>
+        <div class="mb-8 text-center">
+            <img
+                src="{{ asset('images/SENAI_LOGO.png') }}"
+                alt="SENAI Logo"
+                class="mx-auto mb-3 h-16"
+            />
             <h1 class="text-2xl font-bold text-gray-800">PredialFix</h1>
-            <p class="text-gray-500 text-sm mt-1">Sistema de Gestão de Chamados</p>
+            <p class="mt-1 text-sm text-gray-500">Sistema de Gestão de Chamados</p>
         </div>
 
         {{-- Card de Login --}}
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-
-            <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Acesse sua conta</h2>
+        <div class="rounded-2xl bg-white p-8 shadow-lg">
+            <h2 class="mb-6 text-center text-lg font-semibold text-gray-700">Acesse sua conta</h2>
 
             {{-- Mensagem de erro geral (ex: vindo de redirect) --}}
             @if (session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+                <div
+                    class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
                     {{ session('error') }}
                 </div>
             @endif
@@ -50,7 +51,7 @@
 
                 {{-- Campo E-mail --}}
                 <div class="mb-5">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="email" class="mb-1 block text-sm font-medium text-gray-700">
                         E-mail
                     </label>
                     <input
@@ -64,15 +65,15 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('email') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('email')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('email')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Campo Senha --}}
                 <div class="mb-6">
-                    <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="senha" class="mb-1 block text-sm font-medium text-gray-700">
                         Senha
                     </label>
                     <input
@@ -84,20 +85,20 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('senha') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('senha')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('senha')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Lembrar sessão --}}
-                <div class="flex items-center mb-6">
+                <div class="mb-6 flex items-center">
                     <input
                         id="remember"
                         type="checkbox"
                         name="remember"
-                        class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                    >
+                        class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    />
                     <label for="remember" class="ml-2 text-sm text-gray-600">
                         Manter conectado
                     </label>
@@ -106,8 +107,7 @@
                 {{-- Botão de Submit --}}
                 <button
                     type="submit"
-                    class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800
-                           text-white font-semibold py-2.5 rounded-lg transition text-sm"
+                    class="w-full rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 active:bg-red-800"
                 >
                     Entrar
                 </button>
@@ -116,15 +116,17 @@
             {{-- Link para registro --}}
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">
-                    Não tem conta? <a href="{{ route('register') }}" class="text-red-600 font-semibold hover:underline">Registre-se aqui</a>
+                    Não tem conta?
+                    <a
+                        href="{{ route('register') }}"
+                        class="font-semibold text-red-600 hover:underline"
+                        >Registre-se aqui</a
+                    >
                 </p>
             </div>
         </div>
 
-        <p class="text-center text-xs text-gray-400 mt-6">
-            PredialFix &copy; {{ date('Y') }} — SENAI
-        </p>
+        <p class="mt-6 text-center text-xs text-gray-400">PredialFix &copy; {{ date('Y') }} — SENAI</p>
     </div>
-
 </body>
 </html>

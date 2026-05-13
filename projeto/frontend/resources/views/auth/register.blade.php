@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PredialFix – Registro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -10,37 +10,38 @@
             theme: {
                 extend: {
                     colors: {
-                        senai: { red: '#E3000F' }
+                        senai: { red: '#E3000F' },
                     },
                     fontFamily: {
                         sans: ['Segoe UI', 'system-ui', 'sans-serif'],
                     },
-                }
-            }
-        }
+                },
+            },
+        };
     </script>
 </head>
-<body class="min-h-screen bg-gray-100 font-sans flex items-center justify-center py-12 px-4">
-
+<body class="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12 font-sans">
     <div class="w-full max-w-md">
-
         {{-- Logo / Cabeçalho --}}
-        <div class="text-center mb-8">
-            <div class="inline-block bg-red-600 text-white font-black text-3xl px-5 py-2 tracking-tight mb-3">
-                SENAI
-            </div>
+        <div class="mb-8 text-center">
+            <img
+                src="{{ asset('images/SENAI_LOGO.png') }}"
+                alt="SENAI Logo"
+                class="mx-auto mb-3 h-16"
+            />
             <h1 class="text-2xl font-bold text-gray-800">PredialFix</h1>
-            <p class="text-gray-500 text-sm mt-1">Crie sua conta</p>
+            <p class="mt-1 text-sm text-gray-500">Crie sua conta</p>
         </div>
 
         {{-- Card de Registro --}}
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-
-            <h2 class="text-lg font-semibold text-gray-700 mb-6 text-center">Registre-se</h2>
+        <div class="rounded-2xl bg-white p-8 shadow-lg">
+            <h2 class="mb-6 text-center text-lg font-semibold text-gray-700">Registre-se</h2>
 
             {{-- Mensagem de erro geral --}}
             @if (session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+                <div
+                    class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
                     {{ session('error') }}
                 </div>
             @endif
@@ -50,7 +51,7 @@
 
                 {{-- Campo Nome --}}
                 <div class="mb-4">
-                    <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="nome" class="mb-1 block text-sm font-medium text-gray-700">
                         Nome Completo
                     </label>
                     <input
@@ -63,15 +64,15 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('nome') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('nome')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('nome')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Campo E-mail --}}
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="email" class="mb-1 block text-sm font-medium text-gray-700">
                         E-mail
                     </label>
                     <input
@@ -83,41 +84,92 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('email') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('email')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('email')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Campo Nível de Acesso --}}
                 <div class="mb-4">
-                    <label for="nivel_acesso" class="block text-sm font-medium text-gray-700 mb-1">
-                        Nível de Acesso
+                    <label for="nivel_acesso" class="mb-2 block text-sm font-medium text-gray-700">
+                        Nível de Acesso *
                     </label>
-                    <select
-                        id="nivel_acesso"
-                        name="nivel_acesso"
-                        class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
-                               focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
-                               @error('nivel_acesso') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                        <option value="">Selecione seu nível</option>
-                        <option value="professor" @selected(old('nivel_acesso') === 'professor')>Professor</option>
-                        <option value="aluno" @selected(old('nivel_acesso') === 'aluno')>Aluno</option>
-                        <option value="visitante" @selected(old('nivel_acesso') === 'visitante')>Visitante</option>
-                    </select>
-                    @error('nivel_acesso')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    <div class="space-y-3">
+                        <div
+                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
+                            onclick="selectLevel('professor')"
+                        >
+                            <input
+                                type="radio"
+                                id="nivel_professor"
+                                name="nivel_acesso"
+                                value="professor"
+                                {{
+                                    old('nivel_acesso') === 'professor'
+                                        ? 'checked'
+                                        : ''
+                                }}
+                                class="mr-3"
+                            />
+                            <label for="nivel_professor" class="cursor-pointer">
+                                <span class="font-semibold text-gray-800">Professor</span>
+                                <p class="mt-1 text-xs text-gray-600">Pode criar e visualizar chamados. Acesso completo ao sistema de relatórios.</p>
+                            </label>
+                        </div>
+
+                        <div
+                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
+                            onclick="selectLevel('aluno')"
+                        >
+                            <input
+                                type="radio"
+                                id="nivel_aluno"
+                                name="nivel_acesso"
+                                value="aluno"
+                                {{
+                                    old('nivel_acesso') === 'aluno'
+                                        ? 'checked'
+                                        : ''
+                                }}
+                                class="mr-3"
+                            />
+                            <label for="nivel_aluno" class="cursor-pointer">
+                                <span class="font-semibold text-gray-800">Aluno</span>
+                                <p class="mt-1 text-xs text-gray-600">Pode criar e visualizar seus próprios chamados. Acesso ao sistema de avaliações.</p>
+                            </label>
+                        </div>
+
+                        <div
+                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
+                            onclick="selectLevel('visitante')"
+                        >
+                            <input
+                                type="radio"
+                                id="nivel_visitante"
+                                name="nivel_acesso"
+                                value="visitante"
+                                {{
+                                    old('nivel_acesso') === 'visitante'
+                                        ? 'checked'
+                                        : ''
+                                }}
+                                class="mr-3"
+                            />
+                            <label for="nivel_visitante" class="cursor-pointer">
+                                <span class="font-semibold text-gray-800">Visitante</span>
+                                <p class="mt-1 text-xs text-gray-600">Apenas visualiza seus próprios chamados. Sem permissão para criar novos.</p>
+                            </label>
+                        </div>
+                    </div>
+                    @error ('nivel_acesso')
+                        <p class="mt-2 text-xs text-red-500">{{ $message }}</p>
                     @enderror
-                    <p class="text-gray-500 text-xs mt-1">
-                        <strong>Professor/Aluno:</strong> Pode criar e visualizar chamados<br>
-                        <strong>Visitante:</strong> Apenas visualiza seus chamados
-                    </p>
                 </div>
 
                 {{-- Campo Setor (opcional) --}}
                 <div class="mb-4">
-                    <label for="setor" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="setor" class="mb-1 block text-sm font-medium text-gray-700">
                         Setor/Departamento (opcional)
                     </label>
                     <input
@@ -126,15 +178,13 @@
                         name="setor"
                         value="{{ old('setor') }}"
                         placeholder="Ex: Departamento de Informática"
-                        class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
-                               focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
-                               border-gray-300"
-                    >
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
                 </div>
 
                 {{-- Campo Senha --}}
                 <div class="mb-4">
-                    <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="senha" class="mb-1 block text-sm font-medium text-gray-700">
                         Senha
                     </label>
                     <input
@@ -145,15 +195,18 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('senha') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('senha')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('senha')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Campo Confirmar Senha --}}
                 <div class="mb-6">
-                    <label for="senha_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                        for="senha_confirmation"
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
                         Confirmar Senha
                     </label>
                     <input
@@ -164,17 +217,16 @@
                         class="w-full border rounded-lg px-4 py-2.5 text-sm text-gray-800
                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
                                @error('senha_confirmation') border-red-400 bg-red-50 @else border-gray-300 @enderror"
-                    >
-                    @error('senha_confirmation')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    />
+                    @error ('senha_confirmation')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Botão de Submit --}}
                 <button
                     type="submit"
-                    class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800
-                           text-white font-semibold py-2.5 rounded-lg transition text-sm"
+                    class="w-full rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 active:bg-red-800"
                 >
                     Criar Conta
                 </button>
@@ -183,15 +235,23 @@
             {{-- Link para login --}}
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">
-                    Já tem conta? <a href="{{ route('login') }}" class="text-red-600 font-semibold hover:underline">Faça login</a>
+                    Já tem conta?
+                    <a
+                        href="{{ route('login') }}"
+                        class="font-semibold text-red-600 hover:underline"
+                        >Faça login</a
+                    >
                 </p>
             </div>
         </div>
 
-        <p class="text-center text-xs text-gray-400 mt-6">
-            PredialFix &copy; {{ date('Y') }} — SENAI
-        </p>
+        <p class="mt-6 text-center text-xs text-gray-400">PredialFix &copy; {{ date('Y') }} — SENAI</p>
     </div>
 
+    <script>
+        function selectLevel(level) {
+            document.getElementById('nivel_' + level).checked = true;
+        }
+    </script>
 </body>
 </html>

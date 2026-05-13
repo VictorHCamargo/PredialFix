@@ -14,42 +14,51 @@ Route::middleware('guest')->group(function () {
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.store');
-    
+
     // Registro
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 });
 
 // Logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth');
 
 // Dashboard
 Route::get('/', function () {
     return redirect()->route('chamados.index');
-})->name('dashboard')->middleware('auth');
+})
+    ->name('dashboard')
+    ->middleware('auth');
 
 // ============================================
 // Rotas Protegidas (Requer Autenticação)
 // ============================================
 
 Route::middleware('auth')->group(function () {
-    
     // ============ PERFIL ============
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name(
+        'profile.updatePassword',
+    );
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // ============ CHAMADOS ============
     Route::get('/chamados', [ChamadoController::class, 'index'])->name('chamados.index');
     Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
     Route::post('/chamados', [ChamadoController::class, 'store'])->name('chamados.store');
     Route::get('/chamados/{id}', [ChamadoController::class, 'show'])->name('chamados.show');
-    Route::patch('/chamados/{id}/status', [ChamadoController::class, 'updateStatus'])->name('chamados.updateStatus');
+    Route::patch('/chamados/{id}/status', [ChamadoController::class, 'updateStatus'])->name(
+        'chamados.updateStatus',
+    );
     Route::put('/chamados/{id}', [ChamadoController::class, 'update'])->name('chamados.update');
-    Route::delete('/chamados/{id}', [ChamadoController::class, 'destroy'])->name('chamados.destroy');
-    
+    Route::delete('/chamados/{id}', [ChamadoController::class, 'destroy'])->name(
+        'chamados.destroy',
+    );
+
     // ============ ESTOQUE (apenas admin e gerente) ============
     // Você pode adicionar middleware customizado aqui se desejar
     Route::resource('estoque', EstoqueInternoController::class);

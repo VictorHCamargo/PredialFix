@@ -22,39 +22,39 @@ class Chamado extends Model {
         'tipo_trabalho',
         'tipo_chamado',
         'status_descricao',
-        'data_ultimo_status'
+        'data_ultimo_status',
     ];
 
     protected $casts = [
         'data_abertura' => 'datetime',
         'data_conclusao' => 'datetime',
-        'data_ultimo_status' => 'datetime'
+        'data_ultimo_status' => 'datetime',
     ];
 
     public function usuario() {
         return $this->belongsTo(User::class, 'id_usuario');
     }
-    
+
     public function usuarioResponsavel() {
         return $this->belongsTo(User::class, 'id_usuario_responsavel');
     }
-    
+
     public function local() {
         return $this->belongsTo(Local::class, 'id_local');
     }
-    
+
     public function tipoProblema() {
         return $this->belongsTo(TipoProblema::class, 'id_tipo');
     }
-    
+
     public function equipamento() {
         return $this->belongsTo(Equipamento::class, 'id_equipamento');
     }
-    
+
     public function feedback() {
         return $this->hasOne(Feedback::class, 'id_chamado');
     }
-    
+
     public function historicoStatus() {
         return $this->hasMany(HistoricoStatusChamado::class, 'id_chamado');
     }

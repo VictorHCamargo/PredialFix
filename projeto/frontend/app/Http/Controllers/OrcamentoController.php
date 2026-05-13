@@ -6,10 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Orcamento;
 use App\Models\Chamado;
 
-class OrcamentoController extends Controller
-{
-    public function store(Request $request, string $id_chamado)
-    {
+class OrcamentoController extends Controller {
+    public function store(Request $request, string $id_chamado) {
         $data = $request->validate([
             'valor' => 'required|numeric',
             'descricao' => 'required|string',
@@ -24,8 +22,7 @@ class OrcamentoController extends Controller
         return redirect()->back();
     }
 
-    public function aprovar(string $id)
-    {
+    public function aprovar(string $id) {
         $orcamento = Orcamento::findOrFail($id);
         $orcamento->update(['aprovacao' => true]);
         return redirect()->back();

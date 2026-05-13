@@ -5,16 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Relatorio;
 
-class RelatorioController extends Controller
-{
-    public function index()
-    {
+class RelatorioController extends Controller {
+    public function index() {
         $relatorios = Relatorio::with('usuario')->get();
         return view('relatorios.index', compact('relatorios'));
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
             'titulo' => 'required|string',
             'tipo_relatorio' => 'required|string',
