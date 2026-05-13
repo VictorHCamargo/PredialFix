@@ -147,6 +147,7 @@
             </div>
         </div>
 
+        @unless(auth()->user()->isAluno())
         <div class="flex justify-center">
             <a
                 href="{{ route('chamados.create') }}"
@@ -155,6 +156,7 @@
                 Relatar novo Problema
             </a>
         </div>
+        @endunless
     </main>
 
     <x-footer />

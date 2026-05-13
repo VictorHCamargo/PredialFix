@@ -73,6 +73,77 @@ class User extends Authenticatable {
     }
 
     /**
+     * Verificar se o usuário é aluno
+     */
+    public function isAluno() {
+        return $this->nivel_acesso === 'aluno';
+    }
+
+    /**
+     * Verificar se o usuário é professor
+     */
+    public function isProfessor() {
+        return $this->nivel_acesso === 'professor';
+    }
+
+    /**
+     * Verificar se pode ver o dashboard
+     */
+    public function canSeeDashboard() {
+        return in_array($this->nivel_acesso, [
+            'administrador',
+            'gerente_manutencao',
+            'tecnico_manutencao',
+            'aluno',
+            'professor'
+        ]);
+    }
+
+    /**
+     * Verificar se pode gerenciar chamados (alterar status, prioridade, etc)
+     */
+    public function canManageTickets() {
+        return in_array($this->nivel_acesso, [
+            'administrador',
+            'gerente_manutencao',
+            'tecnico_manutencao'
+        ]);
+    }
+
+    /**
+     * Verificar se pode avaliar chamados
+     */
+    public function canRateTickets() {
+        return in_array($this->nivel_acesso, [
+            'aluno',
+            'professor',
+            'administrador'
+        ]);
+    }
+
+    /**
+     * Verificar se pode editar um chamado específico
+     */
+    public function canEditTicket(Chamado $chamado) {
+        // Admin pode editar qualquer chamado
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Aluno pode editar apenas seus próprios chamados e apenas se estiver aberto
+        if ($this->isAluno()) {
+            return $chamado->id_usuario === $this->id_usuario && $chamado->status === 'aberto';
+        }
+
+        // Equipe de manutenção pode editar seus chamados atribuídos
+        if ($this->isEquipeManutenacao()) {
+            return $chamado->id_usuario === $this->id_usuario && $chamado->status === 'aberto';
+        }
+
+        return false;
+    }
+
+    /**
      * Relacionamento com chamados criados
      */
     public function chamadosCriados() {

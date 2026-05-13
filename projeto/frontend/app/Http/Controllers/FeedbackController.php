@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Feedback;
 use App\Models\Chamado;
 
@@ -24,6 +25,15 @@ class FeedbackController extends Controller {
     }
 
     public function create(string $id) {
+        $user = Auth::user();
+        
+        // Alunos não podem avaliar chamados
+        if ($user->isAluno()) {
+            return redirect()->route('chamados.index')->withErrors(
+                ['feedback' => 'Alunos não podem avaliar chamados.']
+            );
+        }
+        
         $chamado = Chamado::with(['tipoProblema', 'local', 'usuario'])->findOrFail($id);
 
         // Verifica se o chamado já tem feedback
@@ -44,6 +54,15 @@ class FeedbackController extends Controller {
     }
 
     public function store(Request $request) {
+        $user = $request->user();
+        
+        // Alunos não podem avaliar chamados
+        if ($user->isAluno()) {
+            return back()->withErrors([
+                'feedback' => 'Alunos não podem avaliar chamados.',
+            ]);
+        }
+        
         $data = $request->validate([
             'id_chamado' => 'required|exists:chamados,id_chamado',
             'nota' => 'required|integer|min:1|max:5',

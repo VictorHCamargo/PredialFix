@@ -15,14 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Comentado para evitar duplicação de dados
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'nome' => 'Test User',
-            'email' => 'test@example.com',
-            'cod_entrada' => 1234,
+        // Chamar seeders de usuários e chamados
+        $this->call([
+            UsersSeeder::class,
+            ChamadosSeeder::class,
         ]);
-
-        $this->call(ChamadosSeeder::class);
     }
 }

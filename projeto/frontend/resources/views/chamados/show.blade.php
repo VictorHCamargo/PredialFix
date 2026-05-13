@@ -230,7 +230,7 @@
                         @endif
 
                         {{-- Botão Avaliar --}}
-                        @if ($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
+                        @if (!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
                             <a
                                 href="{{ route('avaliar.create', $chamado->id_chamado) }}"
                                 class="block w-full rounded bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-purple-700"
@@ -240,7 +240,7 @@
                         @endif
 
                         {{-- Botão Editar --}}
-                        @if (auth()->user()->id_usuario === $chamado->id_usuario && $chamado->status === 'aberto')
+                        @if (!auth()->user()->isAluno() && auth()->user()->id_usuario === $chamado->id_usuario && $chamado->status === 'aberto')
                             <a
                                 href="{{ route('chamados.edit', $chamado->id_chamado) }}"
                                 class="block w-full rounded bg-gray-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-gray-700"
@@ -250,7 +250,7 @@
                         @endif
 
                         {{-- Botão Deletar --}}
-                        @if (auth()->user()->id_usuario === $chamado->id_usuario || auth()->user()->isAdmin())
+                        @if (!auth()->user()->isAluno() && (auth()->user()->id_usuario === $chamado->id_usuario || auth()->user()->isAdmin()))
                             <button
                                 onclick="openDeleteModal()"
                                 class="w-full rounded bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"

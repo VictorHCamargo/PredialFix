@@ -56,6 +56,15 @@ class ChamadoController extends Controller {
     }
 
     public function create() {
+        $user = Auth::user();
+        
+        // Alunos não podem criar chamados
+        if ($user->isAluno()) {
+            return redirect()->route('chamados.index')->withErrors(
+                ['create' => 'Alunos não podem criar chamados. Entre em contato com a equipe de manutenção.']
+            );
+        }
+        
         $locais = Local::all();
         $tipos = TipoProblema::all();
         $equipamentos = Equipamento::where('status', 'ativo')->get();
@@ -63,6 +72,16 @@ class ChamadoController extends Controller {
     }
 
     public function store(Request $request) {
+        $user = $request->user();
+
+        // Alunos não podem criar chamados
+        if ($user->isAluno()) {
+            return redirect()->route('chamados.index')->withErrors(
+                ['create' => 'Alunos não podem criar chamados.']
+            );
+        }
+
+        // Validação completa para usuários autorizados
         $data = $request->validate([
             'descricao' => 'required|string',
             'tipo_chamado' => 'required|in:interno,externo',
@@ -75,7 +94,7 @@ class ChamadoController extends Controller {
             'tipo_trabalho' => 'nullable|string',
         ]);
 
-        $data['id_usuario'] = $request->user()->id_usuario;
+        $data['id_usuario'] = $user->id_usuario;
         $data['status'] = 'aberto';
         $data['data_abertura'] = now();
         $data['data_ultimo_status'] = now();
@@ -106,8 +125,16 @@ class ChamadoController extends Controller {
      * Exibir formulário de edição de um chamado
      */
     public function edit(string $id) {
-        $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
+        
+        // Alunos não podem editar chamados
+        if ($user->isAluno()) {
+            return redirect()->route('chamados.show', $id)->withErrors(
+                ['edit' => 'Alunos não podem editar chamados.']
+            );
+        }
+        
+        $chamado = Chamado::findOrFail($id);
 
         // Apenas o criador do chamado pode editar (e apenas se estiver aberto)
         if ($chamado->id_usuario !== $user->id_usuario || $chamado->status !== 'aberto') {
@@ -129,6 +156,13 @@ class ChamadoController extends Controller {
     public function updateStatus(Request $request, string $id) {
         $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
+
+        // Alunos não podem alterar status
+        if ($user->isAluno()) {
+            return back()->withErrors([
+                'status' => 'Alunos não têm permissão para alterar o status de chamados.',
+            ]);
+        }
 
         $request->validate([
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
@@ -196,6 +230,11 @@ class ChamadoController extends Controller {
      * Validar transições de status baseadas no nível de acesso
      */
     private function validarTransicaoStatus($user, $statusAtual, $novoStatus) {
+        // Alunos não podem alterar status
+        if ($user->isAluno()) {
+            return false;
+        }
+
         // Admin pode fazer qualquer transição
         if ($user->isAdmin()) {
             return true;
@@ -220,7 +259,25 @@ class ChamadoController extends Controller {
     }
 
     public function update(Request $request, string $id) {
+        $user = $request->user();
+        
+        // Alunos não podem editar chamados
+        if ($user->isAluno()) {
+            return redirect()->route('chamados.show', $id)->withErrors(
+                ['edit' => 'Alunos não podem editar chamados.']
+            );
+        }
+        
         $chamado = Chamado::findOrFail($id);
+
+        // Verificar permissão para editar
+        if (!$user->canEditTicket($chamado)) {
+            return redirect()
+                ->route('chamados.show', $id)
+                ->withErrors(['edit' => 'Você não pode editar este chamado.']);
+        }
+
+        // Validação completa
         $data = $request->validate([
             'descricao' => 'required|string',
             'tipo_chamado' => 'required|in:interno,externo',
@@ -236,8 +293,16 @@ class ChamadoController extends Controller {
     }
 
     public function destroy(string $id) {
-        $chamado = Chamado::findOrFail($id);
         $user = Auth::user();
+        
+        // Alunos não podem deletar chamados
+        if ($user->isAluno()) {
+            return back()->withErrors([
+                'delete' => 'Alunos não podem deletar chamados.',
+            ]);
+        }
+        
+        $chamado = Chamado::findOrFail($id);
 
         // Apenas admin ou o criador do chamado podem deletar
         if (!$user->isAdmin() && $chamado->id_usuario !== $user->id_usuario) {

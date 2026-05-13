@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Usado nas rotas: Route::middleware('auth.custom')->group(...)
         $middleware->alias([
             'auth.custom' => \App\Http\Middleware\EnsureAuthenticated::class,
+            'access.level' => \App\Http\Middleware\CheckAccessLevel::class,
         ]);
 
     })

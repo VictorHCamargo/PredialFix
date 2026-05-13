@@ -183,7 +183,8 @@
                 </div>
             </div>
 
-            <!-- Seção Técnica -->
+            <!-- Seção Técnica (Apenas para não-alunos) -->
+            @unless(Auth::user()->isAluno())
             <div class="flex flex-col gap-2">
                 <label for="secao_tecnica" class="text-sm font-semibold text-gray-800">
                     Seção Técnica
@@ -249,8 +250,10 @@
                     <span class="text-xs text-gray-500">(Elétrica, Hidraulica, Civil, etc)</span>
                 </div>
             </div>
+            @endunless
 
-            <!-- Nível de Prioridade -->
+            <!-- Nível de Prioridade (Apenas para não-alunos) -->
+            @unless(Auth::user()->isAluno())
             <div class="flex flex-col gap-2">
                 <label for="prioridade" class="text-sm font-semibold text-gray-800">
                     Nível de Prioridade
@@ -309,8 +312,10 @@
                     <span class="text-xs text-gray-500">(Baixa, Média, Alta, Crítica)</span>
                 </div>
             </div>
+            @endunless
 
-            <!-- Nível de Complexidade -->
+            <!-- Nível de Complexidade (Apenas para não-alunos) -->
+            @unless(Auth::user()->isAluno())
             <div class="flex flex-col gap-2">
                 <label for="complexidade" class="text-sm font-semibold text-gray-800">
                     Nível de Complexidade
@@ -367,8 +372,10 @@
                     <span class="text-xs text-gray-500">(Simples, Média, Complexa)</span>
                 </div>
             </div>
+            @endunless
 
-            <!-- Tipo de Trabalho -->
+            <!-- Tipo de Trabalho (Apenas para não-alunos) -->
+            @unless(Auth::user()->isAluno())
             <div class="flex flex-col gap-2">
                 <label for="tipo_trabalho" class="text-sm font-semibold text-gray-800">
                     Tipo de Trabalho
@@ -425,6 +432,14 @@
                     <span class="text-xs text-gray-500">(Preventiva, Corretiva, Melhoria)</span>
                 </div>
             </div>
+            @endunless
+
+            <!-- Mensagem para Alunos -->
+            @if(Auth::user()->isAluno())
+            <div class="rounded border border-blue-300 bg-blue-50 px-4 py-3 text-xs text-blue-700">
+                <p><strong>ℹ️ Informação:</strong> Alunos não podem definir Prioridade, Seção Técnica, Complexidade ou Tipo de Trabalho. Estes campos serão preenchidos automaticamente pela equipe de manutenção.</p>
+            </div>
+            @endif
 
             <!-- Foto -->
             <div class="flex flex-col gap-2">

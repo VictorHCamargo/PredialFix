@@ -332,7 +332,7 @@
                                             Ver
                                         </a>
 
-                                        @if ($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
+                                        @if (!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
                                             <a
                                                 href="{{ route('avaliar.create', $chamado->id_chamado) }}"
                                                 class="rounded bg-purple-600 px-2 py-1 text-xs font-semibold text-white transition hover:bg-purple-700"
@@ -412,6 +412,7 @@
         </div>
 
         <!-- Botão Relatar novo Problema -->
+        @unless(auth()->user()->isAluno())
         <div class="flex justify-center">
             <a
                 href="{{ route('chamados.create') }}"
@@ -420,6 +421,7 @@
                 Relatar novo Problema
             </a>
         </div>
+        @endunless
     </main>
 
     <!-- Rodapé -->
