@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../models/user.dart';
 
-enum MenuPage { home, createRequest, manage, ratings, support, profile }
+class AppDrawer extends StatefulWidget {
+  const AppDrawer({super.key});
 
-class AppDrawer extends StatelessWidget {
-  final MenuPage currentPage;
-  const AppDrawer({super.key, required this.currentPage});
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
 
-  static const _drawerItems = [
-    _DrawerItem('Home', '/home', MenuPage.home),
-    _DrawerItem('Criar Chamado', '/request', MenuPage.createRequest),
-    _DrawerItem('Gerenciar', '/manage', MenuPage.manage),
-    _DrawerItem('Avaliações', '/ratings', MenuPage.ratings),
-    _DrawerItem('Suporte', '/support', MenuPage.support),
-    _DrawerItem('Perfil', '/profile', MenuPage.profile),
-  ];
+class _AppDrawerState extends State<AppDrawer> {
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final authService = context.read<AuthService>();
+    final user = await authService.getCurrentUser();
+    setState(() {
+      _user = user;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +34,6 @@ class AppDrawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header com informações do usuário
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -30,109 +41,104 @@ class AppDrawer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 28,
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      (_user?.nome ?? 'U')[0].toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Nome do Professor',
-                    style: TextStyle(
+                  Text(
+                    _user?.nome ?? 'Usuário',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Docente',
-                    style: TextStyle(
+                  Text(
+                    _user?.email ?? '',
+                    style: const TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
                       color: Colors.white70,
                     ),
                   ),
                 ],
               ),
             ),
-
-            const Divider(height: 1, color: Color(0xFFE0E0E0)),
-
-            // Menu Items
+            const Divider(height: 1),
             Expanded(
-              child: ListView.builder(
+              child: ListView(
                 padding: EdgeInsets.zero,
-                itemCount: _drawerItems.length,
-                itemBuilder: (context, index) {
-                  final item = _drawerItems[index];
-                  final selected = item.page == currentPage;
-
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? AppTheme.primaryColor.withOpacity(0.1)
-                          : Colors.transparent,
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      title: Text(
-                        item.title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: selected
-                              ? AppTheme.primaryColor
-                              : AppTheme.textPrimaryColor,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        if (selected) return;
-                        Navigator.pushReplacementNamed(context, item.route);
-                      },
-                    ),
-                  );
-                },
+                children: [
+                  _buildDrawerItem(
+                    icon: Icons.home,
+                    title: 'Home',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.add_circle,
+                    title: 'Novo Chamado',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/request');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.list,
+                    title: 'Meus Chamados',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/manage');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.star,
+                    title: 'Avaliar',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/ratings');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.support_agent,
+                    title: 'Suporte',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/support');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.person,
+                    title: 'Perfil',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/profile');
+                    },
+                  ),
+                ],
               ),
             ),
-
-            const Divider(height: 1, color: Color(0xFFE0E0E0)),
-
-            // Logout Button
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              title: const Text(
-                'Sair',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.errorColor,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/',
-                  (route) => false,
-                );
+            const Divider(height: 1),
+            _buildDrawerItem(
+              icon: Icons.logout,
+              title: 'Sair',
+              isRed: true,
+              onTap: () async {
+                final authService = context.read<AuthService>();
+                await authService.logout();
+                if (!mounted) return;
+                Navigator.of(context).pushReplacementNamed('/login');
               },
             ),
           ],
@@ -140,12 +146,27 @@ class AppDrawer extends StatelessWidget {
       ),
     );
   }
-}
 
-class _DrawerItem {
-  final String title;
-  final String route;
-  final MenuPage page;
-
-  const _DrawerItem(this.title, this.route, this.page);
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isRed = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isRed ? Colors.red : AppTheme.primaryColor,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: isRed ? Colors.red : AppTheme.textPrimaryColor,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
 }

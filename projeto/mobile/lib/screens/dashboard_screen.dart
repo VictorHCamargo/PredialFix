@@ -15,7 +15,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    chamados = Chamado.exemplosChamados();
+    // TODO: Load chamados from service
+    chamados = [];
   }
 
   void _logout() {
@@ -180,40 +181,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Primeira linha: Tipo - Descrição
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'Tipo',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  chamado.tipo,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Segunda linha: Tipo - Descrição
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Tipo',
+                  'Descrição',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -225,6 +197,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Text(
                   chamado.descricao,
                   textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -235,13 +209,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Terceira linha: Local
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'Tipo',
+                  'Status',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -251,63 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               Expanded(
                 child: Text(
-                  chamado.local,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Quarta linha: Data
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Tipo',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  chamado.data,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Quinta linha: Status
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Tipo',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  chamado.status,
+                  chamado.displayStatus,
                   textAlign: TextAlign.right,
                   style: const TextStyle(
                     fontSize: 12,
