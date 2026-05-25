@@ -103,6 +103,14 @@ class _AppDrawerState extends State<AppDrawer> {
                     },
                   ),
                   _buildDrawerItem(
+                    icon: Icons.admin_panel_settings,
+                    title: 'Painel Admin',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/admin');
+                    },
+                  ),
+                  _buildDrawerItem(
                     icon: Icons.star,
                     title: 'Avaliar',
                     onTap: () {

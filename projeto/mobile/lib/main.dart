@@ -8,6 +8,10 @@ import 'screens/request_screen.dart';
 import 'screens/rating_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/support_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
+import 'screens/equipamentos_screen.dart';
+import 'screens/estoque_screen.dart';
+import 'screens/orcamentos_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
 import 'services/api_service.dart';
@@ -15,6 +19,9 @@ import 'services/auth_service.dart';
 import 'services/chamado_service.dart';
 import 'services/reference_service.dart';
 import 'services/feedback_service.dart';
+import 'services/equipamento_service.dart';
+import 'services/estoque_service.dart';
+import 'services/orcamento_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,6 +96,15 @@ class _MyAppState extends State<MyApp> {
         Provider<FeedbackService>(
           create: (context) => FeedbackService(apiService: _apiService),
         ),
+        Provider<EquipamentoService>(
+          create: (context) => EquipamentoService(apiService: _apiService),
+        ),
+        Provider<EstoqueService>(
+          create: (context) => EstoqueService(apiService: _apiService),
+        ),
+        Provider<OrcamentoService>(
+          create: (context) => OrcamentoService(apiService: _apiService),
+        ),
       ],
       child: MaterialApp(
         title: 'PredialFix',
@@ -99,6 +115,10 @@ class _MyAppState extends State<MyApp> {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
+          '/admin': (context) => const AdminDashboardScreen(),
+          '/equipamentos': (context) => const EquipamentosScreen(),
+          '/estoque': (context) => const EstoqueScreen(),
+          '/orcamentos': (context) => const OrcamentosScreen(),
           '/request': (context) => const RequestScreen(),
           '/manage': (context) => const ManageScreen(),
           '/ratings': (context) => const RatingScreen(),

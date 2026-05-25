@@ -3,7 +3,7 @@ class Local {
   final String nome;
   final String descricao;
   final String? bloco;
-  final String? andar;
+  final int? andar;
   final DateTime? dataCriacao;
 
   Local({
@@ -21,7 +21,7 @@ class Local {
       nome: json['nome'] as String,
       descricao: json['descricao'] as String,
       bloco: json['bloco'] as String?,
-      andar: json['andar'] as String?,
+      andar: json['andar'] as int?,
       dataCriacao: json['data_criacao'] != null 
         ? DateTime.parse(json['data_criacao'] as String)
         : null,

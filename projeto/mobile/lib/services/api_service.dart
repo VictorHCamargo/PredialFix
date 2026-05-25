@@ -110,7 +110,7 @@ class ApiService {
   static final List<Map<String, dynamic>> _mockLocais = [
     {
       'id': 1,
-      'nome': 'Bloco A, Sala 101',
+      'nome': 'Bloco A, Sala 1',
       'descricao': 'Sala de aula A1',
       'bloco': 'A',
       'andar': 1,
@@ -118,7 +118,7 @@ class ApiService {
     },
     {
       'id': 2,
-      'nome': 'Bloco A, Sala 102',
+      'nome': 'Bloco A, Sala 2',
       'descricao': 'Sala de aula A2',
       'bloco': 'A',
       'andar': 1,
@@ -126,7 +126,7 @@ class ApiService {
     },
     {
       'id': 3,
-      'nome': 'Bloco B, Lab Eletrônica',
+      'nome': 'Bloco B, Sala 1',
       'descricao': 'Laboratório de Eletrônica',
       'bloco': 'B',
       'andar': 2,
@@ -134,7 +134,7 @@ class ApiService {
     },
     {
       'id': 4,
-      'nome': 'Bloco B, Lab Hidráulica',
+      'nome': 'Bloco B, Sala 2',
       'descricao': 'Laboratório de Hidráulica',
       'bloco': 'B',
       'andar': 2,
@@ -142,8 +142,8 @@ class ApiService {
     },
     {
       'id': 5,
-      'nome': 'Banheiro Bloco C',
-      'descricao': 'Banheiro masculino bloco C',
+      'nome': 'Bloco C, Sala 1',
+      'descricao': 'Sala de Aula C1',
       'bloco': 'C',
       'andar': 1,
       'data_criacao': '2024-01-15T08:00:00',
@@ -154,37 +154,190 @@ class ApiService {
     {
       'id': 1,
       'nome': 'Elétrica',
-      'descricao': 'Problemas relacionados à instalação elétrica',
-      'categoria': 'predial',
-      'data_criacao': '2024-01-10T08:00:00',
+      'descricao': 'Problemas com sistemas elétricos',
+      'categoria': 'Infraestrutura',
+      'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 2,
       'nome': 'Hidráulica',
-      'descricao': 'Problemas relacionados aos sistemas hidráulicos',
-      'categoria': 'predial',
-      'data_criacao': '2024-01-10T08:00:00',
+      'descricao': 'Problemas com sistemas hidráulicos',
+      'categoria': 'Infraestrutura',
+      'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 3,
       'nome': 'HVAC',
-      'descricao': 'Problemas de ar condicionado e ventilação',
-      'categoria': 'predial',
-      'data_criacao': '2024-01-10T08:00:00',
+      'descricao': 'Ar condicionado e ventilação',
+      'categoria': 'Climatização',
+      'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 4,
       'nome': 'Civil',
-      'descricao': 'Problemas relacionados à estrutura civil',
-      'categoria': 'predial',
-      'data_criacao': '2024-01-10T08:00:00',
+      'descricao': 'Problemas estruturais e alvenaria',
+      'categoria': 'Estrutura',
+      'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 5,
       'nome': 'Mecânica',
-      'descricao': 'Problemas relacionados a equipamentos mecânicos',
-      'categoria': 'equipamento',
-      'data_criacao': '2024-01-10T08:00:00',
+      'descricao': 'Problemas com equipamentos mecânicos',
+      'categoria': 'Equipamentos',
+      'data_criacao': '2024-01-15T08:00:00',
+    },
+  ];
+
+  static final List<Map<String, dynamic>> _mockEquipamentos = [
+    {
+      'id': 1,
+      'tag_identificacao': 'EQUIP-001',
+      'nome': 'Ar Condicionado',
+      'marca': 'LG',
+      'status': 'ativo',
+    },
+    {
+      'id': 2,
+      'tag_identificacao': 'EQUIP-002',
+      'nome': 'Bomba Hidráulica',
+      'marca': 'Bosch',
+      'status': 'ativo',
+    },
+    {
+      'id': 3,
+      'tag_identificacao': 'EQUIP-003',
+      'nome': 'Painel Elétrico',
+      'marca': 'Schneider',
+      'status': 'manutencao',
+    },
+    {
+      'id': 4,
+      'tag_identificacao': 'EQUIP-004',
+      'nome': 'Motor Trifásico',
+      'marca': 'WEG',
+      'status': 'ativo',
+    },
+    {
+      'id': 5,
+      'tag_identificacao': 'EQUIP-005',
+      'nome': 'Compressor',
+      'marca': 'Atlas Copco',
+      'status': 'inativo',
+    },
+  ];
+
+  static final List<Map<String, dynamic>> _mockEstoque = [
+    {
+      'id': 1,
+      'nome_item': 'Cabo Elétrico 2.5mm',
+      'descricao': 'Cabo de cobre para instalação elétrica',
+      'quantidade': 50,
+      'categoria': 'Elétrica',
+      'localizacao': 'Bloco A - Almoxarifado',
+      'valor_unitario': 12.50,
+      'valor_total': 625.00,
+      'codigo_patrimonio': 'PAT-ELE-001',
+      'status_item': 'disponivel',
+      'data_entrada': '2024-01-15T08:00:00',
+      'observacoes': 'Em bom estado',
+    },
+    {
+      'id': 2,
+      'nome_item': 'Lâmpada LED 20W',
+      'descricao': 'Lâmpada LED branca fria',
+      'quantidade': 120,
+      'categoria': 'Elétrica',
+      'localizacao': 'Bloco B - Almoxarifado',
+      'valor_unitario': 8.00,
+      'valor_total': 960.00,
+      'codigo_patrimonio': 'PAT-ELE-002',
+      'status_item': 'disponivel',
+      'data_entrada': '2024-02-01T10:30:00',
+      'observacoes': null,
+    },
+    {
+      'id': 3,
+      'nome_item': 'Mangueira Hidráulica',
+      'descricao': 'Mangueira de pressão série SAE 100 R2',
+      'quantidade': 15,
+      'categoria': 'Hidráulica',
+      'localizacao': 'Bloco C - Almoxarifado',
+      'valor_unitario': 45.00,
+      'valor_total': 675.00,
+      'codigo_patrimonio': 'PAT-HID-001',
+      'status_item': 'indisponivel',
+      'data_entrada': '2024-01-20T09:00:00',
+      'observacoes': 'Em manutenção',
+    },
+    {
+      'id': 4,
+      'nome_item': 'Óleo Hidráulico ISO 46',
+      'descricao': 'Óleo hidráulico para sistemas de pressão',
+      'quantidade': 8,
+      'categoria': 'Hidráulica',
+      'localizacao': 'Bloco A - Almoxarifado',
+      'valor_unitario': 85.00,
+      'valor_total': 680.00,
+      'codigo_patrimonio': 'PAT-HID-002',
+      'status_item': 'disponivel',
+      'data_entrada': '2024-03-05T14:20:00',
+      'observacoes': null,
+    },
+    {
+      'id': 5,
+      'nome_item': 'Parafuso Estrutural M16',
+      'descricao': 'Parafuso de aço para estrutura civil',
+      'quantidade': 500,
+      'categoria': 'Civil',
+      'localizacao': 'Bloco B - Almoxarifado',
+      'valor_unitario': 2.50,
+      'valor_total': 1250.00,
+      'codigo_patrimonio': 'PAT-CIV-001',
+      'status_item': 'disponivel',
+      'data_entrada': '2024-01-10T11:00:00',
+      'observacoes': 'Estoque crítico',
+    },
+  ];
+
+  static final List<Map<String, dynamic>> _mockOrcamentos = [
+    {
+      'id': 1,
+      'id_chamado': 1,
+      'valor': 1500.00,
+      'descricao': 'Substituição de lâmpadas LED em 5 salas',
+      'data_verificacao': '2024-05-22T10:00:00',
+      'aprovacao': true,
+    },
+    {
+      'id': 2,
+      'id_chamado': 2,
+      'valor': 3200.00,
+      'descricao': 'Reparo da bomba hidráulica',
+      'data_verificacao': '2024-05-23T14:30:00',
+      'aprovacao': false,
+    },
+  ];
+
+  static final List<Map<String, dynamic>> _mockHistorico = [
+    {
+      'id': 1,
+      'id_chamado': 1,
+      'status_anterior': 'pendente',
+      'status_novo': 'em_andamento',
+      'descricao': 'Iniciada manutenção preventiva',
+      'id_usuario': 3,
+      'prioridade': 'alta',
+      'data_mudanca': '2024-05-20T11:30:00',
+    },
+    {
+      'id': 2,
+      'id_chamado': 3,
+      'status_anterior': 'em_andamento',
+      'status_novo': 'concluido',
+      'descricao': 'Manutenção finalizada com sucesso',
+      'id_usuario': 3,
+      'prioridade': 'média',
+      'data_mudanca': '2024-05-18T16:30:00',
     },
   ];
 
@@ -429,5 +582,246 @@ class ApiService {
     return _mockTiposProblema
         .map((t) => Map<String, dynamic>.from(t))
         .toList();
+  }
+
+  // Equipamentos methods
+  Future<List<Map<String, dynamic>>> getEquipamentos() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    return _mockEquipamentos
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createEquipamento(
+      Map<String, dynamic> data) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    final newId =
+        _mockEquipamentos.fold<int>(0, (max, e) => e['id'] > max ? e['id'] : max)
+                .toInt() +
+            1;
+    final newEquipamento = {
+      'id': newId,
+      'tag_identificacao': data['tag_identificacao'],
+      'nome': data['nome'],
+      'marca': data['marca'],
+      'status': data['status'] ?? 'ativo',
+    };
+
+    _mockEquipamentos.add(newEquipamento);
+    return Map<String, dynamic>.from(newEquipamento);
+  }
+
+  Future<Map<String, dynamic>> updateEquipamento(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    final index = _mockEquipamentos.indexWhere((e) => e['id'] == id);
+    if (index == -1) throw Exception('Equipamento não encontrado');
+
+    _mockEquipamentos[index].addAll(data);
+    return Map<String, dynamic>.from(_mockEquipamentos[index]);
+  }
+
+  Future<void> deleteEquipamento(int id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    _mockEquipamentos.removeWhere((e) => e['id'] == id);
+  }
+
+  // Estoque methods
+  Future<List<Map<String, dynamic>>> getEstoque() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    return _mockEstoque.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<Map<String, dynamic>> createEstoque(
+      Map<String, dynamic> data) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    final newId =
+        _mockEstoque.fold<int>(0, (max, e) => e['id'] > max ? e['id'] : max)
+                .toInt() +
+            1;
+    final quantidade = data['quantidade'] as int? ?? 0;
+    final valorUnitario = data['valor_unitario'] as double? ?? 0.0;
+    final valorTotal = quantidade * valorUnitario;
+
+    final newItem = {
+      'id': newId,
+      'nome_item': data['nome_item'],
+      'descricao': data['descricao'],
+      'quantidade': quantidade,
+      'categoria': data['categoria'],
+      'localizacao': data['localizacao'],
+      'valor_unitario': valorUnitario,
+      'valor_total': valorTotal,
+      'codigo_patrimonio': data['codigo_patrimonio'],
+      'status_item': data['status_item'] ?? 'disponivel',
+      'data_entrada': DateTime.now().toIso8601String(),
+      'observacoes': data['observacoes'],
+    };
+
+    _mockEstoque.add(newItem);
+    return Map<String, dynamic>.from(newItem);
+  }
+
+  Future<Map<String, dynamic>> updateEstoque(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    final index = _mockEstoque.indexWhere((e) => e['id'] == id);
+    if (index == -1) throw Exception('Item não encontrado');
+
+    final itemAtual = _mockEstoque[index];
+    itemAtual.addAll(data);
+
+    // Recalcula valor total
+    if (data.containsKey('quantidade') || data.containsKey('valor_unitario')) {
+      final quantidade = itemAtual['quantidade'] as int;
+      final valorUnitario = itemAtual['valor_unitario'] as double;
+      itemAtual['valor_total'] = quantidade * valorUnitario;
+    }
+
+    return Map<String, dynamic>.from(itemAtual);
+  }
+
+  Future<void> deleteEstoque(int id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    _mockEstoque.removeWhere((e) => e['id'] == id);
+  }
+
+  // Orçamento methods
+  Future<List<Map<String, dynamic>>> getOrcamentos() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    return _mockOrcamentos.map((o) => Map<String, dynamic>.from(o)).toList();
+  }
+
+  Future<Map<String, dynamic>> createOrcamento(
+      Map<String, dynamic> data) async {
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (_currentUser == null) throw Exception('Usuário não autenticado');
+
+    final newId =
+        _mockOrcamentos.fold<int>(0, (max, o) => o['id'] > max ? o['id'] : max)
+                .toInt() +
+            1;
+    final newOrcamento = {
+      'id': newId,
+      'id_chamado': data['id_chamado'],
+      'valor': data['valor'],
+      'descricao': data['descricao'],
+      'data_verificacao': DateTime.now().toIso8601String(),
+      'aprovacao': false,
+    };
+
+    _mockOrcamentos.add(newOrcamento);
+    return Map<String, dynamic>.from(newOrcamento);
+  }
+
+  Future<Map<String, dynamic>> approveOrcamento(int id) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null ||
+        (_currentUser!['role'] != 'administrador' &&
+            _currentUser!['role'] != 'gerente_manutencao')) {
+      throw Exception('Acesso negado');
+    }
+
+    final index = _mockOrcamentos.indexWhere((o) => o['id'] == id);
+    if (index == -1) throw Exception('Orçamento não encontrado');
+
+    _mockOrcamentos[index]['aprovacao'] = true;
+    return Map<String, dynamic>.from(_mockOrcamentos[index]);
+  }
+
+  // Histórico methods
+  Future<List<Map<String, dynamic>>> getHistorico(int idChamado) async {
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    return _mockHistorico
+        .where((h) => h['id_chamado'] == idChamado)
+        .map((h) => Map<String, dynamic>.from(h))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> addHistorico(
+      Map<String, dynamic> data) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (_currentUser == null) throw Exception('Usuário não autenticado');
+
+    final newId =
+        _mockHistorico.fold<int>(0, (max, h) => h['id'] > max ? h['id'] : max)
+                .toInt() +
+            1;
+    final newHistorico = {
+      'id': newId,
+      'id_chamado': data['id_chamado'],
+      'status_anterior': data['status_anterior'],
+      'status_novo': data['status_novo'],
+      'descricao': data['descricao'],
+      'id_usuario': _currentUser!['id'],
+      'prioridade': data['prioridade'],
+      'data_mudanca': DateTime.now().toIso8601String(),
+    };
+
+    _mockHistorico.add(newHistorico);
+    return Map<String, dynamic>.from(newHistorico);
   }
 }
