@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/chamado_service.dart';
+import '../models/chamado.dart';
 import 'app_drawer.dart';
 
 class ManageScreen extends StatefulWidget {
@@ -10,64 +13,53 @@ class ManageScreen extends StatefulWidget {
 }
 
 class _ManageScreenState extends State<ManageScreen> {
-  String? _selectedLocal;
-  String? _selectedTipo;
-  String? _selectedStatus;
+  late Future<List<Chamado>> _chamadosFuture;
+  String _filterStatus = 'todos';
 
-  final List<String> _localOptions = [
-    'Bloco A',
-    'Bloco B',
-    'Bloco C',
-    'Bloco D',
-  ];
-  final List<String> _tipoOptions = [
-    'Elétrica',
-    'Hidráulica',
-    'Civil',
-    'Ar Condicionado',
-  ];
-  final List<String> _statusOptions = [
-    'Em aberto',
-    'Em Andamento',
-    'Finalizado',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadChamados();
+  }
+
+  void _loadChamados() {
+    _chamadosFuture = context.read<ChamadoService>().getChamados();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(currentPage: MenuPage.manage),
-      appBar: AppBar(title: const Text('Gerenciar'), elevation: 4),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Grid de Cards com Estatísticas
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+      backgroundColor: Colors.white,
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text('Meus Chamados'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+      body: Column(
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
                 children: [
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
@@ -293,162 +285,69 @@ class _ManageScreenState extends State<ManageScreen> {
                 ),
               ),
             ),
-
-            const SizedBox(height: 24),
           ],
         ),
+        onTap: () {
+          showChamadoDetails(chamado);
+        },
       ),
     );
   }
 
-  Widget _buildStatCard(String label, String count, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pendente':
+        return Colors.grey;
+      case 'em_andamento':
+        return Colors.orange;
+      case 'concluido':
+        return Colors.green;
+      case 'cancelado':
+        return Colors.red;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  void showChamadoDetails(Chamado chamado) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Quadrado de cor
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
+            Text(
+              'Detalhes do Chamado',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+            const SizedBox(height: 16),
+            Text('Descrição: ${chamado.descricao}'),
+            const SizedBox(height: 8),
+            Text('Local: ${chamado.local?.nome ?? "N/A"}'),
+            const SizedBox(height: 8),
+            Text('Tipo: ${chamado.tipoProblema?.nome ?? "N/A"}'),
+            const SizedBox(height: 8),
+            Text('Status: ${chamado.displayStatus}'),
+            const SizedBox(height: 8),
+            Text('Prioridade: ${chamado.displayPrioridade}'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  count,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-                ),
-              ],
+                child: const Text('Fechar'),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildChamadoCard({
-    required String tipo,
-    required String titulo,
-    required String localizacao,
-    required String data,
-    required String status,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header com tipo e localização
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tipo,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                localizacao,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Footer com data e status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  status,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

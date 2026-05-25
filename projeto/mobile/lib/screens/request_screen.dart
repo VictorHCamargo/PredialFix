@@ -1,9 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/chamado_service.dart';
+import '../services/reference_service.dart';
+import '../models/local.dart';
+import '../models/tipo_problema.dart';
 import 'app_drawer.dart';
 
 class RequestScreen extends StatefulWidget {
@@ -14,458 +15,303 @@ class RequestScreen extends StatefulWidget {
 }
 
 class _RequestScreenState extends State<RequestScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final ImagePicker _picker = ImagePicker();
-
-  String? _selectedIncident;
-  String? _selectedSection;
-  String? _selectedPriority;
-  String? _selectedComplexity;
-  String? _selectedWorkType;
-  Uint8List? _pickedImageBytes;
-
-  final List<String> _incidentOptions = [
-    'Elétrica',
-    'Hidráulica',
-    'Civil',
-    'Infraestrutura',
-    'Outro',
-  ];
-
-  final List<String> _sectionOptions = [
-    'Elétrica',
-    'Hidráulica',
-    'Civil',
-    'Ar Condicionado',
-    'Outro',
-  ];
-
-  final List<String> _priorityOptions = ['Baixa', 'Média', 'Alta', 'Crítica'];
-
-  final List<String> _complexityOptions = ['Simples', 'Média', 'Complexa'];
-
-  final List<String> _workTypeOptions = ['Preventiva', 'Corretiva', 'Melhoria'];
+  final _descricaoController = TextEditingController();
+  Local? _selectedLocal;
+  TipoProblema? _selectedTipo;
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
+  
+  List<Local> _locais = [];
+  List<TipoProblema> _tipos = [];
 
   @override
-  void dispose() {
-    _descriptionController.dispose();
-    _locationController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadReferences();
   }
 
-  Future<void> _pickImage() async {
-    final image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
+  Future<void> _loadReferences() async {
+    final referenceService = context.read<ReferenceService>();
+    
+    try {
+      final locais = await referenceService.getLocais();
+      final tipos = await referenceService.getTiposProblema();
+      
       setState(() {
-        _pickedImageBytes = bytes;
+        _locais = locais;
+        _tipos = tipos;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao carregar dados: \$e';
       });
     }
   }
 
-  void _submitRequest() {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _handleCreateChamado() async {
+    if (_descricaoController.text.isEmpty ||
+        _selectedLocal == null ||
+        _selectedTipo == null) {
+      setState(() {
+        _errorMessage = 'Preencha todos os campos obrigatórios';
+      });
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chamado enviado com sucesso!')),
-    );
-
-    _formKey.currentState?.reset();
     setState(() {
-      _descriptionController.clear();
-      _locationController.clear();
-      _selectedIncident = null;
-      _selectedSection = null;
-      _selectedPriority = null;
-      _selectedComplexity = null;
-      _selectedWorkType = null;
-      _pickedImageBytes = null;
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
     });
+
+    try {
+      final chamadoService = context.read<ChamadoService>();
+      final chamado = await chamadoService.createChamado(
+        descricao: _descricaoController.text,
+        idLocal: _selectedLocal!.id,
+        idTipo: _selectedTipo!.id,
+      );
+
+      if (!mounted) return;
+
+      if (chamado != null) {
+        setState(() {
+          _successMessage = 'Chamado criado com sucesso!';
+          _descricaoController.clear();
+          _selectedLocal = null;
+          _selectedTipo = null;
+        });
+
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            Navigator.of(context)
+                .pushNamedAndRemoveUntil('/manage', (route) => false);
+          }
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Erro ao criar chamado';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro: \${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  Widget _buildDropdownField({
-    required String label,
-    required String? value,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-    String? helperText,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        helperText: helperText,
-        filled: true,
-        fillColor: AppTheme.inputBackgroundColor,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-        ),
-        labelStyle: const TextStyle(
-          fontSize: 14,
-          color: AppTheme.textSecondaryColor,
-        ),
-        helperStyle: const TextStyle(
-          fontSize: 12,
-          color: AppTheme.textSecondaryColor,
-        ),
-      ),
-      dropdownColor: AppTheme.cardBackgroundColor,
-      borderRadius: BorderRadius.circular(8),
-      items: options
-          .map(
-            (option) =>
-                DropdownMenuItem<String>(value: option, child: Text(option)),
-          )
-          .toList(),
-      onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Selecione uma opção';
-        }
-        return null;
-      },
-    );
+  @override
+  void dispose() {
+    _descricaoController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(currentPage: MenuPage.createRequest),
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(title: const Text('Abrir Chamados'), elevation: 4),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Saudação
-                    const Text(
-                      'Olá, [Nome do Professor].',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Relate o problema abaixo.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Tipo de Incidente
-                    _buildDropdownField(
-                      label: 'Tipo de Incidente',
-                      value: _selectedIncident,
-                      options: _incidentOptions,
-                      onChanged: (value) => setState(() {
-                        _selectedIncident = value;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Local
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        labelText: 'Local',
-                        filled: true,
-                        fillColor: AppTheme.inputBackgroundColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppTheme.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        labelStyle: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe o local';
-                        }
-                        return null;
+      backgroundColor: Colors.white,
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text('Novo Chamado'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    border: Border.all(color: Colors.red),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              if (_successMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    border: Border.all(color: Colors.green),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _successMessage!,
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                ),
+              const Text(
+                'Local *',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<Local>(
+                value: _selectedLocal,
+                hint: const Text('Selecione um local'),
+                items: _locais
+                    .map((local) => DropdownMenuItem(
+                          value: local,
+                          child: Text(local.nome),
+                        ))
+                    .toList(),
+                onChanged: _isLoading
+                    ? null
+                    : (value) {
+                        setState(() => _selectedLocal = value);
                       },
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppTheme.inputBackgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 2,
                     ),
-                    const SizedBox(height: 16),
-
-                    // Seção Técnica
-                    _buildDropdownField(
-                      label: 'Seção Técnica',
-                      helperText: '(Elétrica, Hidráulica, Civil, etc)',
-                      value: _selectedSection,
-                      options: _sectionOptions,
-                      onChanged: (value) => setState(() {
-                        _selectedSection = value;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Nível de Prioridade
-                    _buildDropdownField(
-                      label: 'Nível de Prioridade',
-                      value: _selectedPriority,
-                      options: _priorityOptions,
-                      onChanged: (value) => setState(() {
-                        _selectedPriority = value;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Nível de Complexidade
-                    _buildDropdownField(
-                      label: 'Nível de Complexidade',
-                      value: _selectedComplexity,
-                      options: _complexityOptions,
-                      onChanged: (value) => setState(() {
-                        _selectedComplexity = value;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Tipo de Trabalho
-                    _buildDropdownField(
-                      label: 'Tipo de Trabalho',
-                      value: _selectedWorkType,
-                      options: _workTypeOptions,
-                      onChanged: (value) => setState(() {
-                        _selectedWorkType = value;
-                      }),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Descrição
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: 'Descrição Detalhada',
-                        filled: true,
-                        fillColor: AppTheme.inputBackgroundColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppTheme.primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                        labelStyle: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                        alignLabelWithHint: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Descreva o problema';
-                        }
-                        return null;
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Tipo de Problema *',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<TipoProblema>(
+                value: _selectedTipo,
+                hint: const Text('Selecione um tipo'),
+                items: _tipos
+                    .map((tipo) => DropdownMenuItem(
+                          value: tipo,
+                          child: Text(tipo.nome),
+                        ))
+                    .toList(),
+                onChanged: _isLoading
+                    ? null
+                    : (value) {
+                        setState(() => _selectedTipo = value);
                       },
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppTheme.inputBackgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 2,
                     ),
-                    const SizedBox(height: 24),
-
-                    // Foto (Opcional)
-                    const Text(
-                      'Foto',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimaryColor,
-                      ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Descrição *',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _descricaoController,
+                maxLines: 5,
+                enabled: !_isLoading,
+                decoration: InputDecoration(
+                  hintText: 'Descreva o problema...',
+                  filled: true,
+                  fillColor: AppTheme.inputBackgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 2,
                     ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 140,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppTheme.inputBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppTheme.textSecondaryColor.withOpacity(0.2),
-                            width: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleCreateChamado,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
-                        ),
-                        child: _pickedImageBytes == null
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.image_outlined,
-                                    size: 48,
-                                    color: AppTheme.primaryColor.withOpacity(
-                                      0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Faça upload',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimaryColor,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.memory(
-                                  _pickedImageBytes!,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Botão Enviar
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _submitRequest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Enviar',
+                        )
+                      : const Text(
+                          'Criar Chamado',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
                 ),
               ),
-            ),
+            ],
           ),
-          // Footer SENAI
-          Container(
-            width: double.infinity,
-            color: AppTheme.primaryColor,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'HORÁRIO DE ATENDIMENTO',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Seg a Sex, 8h às 18h\nSábado: 9h às 13h',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'CONTATO DE RELACIONAMENTO',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Tel: (11) 3222-0039\nWhatsApp: 0800-055-1000',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -1,9 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
+import '../services/chamado_service.dart';
+import '../services/auth_service.dart';
+import '../models/user.dart';
 import 'app_drawer.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<void> _loadDataFuture;
+  User? _currentUser;
+  int _totalChamados = 0;
+  int _emAndamento = 0;
+  int _concluidos = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDataFuture = _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final authService = context.read<AuthService>();
+    final chamadoService = context.read<ChamadoService>();
+
+    _currentUser = await authService.getCurrentUser();
+    
+    try {
+      final chamados = await chamadoService.getChamados();
+      setState(() {
+        _totalChamados = chamados.length;
+        _emAndamento = chamados.where((c) => c.status == 'em_andamento').length;
+        _concluidos = chamados.where((c) => c.status == 'concluido').length;
+      });
+    } catch (e) {
+      print('Erro ao carregar chamados: \$e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,22 +65,22 @@ class HomeScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Feitos',
+                    'Chamados Féitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
@@ -103,48 +143,50 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String label, String count, Color color) {
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Quadrado de cor
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            Column(
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  title,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondaryColor,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  count,
+                  value,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -153,98 +195,27 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildChamadoRecenteCard({
-    required String tipo,
-    required String titulo,
-    required String localizacao,
-    required String data,
-    required String status,
-    required Color statusColor,
+  Widget _buildActionButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onPressed,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header com tipo e localização
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tipo,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                localizacao,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Footer com data e status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                data,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-              Text(
-                status,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: statusColor,
-                ),
-              ),
-            ],
-          ),
-        ],
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      label: Text(title),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }

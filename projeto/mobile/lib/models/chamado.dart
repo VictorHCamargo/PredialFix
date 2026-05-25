@@ -1,41 +1,32 @@
+import 'user.dart';
+import 'local.dart';
+import 'tipo_problema.dart';
+
 class Chamado {
-  final String id;
-  final String tipo;
+  final int id;
+  final int idUsuario;
   final String descricao;
-  final String local;
-  final String data;
+  final int idLocal;
+  final int idTipo;
   final String status;
+  final String? prioridade;
+  final DateTime? dataAbertura;
+  final DateTime? dataFechamento;
+  final DateTime? dataPrazo;
+  final User? usuario;
+  final Local? local;
+  final TipoProblema? tipoProblema;
+  final List<dynamic>? historico;
+  final List<dynamic>? feedback;
 
   Chamado({
     required this.id,
-    required this.tipo,
+    required this.idUsuario,
     required this.descricao,
-    required this.local,
-    required this.data,
+    required this.idLocal,
+    required this.idTipo,
     required this.status,
   });
-
-  factory Chamado.fromJson(Map<String, dynamic> json) {
-    return Chamado(
-      id: json['id_chamado']?.toString() ?? json['id']?.toString() ?? '',
-      tipo: json['tipo'] ?? json['id_tipo'] ?? '',
-      descricao: json['descricao'] ?? '',
-      local: json['local'] ?? json['id_local'] ?? '',
-      data: json['data'] ?? json['data_criacao'] ?? '',
-      status: json['status'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id_chamado': id,
-      'tipo': tipo,
-      'descricao': descricao,
-      'local': local,
-      'data': data,
-      'status': status,
-    };
-  }
 
   // Dados de exemplo
   static List<Chamado> exemplosChamados() {

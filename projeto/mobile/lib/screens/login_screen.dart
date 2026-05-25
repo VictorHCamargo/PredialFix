@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,39 +12,57 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _cpfController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _codeController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  String? _errorMessage;
 
   @override
   void dispose() {
-    _cpfController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
-    _codeController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_cpfController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _codeController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'Preencha todos os campos';
+      });
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    // Simula uma requisição de login
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      // Navega para Home após login bem-sucedido
-      Navigator.of(context).pushReplacementNamed('/home');
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final authService = context.read<AuthService>();
+      final success = await authService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        setState(() {
+          _errorMessage = 'Email ou senha inválidos';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao fazer login: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -63,10 +83,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Título Principal
                 const Text(
-                  'Portal de Chamados',
+                  'PredialFix',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimaryColor,
                     height: 1.2,
@@ -76,56 +96,57 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Subtítulo
                 const Text(
-                  'Bem-Vindo ao PredialFix!',
+                  'Sistema de Gerenciamento de Chamados',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.textSecondaryColor,
                   ),
                 ),
                 const SizedBox(height: 32),
 
-                // Logo SENAI com estilo Figma
+                // Logo com estilo
                 Container(
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Center(
                     child: Text(
-                      'SENAI',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
+                      '🔧',
+                      style: TextStyle(fontSize: 48),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Instruções de login
-                const Text(
-                  'Faça seu Login de Docente.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.textPrimaryColor,
+                // Mensagem de erro
+                if (_errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      border: Border.all(color: Colors.red),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 28),
+                if (_errorMessage != null) const SizedBox(height: 16),
 
-                // Campo CPF
+                // Campo Email
                 TextField(
-                  controller: _cpfController,
-                  keyboardType: TextInputType.number,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
-                    hintText: 'Digite seu CPF',
+                    labelText: 'Email',
+                    hintText: 'seu@email.com',
                     filled: true,
                     fillColor: AppTheme.inputBackgroundColor,
                     contentPadding: const EdgeInsets.symmetric(
@@ -146,6 +167,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppTheme.primaryColor,
                         width: 2,
                       ),
+                    ),
+                    labelStyle: const TextStyle(
+                      color: AppTheme.textPrimaryColor,
+                      fontSize: 14,
                     ),
                     hintStyle: const TextStyle(
                       color: AppTheme.textHintColor,
@@ -158,9 +183,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Campo Senha
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
+                  enabled: !_isLoading,
                   decoration: InputDecoration(
-                    hintText: 'Digite sua Senha',
+                    labelText: 'Senha',
+                    hintText: 'Digite sua senha',
                     filled: true,
                     fillColor: AppTheme.inputBackgroundColor,
                     contentPadding: const EdgeInsets.symmetric(
@@ -182,39 +209,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 2,
                       ),
                     ),
-                    hintStyle: const TextStyle(
-                      color: AppTheme.textHintColor,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Campo Código de Entrada
-                TextField(
-                  controller: _codeController,
-                  decoration: InputDecoration(
-                    hintText: 'Digite seu Código de Entrada',
-                    filled: true,
-                    fillColor: AppTheme.inputBackgroundColor,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: AppTheme.primaryColor,
-                        width: 2,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: AppTheme.textSecondaryColor,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                    labelStyle: const TextStyle(
+                      color: AppTheme.textPrimaryColor,
+                      fontSize: 14,
                     ),
                     hintStyle: const TextStyle(
                       color: AppTheme.textHintColor,
@@ -222,28 +232,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                // Botão Entrar
+                // Botão Login
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
-                      disabledBackgroundColor: AppTheme.primaryColor
-                          .withOpacity(0.6),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 0,
+                      elevation: 2,
                     ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
+                              strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.white,
                               ),
@@ -259,29 +268,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Link para cadastro
+                // Link para Registro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Não tem conta? ',
+                      'Não tem conta?',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppTheme.textSecondaryColor,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
+                      onTap: _isLoading
+                          ? null
+                          : () {
+                              Navigator.of(context)
+                                  .pushNamed('/register');
+                            },
                       child: const Text(
-                        'Cadastre-se',
+                        'Registre-se aqui',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -291,7 +300,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: isSmallerScreen ? 24 : 48),
               ],
             ),
           ),
@@ -300,3 +308,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

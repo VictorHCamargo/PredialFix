@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/chamado_service.dart';
+import '../services/feedback_service.dart';
+import '../models/chamado.dart';
 import 'app_drawer.dart';
 
 class RatingScreen extends StatefulWidget {
@@ -10,226 +14,173 @@ class RatingScreen extends StatefulWidget {
 }
 
 class _RatingScreenState extends State<RatingScreen> {
-  double _rating = 0;
-  final _commentController = TextEditingController();
+  late Future<List<Chamado>> _chamadosFuture;
+  int? _selectedRating;
+  String _selectedComment = '';
 
   @override
-  void dispose() {
-    _commentController.dispose();
-    super.dispose();
-  }
-
-  void _submitRating() {
-    if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma classificação')),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Avaliação enviada com sucesso!')),
-    );
-
-    setState(() {
-      _rating = 0;
-      _commentController.clear();
-    });
+  void initState() {
+    super.initState();
+    _chamadosFuture = context.read<ChamadoService>().getChamados();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(currentPage: MenuPage.ratings),
-      appBar: AppBar(title: const Text('Avaliações')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Card de instruções
-            Container(
-              decoration: AppTheme.getCardDecoration(),
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Avalie nosso atendimento',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sua opinião é muito importante para melhorarmos nossos serviços.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textSecondaryColor,
-                      height: 1.6,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppTheme.paddingLarge),
+      backgroundColor: Colors.white,
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text('Avaliar Chamados'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+      body: FutureBuilder<List<Chamado>>(
+        future: _chamadosFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // Chamados com opção de avaliar
-            const Text(
-              'Chamados para Avaliar',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildRatableItem(
-              numero: '#001',
-              descricao: 'Reparo Elétrico - Sala 102',
-              data: '12/05/2026',
-            ),
-            const SizedBox(height: 12),
-            _buildRatableItem(
-              numero: '#002',
-              descricao: 'Vazamento - Banheiro',
-              data: '11/05/2026',
-            ),
-            const SizedBox(height: AppTheme.paddingLarge),
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text('Nenhum chamado para avaliar'),
+            );
+          }
 
-            // Formulário de Avaliação
-            const Text(
-              'Deixe sua Avaliação',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
+          final chamados = snapshot.data!
+              .where((c) => c.status == 'concluido')
+              .toList();
 
-            Container(
-              decoration: AppTheme.getCardDecoration(),
-              padding: const EdgeInsets.all(AppTheme.paddingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Classificação',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      for (int i = 1; i <= 5; i++)
-                        GestureDetector(
-                          onTap: () => setState(() => _rating = i.toDouble()),
-                          child: Icon(
-                            Icons.star,
-                            size: 36,
-                            color: i <= _rating
-                                ? AppTheme.warningColor
-                                : Colors.grey[300],
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Comentário',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _commentController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Digite seu comentário (opcional)',
-                      filled: true,
-                      fillColor: AppTheme.inputBackgroundColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppTheme.radiusMedium,
-                        ),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _submitRating,
-                      child: const Text('Enviar Avaliação'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          if (chamados.isEmpty) {
+            return const Center(
+              child: Text('Nenhum chamado concluído para avaliar'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: chamados.length,
+            itemBuilder: (context, index) {
+              return _buildRatingCard(chamados[index]);
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _buildRatableItem({
-    required String numero,
-    required String descricao,
-    required String data,
-  }) {
-    return Container(
-      decoration: AppTheme.getCardDecoration(),
-      padding: const EdgeInsets.all(AppTheme.paddingMedium),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildRatingCard(Chamado chamado) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: ExpansionTile(
+        title: Text(chamado.descricao),
+        subtitle: Text('Local: \${chamado.local?.nome ?? "N/A"}'),
         children: [
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  numero,
-                  style: const TextStyle(
+                const Text(
+                  'Sua Avaliação:',
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  descricao,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(
+                    5,
+                    (index) => GestureDetector(
+                      onTap: () => setState(() => _selectedRating = index + 1),
+                      child: Icon(
+                        Icons.star,
+                        size: 32,
+                        color: (index + 1) <= (_selectedRating ?? 0)
+                            ? Colors.amber
+                            : Colors.grey,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  data,
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                const SizedBox(height: 16),
+                const Text(
+                  'Comentário (opcional):',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  maxLines: 3,
+                  onChanged: (value) => _selectedComment = value,
+                  decoration: InputDecoration(
+                    hintText: 'Digite seu comentário...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _selectedRating == null
+                        ? null
+                        : () => _submitRating(chamado),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                    ),
+                    child: const Text('Enviar Avaliação'),
+                  ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: AppTheme.textSecondaryColor,
-          ),
         ],
       ),
     );
+  }
+
+  Future<void> _submitRating(Chamado chamado) async {
+    final feedbackService = context.read<FeedbackService>();
+
+    try {
+      final feedback = await feedbackService.createFeedback(
+        idChamado: chamado.id,
+        avaliacao: _selectedRating!,
+        comentario: _selectedComment.isNotEmpty ? _selectedComment : null,
+      );
+
+      if (!mounted) return;
+
+      if (feedback != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Avaliação enviada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() {
+          _selectedRating = null;
+          _selectedComment = '';
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao enviar avaliação'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: \${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
