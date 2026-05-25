@@ -15,6 +15,28 @@ class Chamado {
     required this.status,
   });
 
+  factory Chamado.fromJson(Map<String, dynamic> json) {
+    return Chamado(
+      id: json['id_chamado']?.toString() ?? json['id']?.toString() ?? '',
+      tipo: json['tipo'] ?? json['id_tipo'] ?? '',
+      descricao: json['descricao'] ?? '',
+      local: json['local'] ?? json['id_local'] ?? '',
+      data: json['data'] ?? json['data_criacao'] ?? '',
+      status: json['status'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id_chamado': id,
+      'tipo': tipo,
+      'descricao': descricao,
+      'local': local,
+      'data': data,
+      'status': status,
+    };
+  }
+
   // Dados de exemplo
   static List<Chamado> exemplosChamados() {
     return [

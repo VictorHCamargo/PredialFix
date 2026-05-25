@@ -52,22 +52,22 @@ class _ManageScreenState extends State<ManageScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _buildStatCard(
-                    'Chamados Féitos',
+                    'Chamados Feitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
+                    'Chamados Feitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
+                    'Chamados Feitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
+                    'Chamados Feitos',
                     '32',
                     AppTheme.primaryColor,
                   ),
