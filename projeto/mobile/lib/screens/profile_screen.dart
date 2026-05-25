@@ -139,17 +139,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ],
                               ),
-                            if (_user!.role != null)
-                              Column(
-                                children: [
-                                  const SizedBox(height: 12),
-                                  _buildInfoCard(
-                                    icon: Icons.badge,
-                                    label: 'Papel',
-                                    value: _user!.role!,
-                                  ),
-                                ],
-                              ),
+                            Column(
+                              children: [
+                                const SizedBox(height: 12),
+                                _buildInfoCard(
+                                  icon: Icons.badge,
+                                  label: 'Papel',
+                                  value: _user!.role,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),

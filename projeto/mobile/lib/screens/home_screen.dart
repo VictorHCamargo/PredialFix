@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/chamado_service.dart';
-import '../services/auth_service.dart';
-import '../models/user.dart';
+import '../models/chamado.dart';
 import 'app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,40 +14,37 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<void> _loadDataFuture;
-  User? _currentUser;
   int _totalChamados = 0;
   int _emAndamento = 0;
   int _concluidos = 0;
+  List<Chamado> _chamadasRecentes = [];
 
   @override
   void initState() {
     super.initState();
-    _loadDataFuture = _loadData();
+    _loadData();
   }
 
   Future<void> _loadData() async {
-    final authService = context.read<AuthService>();
     final chamadoService = context.read<ChamadoService>();
-
-    _currentUser = await authService.getCurrentUser();
     
     try {
       final chamados = await chamadoService.getChamados();
       setState(() {
         _totalChamados = chamados.length;
-        _emAndamento = chamados.where((c) => c.status == 'em_andamento').length;
-        _concluidos = chamados.where((c) => c.status == 'concluido').length;
+        _emAndamento = chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length;
+        _concluidos = chamados.where((c) => c.status.toLowerCase() == 'concluido').length;
+        _chamadasRecentes = chamados.take(3).toList();
       });
     } catch (e) {
-      print('Erro ao carregar chamados: \$e');
+      print('Erro ao carregar chamados: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(currentPage: MenuPage.home),
+      drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Home'), elevation: 4),
       body: SingleChildScrollView(
         child: Column(
@@ -65,24 +61,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+                    title: 'Total',
+                    value: '$_totalChamados',
+                    icon: Icons.list_alt,
+                    color: AppTheme.primaryColor,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+                    title: 'Em Andamento',
+                    value: '$_emAndamento',
+                    icon: Icons.hourglass_bottom,
+                    color: Colors.orange,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+                    title: 'Concluídos',
+                    value: '$_concluidos',
+                    icon: Icons.check_circle,
+                    color: Colors.green,
                   ),
                   _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+                    title: 'Pendentes',
+                    value: '${_totalChamados - _emAndamento - _concluidos}',
+                    icon: Icons.pending_actions,
+                    color: Colors.red,
                   ),
                 ],
               ),
@@ -104,36 +104,19 @@ class _HomeScreenState extends State<HomeScreen> {
             // Lista de Chamados Recentes
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _buildChamadoRecenteCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Elétrica',
-                    statusColor: AppTheme.primaryColor,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChamadoRecenteCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Elétrica',
-                    statusColor: AppTheme.primaryColor,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChamadoRecenteCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Elétrica',
-                    statusColor: AppTheme.primaryColor,
-                  ),
-                ],
-              ),
+              child: _chamadasRecentes.isEmpty
+                  ? const Center(
+                      child: Text('Nenhum chamado encontrado'),
+                    )
+                  : Column(
+                      children: [
+                        for (var chamado in _chamadasRecentes)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildChamadoCard(chamado),
+                          ),
+                      ],
+                    ),
             ),
 
             const SizedBox(height: 24),
@@ -201,22 +184,92 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildActionButton({
-    required String title,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 20),
-      label: Text(title),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.primaryColor,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+  Widget _buildChamadoCard(Chamado chamado) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  chamado.descricao,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(chamado.status).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  chamado.displayStatus,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: _getStatusColor(chamado.status),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                chamado.local?.nome ?? 'Local não informado',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+              Text(
+                DateFormat('dd/MM/yyyy').format(chamado.dataAbertura),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'em_andamento':
+      case 'em andamento':
+        return Colors.orange;
+      case 'concluido':
+      case 'concluído':
+        return Colors.green;
+      case 'pendente':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }

@@ -13,8 +13,10 @@ class ManageScreen extends StatefulWidget {
 }
 
 class _ManageScreenState extends State<ManageScreen> {
-  late Future<List<Chamado>> _chamadosFuture;
-  String _filterStatus = 'todos';
+  List<Chamado> _chamados = [];
+  bool _isLoading = true;
+  String? _selectedStatus;
+  late ChamadoService _chamadoService;
 
   @override
   void initState() {
@@ -22,8 +24,29 @@ class _ManageScreenState extends State<ManageScreen> {
     _loadChamados();
   }
 
-  void _loadChamados() {
-    _chamadosFuture = context.read<ChamadoService>().getChamados();
+  Future<void> _loadChamados() async {
+    _chamadoService = context.read<ChamadoService>();
+    try {
+      final chamados = await _chamadoService.getChamados();
+      setState(() {
+        _chamados = chamados;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Erro ao carregar chamados: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Chamado> get _filteredChamados {
+    if (_selectedStatus == null || _selectedStatus == 'todos') {
+      return _chamados;
+    }
+    return _chamados
+        .where((c) => c.status.toLowerCase() == _selectedStatus!.toLowerCase())
+        .toList();
   }
 
   @override
@@ -35,320 +58,305 @@ class _ManageScreenState extends State<ManageScreen> {
         title: const Text('Meus Chamados'),
         backgroundColor: AppTheme.primaryColor,
       ),
-      body: Column(
-        children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
                 children: [
-                  _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+                  // Estatísticas
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          _buildStatCard(
+                            title: 'Total',
+                            value: '${_chamados.length}',
+                            icon: Icons.list_alt,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Em Andamento',
+                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length}',
+                            icon: Icons.hourglass_bottom,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Concluídos',
+                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'concluido').length}',
+                            icon: Icons.check_circle,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Pendentes',
+                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'pendente').length}',
+                            icon: Icons.pending_actions,
+                            color: Colors.red,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+
+                  // Filtros
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Filtrar por Status',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            value: _selectedStatus,
+                            decoration: InputDecoration(
+                              labelText: 'Status',
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide.none,
+                              ),
+                              labelStyle: const TextStyle(fontSize: 12),
+                            ),
+                            items: const [
+                              DropdownMenuItem<String>(
+                                value: 'todos',
+                                child: Text('Todos'),
+                              ),
+                              DropdownMenuItem<String>(
+                                value: 'pendente',
+                                child: Text('Pendente'),
+                              ),
+                              DropdownMenuItem<String>(
+                                value: 'em_andamento',
+                                child: Text('Em Andamento'),
+                              ),
+                              DropdownMenuItem<String>(
+                                value: 'concluido',
+                                child: Text('Concluído'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              setState(() => _selectedStatus = value);
+                            },
+                            isExpanded: true,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+
+                  // Chamados
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Chamados',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _filteredChamados.isEmpty
+                            ? const Center(
+                                child: Text('Nenhum chamado encontrado'),
+                              )
+                            : Column(
+                                children: [
+                                  for (var chamado in _filteredChamados)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: _buildChamadoItem(chamado),
+                                    ),
+                                ],
+                              ),
+                      ],
+                    ),
                   ),
-                  _buildStatCard(
-                    'Chamados Féitos',
-                    '32',
-                    AppTheme.primaryColor,
+
+                  // Botão Novo Chamado
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/request'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Novo Chamado',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+    );
+  }
 
-            // Seção de Filtros
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(12),
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      width: 120,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.textSecondaryColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChamadoItem(Chamado chamado) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Filtrar',
-                      style: TextStyle(
+                    Text(
+                      chamado.descricao,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textPrimaryColor,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedLocal,
-                            decoration: InputDecoration(
-                              labelText: 'Local',
-                              filled: true,
-                              fillColor: AppTheme.inputBackgroundColor,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(6),
-                                borderSide: BorderSide.none,
-                              ),
-                              labelStyle: const TextStyle(fontSize: 12),
-                            ),
-                            items: _localOptions
-                                .map(
-                                  (option) => DropdownMenuItem<String>(
-                                    value: option,
-                                    child: Text(option),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => _selectedLocal = value);
-                            },
-                            isExpanded: true,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedTipo,
-                            decoration: InputDecoration(
-                              labelText: 'Tipo',
-                              filled: true,
-                              fillColor: AppTheme.inputBackgroundColor,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(6),
-                                borderSide: BorderSide.none,
-                              ),
-                              labelStyle: const TextStyle(fontSize: 12),
-                            ),
-                            items: _tipoOptions
-                                .map(
-                                  (option) => DropdownMenuItem<String>(
-                                    value: option,
-                                    child: Text(option),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => _selectedTipo = value);
-                            },
-                            isExpanded: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: _selectedStatus,
-                      decoration: InputDecoration(
-                        labelText: 'Status',
-                        filled: true,
-                        fillColor: AppTheme.inputBackgroundColor,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide.none,
-                        ),
-                        labelStyle: const TextStyle(fontSize: 12),
+                    const SizedBox(height: 4),
+                    Text(
+                      chamado.local?.nome ?? 'Local não informado',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondaryColor,
                       ),
-                      items: _statusOptions
-                          .map(
-                            (option) => DropdownMenuItem<String>(
-                              value: option,
-                              child: Text(option),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() => _selectedStatus = value);
-                      },
-                      isExpanded: true,
                     ),
                   ],
                 ),
               ),
-            ),
-
-            // Seção Chamados Recentes
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Chamados Recentes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Icon(
-                          Icons.edit,
-                          color: AppTheme.primaryColor,
-                          size: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Lista de Chamados
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _buildChamadoCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Em Andamento',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChamadoCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Em Andamento',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChamadoCard(
-                    tipo: 'Tipo',
-                    titulo: 'Tomada em Curto Circuito',
-                    localizacao: 'Bloco A, Sala 1',
-                    data: '02/01/2026',
-                    status: 'Em Andamento',
-                  ),
-                ],
-              ),
-            ),
-
-            // Botão Relatar novo Problema
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/request'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Relatar novo Problema',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(chamado.status).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  chamado.displayStatus,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: _getStatusColor(chamado.status),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-        onTap: () {
-          showChamadoDetails(chamado);
-        },
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pendente':
-        return Colors.grey;
+    switch (status.toLowerCase()) {
       case 'em_andamento':
+      case 'em andamento':
         return Colors.orange;
       case 'concluido':
+      case 'concluído':
         return Colors.green;
-      case 'cancelado':
+      case 'pendente':
         return Colors.red;
       default:
-        return Colors.blue;
+        return Colors.grey;
     }
-  }
-
-  void showChamadoDetails(Chamado chamado) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Detalhes do Chamado',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Descrição: ${chamado.descricao}'),
-            const SizedBox(height: 8),
-            Text('Local: ${chamado.local?.nome ?? "N/A"}'),
-            const SizedBox(height: 8),
-            Text('Tipo: ${chamado.tipoProblema?.nome ?? "N/A"}'),
-            const SizedBox(height: 8),
-            Text('Status: ${chamado.displayStatus}'),
-            const SizedBox(height: 8),
-            Text('Prioridade: ${chamado.displayPrioridade}'),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                ),
-                child: const Text('Fechar'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

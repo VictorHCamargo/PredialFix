@@ -10,21 +10,8 @@ class ChamadoService {
     try {
       final response = await _apiService.getChamados();
       
-      if (response.statusCode == 200) {
-        List<Chamado> chamados = [];
-        final data = response.data;
-        
-        if (data is List) {
-          chamados = data.map((item) => Chamado.fromJson(item)).toList();
-        } else if (data is Map && data.containsKey('data')) {
-          chamados = List<Chamado>.from(
-            (data['data'] as List).map((item) => Chamado.fromJson(item)),
-          );
-        }
-        
-        return chamados;
-      }
-      return [];
+      // response is List<Map<String, dynamic>>
+      return response.map((item) => Chamado.fromJson(item)).toList();
     } catch (e) {
       print('Get chamados error: $e');
       return [];
@@ -35,13 +22,9 @@ class ChamadoService {
     try {
       final response = await _apiService.getChamado(id);
       
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is Map) {
-          return Chamado.fromJson(data.containsKey('data') ? data['data'] : data);
-        }
-      }
-      return null;
+      // response is Map<String, dynamic>
+      // Handle both direct data and nested 'data' key
+      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
     } catch (e) {
       print('Get chamado error: $e');
       return null;
@@ -66,13 +49,8 @@ class ChamadoService {
 
       final response = await _apiService.createChamado(data);
       
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseData = response.data;
-        if (responseData is Map) {
-          return Chamado.fromJson(responseData.containsKey('data') ? responseData['data'] : responseData);
-        }
-      }
-      return null;
+      // response is Map<String, dynamic>
+      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
     } catch (e) {
       print('Create chamado error: $e');
       return null;
@@ -96,13 +74,8 @@ class ChamadoService {
 
       final response = await _apiService.updateChamado(id, data);
       
-      if (response.statusCode == 200) {
-        final responseData = response.data;
-        if (responseData is Map) {
-          return Chamado.fromJson(responseData.containsKey('data') ? responseData['data'] : responseData);
-        }
-      }
-      return null;
+      // response is Map<String, dynamic>
+      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
     } catch (e) {
       print('Update chamado error: $e');
       return null;
@@ -111,8 +84,8 @@ class ChamadoService {
 
   Future<bool> deleteChamado(int id) async {
     try {
-      final response = await _apiService.deleteChamado(id);
-      return response.statusCode == 200 || response.statusCode == 204;
+      await _apiService.deleteChamado(id);
+      return true;
     } catch (e) {
       print('Delete chamado error: $e');
       return false;

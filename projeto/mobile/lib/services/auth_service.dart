@@ -1,4 +1,3 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
@@ -15,21 +14,19 @@ class AuthService {
     try {
       final response = await _apiService.login(email, password);
       
-      if (response.statusCode == 200) {
-        final token = response.data['token'] ?? response.data['access_token'];
-        final userData = response.data['user'];
+      final token = response['token'] ?? response['access_token'];
+      final userData = response['user'];
 
-        if (token != null) {
-          _apiService.setToken(token);
-          await _storageService.setToken(token);
-          
-          if (userData != null) {
-            final user = User.fromJson(userData);
-            await _storageService.setUser(user);
-          }
-          
-          return true;
+      if (token != null) {
+        _apiService.setToken(token);
+        await _storageService.setToken(token);
+        
+        if (userData != null) {
+          final user = User.fromJson(Map<String, dynamic>.from(userData is Map ? userData : {}));
+          await _storageService.setUser(user);
         }
+        
+        return true;
       }
       return false;
     } catch (e) {
@@ -42,22 +39,19 @@ class AuthService {
     try {
       final response = await _apiService.register(nome, email, password, passwordConfirmation);
       
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        // Se o backend faz login automático após registro
-        final token = response.data['token'] ?? response.data['access_token'];
-        if (token != null) {
-          _apiService.setToken(token);
-          await _storageService.setToken(token);
-          
-          final userData = response.data['user'];
-          if (userData != null) {
-            final user = User.fromJson(userData);
-            await _storageService.setUser(user);
-          }
+      // Se o backend faz login automático após registro
+      final token = response['token'] ?? response['access_token'];
+      if (token != null) {
+        _apiService.setToken(token);
+        await _storageService.setToken(token);
+        
+        final userData = response['user'];
+        if (userData != null) {
+          final user = User.fromJson(Map<String, dynamic>.from(userData is Map ? userData : {}));
+          await _storageService.setUser(user);
         }
-        return true;
       }
-      return false;
+      return true;
     } catch (e) {
       print('Register error: $e');
       return false;
@@ -82,11 +76,10 @@ class AuthService {
         _apiService.setToken(token);
         
         final response = await _apiService.getCurrentUser();
-        if (response.statusCode == 200) {
-          final user = User.fromJson(response.data['user'] ?? response.data);
-          await _storageService.setUser(user);
-          return true;
-        }
+        final userData = response['user'] ?? response;
+        final user = User.fromJson(Map<String, dynamic>.from(userData is Map ? userData : {}));
+        await _storageService.setUser(user);
+        return true;
       }
       return false;
     } catch (e) {

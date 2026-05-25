@@ -10,21 +10,8 @@ class FeedbackService {
     try {
       final response = await _apiService.getFeedbacks();
       
-      if (response.statusCode == 200) {
-        List<Feedback> feedbacks = [];
-        final data = response.data;
-        
-        if (data is List) {
-          feedbacks = data.map((item) => Feedback.fromJson(item)).toList();
-        } else if (data is Map && data.containsKey('data')) {
-          feedbacks = List<Feedback>.from(
-            (data['data'] as List).map((item) => Feedback.fromJson(item)),
-          );
-        }
-        
-        return feedbacks;
-      }
-      return [];
+      // response is List<Map<String, dynamic>>
+      return response.map((item) => Feedback.fromJson(item)).toList();
     } catch (e) {
       print('Get feedbacks error: $e');
       return [];
@@ -44,13 +31,8 @@ class FeedbackService {
 
       final response = await _apiService.createFeedback(idChamado, data);
       
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseData = response.data;
-        if (responseData is Map) {
-          return Feedback.fromJson(responseData.containsKey('data') ? responseData['data'] : responseData);
-        }
-      }
-      return null;
+      // response is Map<String, dynamic>
+      return Feedback.fromJson(response.containsKey('data') ? response['data'] : response);
     } catch (e) {
       print('Create feedback error: $e');
       return null;
