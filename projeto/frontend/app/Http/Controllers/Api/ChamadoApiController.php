@@ -139,8 +139,8 @@ class ChamadoApiController extends Controller
             ], 404);
         }
 
-        // Verificar permissão
-        if (!$user->cod_entrada && $chamado->id_usuario !== $user->id) {
+        // Verificar permissão de edição
+        if (!$user->canEditTicket($chamado)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sem permissão para atualizar este chamado',
@@ -150,7 +150,7 @@ class ChamadoApiController extends Controller
         $validated = $request->validate([
             'descricao' => 'nullable|string',
             'id_local' => 'nullable|exists:locais,id_local',
-            'id_tipo' => 'nullable|exists:tipo_problema,id_tipo',
+            'id_tipo' => 'nullable|exists:tipo_problemas,id_tipo',
         ]);
 
         try {
@@ -220,6 +220,14 @@ class ChamadoApiController extends Controller
                 'success' => false,
                 'message' => 'Chamado não encontrado',
             ], 404);
+        }
+
+        // Professor e aluno não podem alterar status
+        if ($user->isProfessor() || $user->isAluno()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sua função não tem permissão para alterar o status de chamados',
+            ], 403);
         }
 
         $validated = $request->validate([

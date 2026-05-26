@@ -8,9 +8,12 @@ use App\Models\Local;
 use App\Models\TipoProblema;
 use App\Models\Equipamento;
 use App\Models\HistoricoStatusChamado;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ChamadoController extends Controller {
+    use AuthorizesRequests;
     /**
      * Mostrar lista de chamados com filtros e paginação
      */
@@ -33,8 +36,9 @@ class ChamadoController extends Controller {
             $query->where('prioridade', $request->prioridade);
         }
 
-        // Usuários normais (sem código de entrada) veem apenas seus próprios chamados
-        if (!$user->temCodigoEntrada()) {
+        // Usuários sem código de entrada veem apenas seus próprios chamados
+        $user = Auth::user();
+        if (!$user->cod_entrada) {
             $query->where('id_usuario', $user->id_usuario);
         }
 
@@ -56,6 +60,7 @@ class ChamadoController extends Controller {
     }
 
     public function create() {
+        /** @var User $user */
         $user = Auth::user();
         
         // Alunos não podem criar chamados
@@ -72,6 +77,7 @@ class ChamadoController extends Controller {
     }
 
     public function store(Request $request) {
+        /** @var User $user */
         $user = $request->user();
 
         // Alunos não podem criar chamados
@@ -125,6 +131,7 @@ class ChamadoController extends Controller {
      * Exibir formulário de edição de um chamado
      */
     public function edit(string $id) {
+        /** @var User $user */
         $user = Auth::user();
         
         // Alunos não podem editar chamados
@@ -155,6 +162,7 @@ class ChamadoController extends Controller {
      */
     public function updateStatus(Request $request, string $id) {
         $chamado = Chamado::findOrFail($id);
+        /** @var User $user */
         $user = Auth::user();
 
         // Alunos não podem alterar status
@@ -293,19 +301,20 @@ class ChamadoController extends Controller {
     }
 
     public function destroy(string $id) {
+        /** @var User $user */
         $user = Auth::user();
         
-        // Alunos não podem deletar chamados
+        $chamado = Chamado::findOrFail($id);
+
+        // Alunos não podem deletar
         if ($user->isAluno()) {
             return back()->withErrors([
                 'delete' => 'Alunos não podem deletar chamados.',
             ]);
         }
-        
-        $chamado = Chamado::findOrFail($id);
 
-        // Apenas admin ou o criador do chamado podem deletar
-        if (!$user->isAdmin() && $chamado->id_usuario !== $user->id_usuario) {
+        // Verificar permissão para deletar
+        if (!$this->authorize('delete', $chamado)) {
             return back()->withErrors([
                 'delete' => 'Você não tem permissão para deletar este chamado.',
             ]);

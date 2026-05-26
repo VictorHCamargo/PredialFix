@@ -70,7 +70,7 @@ class AuthController extends Controller {
     }
 
     /**
-     * Processa o registro de novo usuário.
+     * Processa o registro de novo usuário (apenas alunos).
      */
     public function register(Request $request) {
         $request->validate(
@@ -78,27 +78,27 @@ class AuthController extends Controller {
                 'nome' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'email', 'unique:usuarios,email'],
                 'senha' => ['required', 'string', 'min:8', 'confirmed'],
-                'nivel_acesso' => ['required', 'in:professor,aluno,visitante'],
-                'setor' => ['nullable', 'string'],
             ],
             [
                 'nome.required' => 'O nome é obrigatório.',
+                'nome.string' => 'O nome deve ser um texto.',
+                'nome.max' => 'O nome não pode ter mais de 255 caracteres.',
                 'email.required' => 'O e-mail é obrigatório.',
                 'email.email' => 'Informe um e-mail válido.',
                 'email.unique' => 'Este e-mail já está registrado.',
                 'senha.required' => 'A senha é obrigatória.',
+                'senha.string' => 'A senha deve ser um texto.',
                 'senha.min' => 'A senha deve ter no mínimo 8 caracteres.',
                 'senha.confirmed' => 'As senhas não conferem.',
-                'nivel_acesso.required' => 'Selecione um nível de acesso.',
             ],
         );
 
+        // Registra automaticamente como aluno
         $user = User::create([
             'nome' => $request->nome,
             'email' => $request->email,
             'senha' => Hash::make($request->senha),
-            'nivel_acesso' => $request->nivel_acesso,
-            'setor' => $request->setor,
+            'nivel_acesso' => 'aluno',
             'ativo' => true,
         ]);
 

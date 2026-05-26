@@ -136,6 +136,11 @@ class User extends Authenticatable {
             return $chamado->id_usuario === $this->id_usuario && $chamado->status === 'aberto';
         }
 
+        // Professor pode editar apenas seus próprios chamados e apenas se estiver aberto
+        if ($this->isProfessor()) {
+            return $chamado->id_usuario === $this->id_usuario && $chamado->status === 'aberto';
+        }
+
         // Equipe de manutenção pode editar seus chamados atribuídos
         if ($this->isEquipeManutenacao()) {
             return $chamado->id_usuario === $this->id_usuario && $chamado->status === 'aberto';

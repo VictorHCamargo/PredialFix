@@ -83,20 +83,22 @@
                     @enderror
                 </div>
 
-                {{-- Setor --}}
-                <div class="mb-6">
-                    <label for="setor" class="mb-2 block text-sm font-medium text-gray-700">
-                        Setor/Departamento
-                    </label>
-                    <input
-                        id="setor"
-                        type="text"
-                        name="setor"
-                        value="{{ old('setor', $user->setor) }}"
-                        placeholder="Ex: Departamento de Informática"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                </div>
+                @if (!$user->isAluno())
+                    {{-- Setor --}}
+                    <div class="mb-6">
+                        <label for="setor" class="mb-2 block text-sm font-medium text-gray-700">
+                            Setor/Departamento
+                        </label>
+                        <input
+                            id="setor"
+                            type="text"
+                            name="setor"
+                            value="{{ old('setor', $user->setor) }}"
+                            placeholder="Ex: Departamento de Informática"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
+                        />
+                    </div>
+                @endif
 
                 {{-- Botões --}}
                 <div class="flex gap-3 pt-4">

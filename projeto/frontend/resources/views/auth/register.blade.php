@@ -90,98 +90,6 @@
                     @enderror
                 </div>
 
-                {{-- Campo Nível de Acesso --}}
-                <div class="mb-4">
-                    <label for="nivel_acesso" class="mb-2 block text-sm font-medium text-gray-700">
-                        Nível de Acesso *
-                    </label>
-                    <div class="space-y-3">
-                        <div
-                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
-                            onclick="selectLevel('professor')"
-                        >
-                            <input
-                                type="radio"
-                                id="nivel_professor"
-                                name="nivel_acesso"
-                                value="professor"
-                                {{
-                                    old('nivel_acesso') === 'professor'
-                                        ? 'checked'
-                                        : ''
-                                }}
-                                class="mr-3"
-                            />
-                            <label for="nivel_professor" class="cursor-pointer">
-                                <span class="font-semibold text-gray-800">Professor</span>
-                                <p class="mt-1 text-xs text-gray-600">Pode criar e visualizar chamados. Acesso completo ao sistema de relatórios.</p>
-                            </label>
-                        </div>
-
-                        <div
-                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
-                            onclick="selectLevel('aluno')"
-                        >
-                            <input
-                                type="radio"
-                                id="nivel_aluno"
-                                name="nivel_acesso"
-                                value="aluno"
-                                {{
-                                    old('nivel_acesso') === 'aluno'
-                                        ? 'checked'
-                                        : ''
-                                }}
-                                class="mr-3"
-                            />
-                            <label for="nivel_aluno" class="cursor-pointer">
-                                <span class="font-semibold text-gray-800">Aluno</span>
-                                <p class="mt-1 text-xs text-gray-600">Pode criar e visualizar seus próprios chamados. Acesso ao sistema de avaliações.</p>
-                            </label>
-                        </div>
-
-                        <div
-                            class="cursor-pointer rounded-lg border border-gray-300 p-4 transition hover:border-red-400 hover:bg-red-50"
-                            onclick="selectLevel('visitante')"
-                        >
-                            <input
-                                type="radio"
-                                id="nivel_visitante"
-                                name="nivel_acesso"
-                                value="visitante"
-                                {{
-                                    old('nivel_acesso') === 'visitante'
-                                        ? 'checked'
-                                        : ''
-                                }}
-                                class="mr-3"
-                            />
-                            <label for="nivel_visitante" class="cursor-pointer">
-                                <span class="font-semibold text-gray-800">Visitante</span>
-                                <p class="mt-1 text-xs text-gray-600">Apenas visualiza seus próprios chamados. Sem permissão para criar novos.</p>
-                            </label>
-                        </div>
-                    </div>
-                    @error ('nivel_acesso')
-                        <p class="mt-2 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Campo Setor (opcional) --}}
-                <div class="mb-4">
-                    <label for="setor" class="mb-1 block text-sm font-medium text-gray-700">
-                        Setor/Departamento (opcional)
-                    </label>
-                    <input
-                        id="setor"
-                        type="text"
-                        name="setor"
-                        value="{{ old('setor') }}"
-                        placeholder="Ex: Departamento de Informática"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                </div>
-
                 {{-- Campo Senha --}}
                 <div class="mb-4">
                     <label for="senha" class="mb-1 block text-sm font-medium text-gray-700">
@@ -248,10 +156,6 @@
         <p class="mt-6 text-center text-xs text-gray-400">PredialFix &copy; {{ date('Y') }} — SENAI</p>
     </div>
 
-    <script>
-        function selectLevel(level) {
-            document.getElementById('nivel_' + level).checked = true;
-        }
-    </script>
+
 </body>
 </html>

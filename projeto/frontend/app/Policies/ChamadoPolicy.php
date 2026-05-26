@@ -31,6 +31,11 @@ class ChamadoPolicy
             return true;
         }
 
+        // Professor pode ver todos os chamados
+        if ($user->isProfessor()) {
+            return true;
+        }
+
         // Alunos veem apenas seus próprios chamados
         if ($user->isAluno()) {
             return $chamado->id_usuario === $user->id_usuario;
@@ -74,6 +79,11 @@ class ChamadoPolicy
         // Admin pode deletar qualquer um
         if ($user->isAdmin()) {
             return true;
+        }
+
+        // Professor pode deletar apenas seus próprios chamados e apenas se estiver aberto
+        if ($user->isProfessor()) {
+            return $chamado->id_usuario === $user->id_usuario && $chamado->status === 'aberto';
         }
 
         return false;

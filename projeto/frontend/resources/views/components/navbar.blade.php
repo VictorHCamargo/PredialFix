@@ -13,7 +13,8 @@
         'dark' => 'bg-gray-900',
     ];
 
-    $bgClass = $bgMap[$color] ?? $bgMap['red'];
+    $safeColor = $color ?? 'red';
+    $bgClass = $bgMap[$safeColor] ?? $bgMap['red'];
 @endphp
 
 <nav class="{{ $bgClass }} flex items-center justify-between px-4 py-0 shadow-md">
@@ -34,22 +35,24 @@
             Home
         </x-nav-item>
 
-        <x-nav-item
-            href="{{ route('chamados.create') }}"
-            route="chamados.create"
-            :color="$itemColor"
-        >
-            Novo Chamado
-        </x-nav-item>
+        @if (!Auth::user()->isAluno())
+            <x-nav-item
+                href="{{ route('chamados.create') }}"
+                route="chamados.create"
+                :color="$itemColor"
+            >
+                Novo Chamado
+            </x-nav-item>
 
-        <x-nav-item
-            href="{{ route('chamados.index') }}"
-            route="chamados.index"
-            :color="$itemColor"
-            :border="false"
-        >
-            Gerenciar Chamados
-        </x-nav-item>
+            <x-nav-item
+                href="{{ route('chamados.index') }}"
+                route="chamados.index"
+                :color="$itemColor"
+                :border="false"
+            >
+                Gerenciar Chamados
+            </x-nav-item>
+        @endif
 
         <x-nav-item
             href="{{ route('avaliar.index') }}"
