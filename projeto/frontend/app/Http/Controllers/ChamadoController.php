@@ -56,7 +56,14 @@ class ChamadoController extends Controller {
             'prioridade' => $request->prioridade ?? '',
         ];
 
-        return view('chamados.index', compact('chamados', 'filtros'));
+        // Contar chamados por status para os cards de estatísticas
+        $statusCounts = [
+            'em_andamento' => Chamado::where('status', 'em_andamento')->count(),
+            'concluido' => Chamado::where('status', 'concluido')->count(),
+            'cancelado' => Chamado::where('status', 'cancelado')->count(),
+        ];
+
+        return view('chamados.index', compact('chamados', 'filtros', 'statusCounts'));
     }
 
     public function create() {

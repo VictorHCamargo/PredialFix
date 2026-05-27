@@ -35,6 +35,11 @@
         @php
             $total = $chamados->total();
             $perPage = $chamados->perPage();
+            
+            // Contagens por status dos cards
+            $emAndamentoCount = $statusCounts['em_andamento'] ?? 0;
+            $concluidosCount = $statusCounts['concluido'] ?? 0;
+            $canceladosCount = $statusCounts['cancelado'] ?? 0;
         @endphp
 
         <!-- Cards de estatísticas -->
@@ -67,7 +72,7 @@
                 </div>
                 <div>
                     <p class="text-xs leading-tight text-gray-500">Em Andamento</p>
-                    <p class="text-2xl font-bold leading-tight text-gray-800">0</p>
+                    <p class="text-2xl font-bold leading-tight text-gray-800">{{ $emAndamentoCount }}</p>
                 </div>
             </div>
 
@@ -83,7 +88,7 @@
                 </div>
                 <div>
                     <p class="text-xs leading-tight text-gray-500">Concluídos</p>
-                    <p class="text-2xl font-bold leading-tight text-gray-800">0</p>
+                    <p class="text-2xl font-bold leading-tight text-gray-800">{{ $concluidosCount }}</p>
                 </div>
             </div>
 
@@ -98,8 +103,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs leading-tight text-gray-500">Página</p>
-                    <p class="text-2xl font-bold leading-tight text-gray-800">{{ $chamados->currentPage() }} de {{ $chamados->lastPage() }}</p>
+                    <p class="text-xs leading-tight text-gray-500">Cancelados</p>
+                    <p class="text-2xl font-bold leading-tight text-gray-800">{{ $canceladosCount }}</p>
                 </div>
             </div>
         </div>

@@ -38,6 +38,14 @@
 <?php unset($__componentOriginala591787d01fe92c5706972626cdf7231); ?>
 <?php endif; ?>
 
+    <?php if($temErroSenha ?? false): ?>
+        <div data-has-password-error style="display: none;"></div>
+    <?php endif; ?>
+
+    <?php if($temErroDelete ?? false): ?>
+        <div data-has-delete-error style="display: none;"></div>
+    <?php endif; ?>
+
     <main class="mx-auto w-full max-w-4xl flex-1 px-6 py-8">
         
         <div class="mb-8">
@@ -291,7 +299,7 @@
     
     <div
         id="changePasswordModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 <?php if(!$errors->has('senha_atual') && !$errors->has('senha_nova') && !$errors->has('senha_nova_confirmation')): ?> hidden <?php endif; ?>"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 <?php if(!$errors->has('senha_atual') && !$errors->has('senha_nova')): ?> hidden <?php endif; ?>"
     >
         <div class="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
             <h3 class="mb-4 text-lg font-semibold text-gray-800">Alterar Senha</h3>
@@ -486,6 +494,11 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 
+    <?php
+        $temErroSenha = $errors->has('senha_atual') || $errors->has('senha_nova');
+        $temErroDelete = $errors->has('senha');
+    ?>
+
     <script>
         function openChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.remove('hidden');
@@ -513,23 +526,22 @@ unset($__errorArgs, $__bag); ?>
 
         // Se houver erros de senha, manter o modal aberto
         document.addEventListener('DOMContentLoaded', function () {
-            <?php if($errors->has('senha_atual') || $errors->has('senha_nova') || $errors->has('senha_nova_confirmation')): ?>
+            const hasPasswordError = document.querySelector('[data-has-password-error]');
+            const hasDeleteError = document.querySelector('[data-has-delete-error]');
+            
+            if (hasPasswordError) {
                 document.getElementById('changePasswordModal').classList.remove('hidden');
-                // Focar no primeiro campo com erro
-                <?php if($errors->has('senha_atual')): ?>
-                    document.getElementById('senha_atual').focus();
-                <?php elseif($errors->has('senha_nova')): ?>
-                    document.getElementById('senha_nova').focus();
-                <?php else: ?>
-                    document.getElementById('senha_nova_confirmation').focus();
-                <?php endif; ?>
-            <?php endif; ?>
+                const senhaAtualField = document.getElementById('senha_atual');
+                const senhaNovaField = document.getElementById('senha_nova');
+                if (senhaAtualField) setTimeout(() => senhaAtualField.focus(), 100);
+                else if (senhaNovaField) setTimeout(() => senhaNovaField.focus(), 100);
+            }
 
-            // Se houver erro ao deletar conta, manter o modal aberto
-            <?php if($errors->has('senha') && request()->isMethod('delete')): ?>
+            if (hasDeleteError) {
                 document.getElementById('deleteAccountModal').classList.remove('hidden');
-                document.getElementById('delete_senha').focus();
-            <?php endif; ?>
+                const deleteSenhaField = document.getElementById('delete_senha');
+                if (deleteSenhaField) setTimeout(() => deleteSenhaField.focus(), 100);
+            }
         });
 
         // Fechar modals ao clicar fora

@@ -45,7 +45,8 @@ unset($__defined_vars, $__key, $__value); ?>
         'dark' => 'bg-gray-900',
     ];
 
-    $bgClass = $bgMap[$color] ?? $bgMap['red'];
+    $safeColor = $color ?? 'red';
+    $bgClass = $bgMap[$safeColor] ?? $bgMap['red'];
 ?>
 
 <nav class="<?php echo e($bgClass); ?> flex items-center justify-between px-4 py-0 shadow-md">

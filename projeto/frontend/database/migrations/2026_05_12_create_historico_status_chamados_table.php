@@ -23,7 +23,7 @@ return new class extends Migration
                 ->constrained('usuarios', 'id_usuario')
                 ->comment('Usuário que realizou a mudança de status');
             
-            $table->integer('prioridade')->nullable()->comment('Prioridade definida nesta transição');
+            $table->enum('prioridade', ['baixa', 'media', 'alta'])->nullable()->comment('Prioridade definida nesta transição');
             
             $table->timestamps();
             

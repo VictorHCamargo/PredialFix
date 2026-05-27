@@ -4,6 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChamadoController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Chamado;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,17 +32,24 @@ Route::middleware('auth.custom')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', function () {
+        $hoje = Carbon::today();
+        
         $chamadosRecentes = Chamado::with(['local', 'tipoProblema'])
             ->latest('data_abertura')
             ->take(5)
             ->get();
 
         return view('dashboard', [
-            'chamadosRecentes' => $chamadosRecentes,
+            'totalUsuarios' => User::count(),
             'totalChamados' => Chamado::count(),
+            'chamadosPendentes' => Chamado::where('status', 'aberto')->count(),
+            'chamadosResolvidosHoje' => Chamado::where('status', 'concluido')
+                ->whereDate('data_conclusao', $hoje)
+                ->count(),
             'emAndamento' => Chamado::where('status', 'em_andamento')->count(),
             'concluidos' => Chamado::where('status', 'concluido')->count(),
             'cancelados' => Chamado::where('status', 'cancelado')->count(),
+            'chamadosRecentes' => $chamadosRecentes,
         ]);
     })->name('dashboard');
 
