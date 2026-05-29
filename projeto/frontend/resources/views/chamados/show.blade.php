@@ -23,7 +23,7 @@
         $user = auth()->user();
         $podeAlterarStatus = $user->isAdmin() || $user->isEquipeManutencao();
         $podeEditar = $user->isAdmin() || $user->isEquipeManutencao() || ($user->isProfessor() && $chamado->id_usuario === $user->id_usuario && in_array($chamado->status, ['aberto', 'em_andamento']));
-        $podeCancelar = $user->isAdmin() || $user->isEquipeManutencao();
+        $podeCancelar = ($user->isAdmin() || $user->isEquipeManutencao()) && $chamado->status !== 'cancelado';
     @endphp
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
@@ -36,6 +36,16 @@
         @if (session('success'))
             <div class="mb-6 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="mb-6 rounded border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+                <ul class="list-disc space-y-1 pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -139,6 +149,16 @@
                 <div class="rounded-lg bg-white p-6 shadow">
                     <h2 class="mb-4 text-lg font-semibold text-gray-800">Historico de status</h2>
 
+                    <div class="mb-4 rounded bg-gray-50 p-3 text-sm text-gray-700">
+                        <span class="font-semibold">Solicitante:</span>
+                        {{ $chamado->usuario->nome ?? 'Desconhecido' }}
+                        | ID: {{ $chamado->usuario->id_usuario ?? '-' }}
+                        | {{ $chamado->usuario->email ?? '-' }}
+                        @if ($chamado->usuario?->cod_entrada)
+                            | Cracha: {{ $chamado->usuario->cod_entrada }}
+                        @endif
+                    </div>
+
                     @if ($chamado->historicoStatus->count())
                         <div class="space-y-4">
                             @foreach ($chamado->historicoStatus->reverse() as $historico)
@@ -150,7 +170,18 @@
                                                 <span class="text-gray-500">→</span>
                                                 {{ ucfirst(str_replace('_', ' ', $historico->status_novo)) }}
                                             </p>
-                                            <p class="text-xs text-gray-600">Por: {{ $historico->usuario->nome ?? 'Desconhecido' }}</p>
+                                            <p class="text-xs text-gray-600">
+                                                Por: {{ $historico->usuario->nome ?? 'Desconhecido' }}
+                                                @if ($historico->usuario)
+                                                    (ID: {{ $historico->usuario->id_usuario }})
+                                                @endif
+                                            </p>
+                                            @if ($historico->usuario?->email)
+                                                <p class="text-xs text-gray-500">{{ $historico->usuario->email }}</p>
+                                            @endif
+                                            @if ($historico->usuario?->cod_entrada)
+                                                <p class="text-xs text-gray-500">Cracha: {{ $historico->usuario->cod_entrada }}</p>
+                                            @endif
                                         </div>
                                         <p class="text-xs text-gray-500">{{ $historico->created_at->format('d/m/Y H:i') }}</p>
                                     </div>
@@ -321,9 +352,12 @@
             const status = document.getElementById('status').value;
             const prioridadeContainer = document.getElementById('prioridadeContainer');
             const descricaoContainer = document.getElementById('descricaoContainer');
+            const descricao = document.getElementById('status_descricao');
 
             prioridadeContainer.classList.add('hidden');
             descricaoContainer.classList.add('hidden');
+            descricao.required = false;
+            descricao.minLength = 0;
 
             if (status === 'em_andamento') {
                 prioridadeContainer.classList.remove('hidden');
@@ -331,6 +365,11 @@
 
             if (status === 'concluido' || status === 'cancelado') {
                 descricaoContainer.classList.remove('hidden');
+            }
+
+            if (status === 'cancelado') {
+                descricao.required = true;
+                descricao.minLength = 10;
             }
         }
 

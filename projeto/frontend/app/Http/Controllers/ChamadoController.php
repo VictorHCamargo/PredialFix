@@ -99,6 +99,10 @@ class ChamadoController extends Controller {
         $data['data_abertura'] = now();
         $data['data_ultimo_status'] = now();
 
+        if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
+            unset($data['prioridade'], $data['secao_tecnica'], $data['complexidade'], $data['tipo_trabalho']);
+        }
+
         $idPatrimonio = trim((string) ($data['id_patrimonio'] ?? ''));
         if ($idPatrimonio !== '') {
             $chamadoExistente = Chamado::where('id_patrimonio', $idPatrimonio)
@@ -114,6 +118,8 @@ class ChamadoController extends Controller {
                     ]);
             }
         }
+
+        $data['id_patrimonio'] = $idPatrimonio !== '' ? $idPatrimonio : null;
 
         $chamado = Chamado::create($data);
 
@@ -236,14 +242,15 @@ class ChamadoController extends Controller {
             'prioridade' => $request->filled('prioridade') ? $request->prioridade : null,
         ]);
 
-        $destinatarios = NotificacaoHelper::obterDestinatarios('status', $chamado, $user);
+        $tipoNotificacao = $novoStatus === 'cancelado' ? 'cancelamento' : 'status';
+        $destinatarios = NotificacaoHelper::obterDestinatarios($tipoNotificacao, $chamado, $user);
         $mensagem = 'Chamado #' . $chamado->id_chamado . ' teve o status alterado para ' . str_replace('_', ' ', $novoStatus) . '.';
 
         if ($novoStatus === 'cancelado' && $descricao !== '') {
             $mensagem = 'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $descricao;
         }
 
-        NotificacaoHelper::disparar($mensagem, 'status', $chamado->id_chamado, $destinatarios);
+        NotificacaoHelper::disparar($mensagem, $tipoNotificacao, $chamado->id_chamado, $destinatarios);
 
         if ($responsavelAnterior !== $chamado->id_usuario_responsavel) {
             NotificacaoHelper::disparar(
@@ -314,6 +321,10 @@ class ChamadoController extends Controller {
         ]);
 
         $data['tipo_chamado'] = 'interno';
+        $data['id_patrimonio'] = isset($data['id_patrimonio']) ? trim((string) $data['id_patrimonio']) : null;
+        if ($data['id_patrimonio'] === '') {
+            $data['id_patrimonio'] = null;
+        }
 
         $original = $chamado->only([
             'descricao',
@@ -368,7 +379,7 @@ class ChamadoController extends Controller {
             );
         }
 
-        if (!empty($mudancas) && !array_intersect($mudancas, ['prioridade', 'complexidade'])) {
+        if (!empty(array_diff($mudancas, ['prioridade', 'complexidade']))) {
             NotificacaoHelper::disparar(
                 'Chamado #' . $chamado->id_chamado . ' foi atualizado.',
                 'edicao',
@@ -388,6 +399,12 @@ class ChamadoController extends Controller {
         if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
             return back()->withErrors([
                 'delete' => 'Sem permissao para cancelar chamados.',
+            ]);
+        }
+
+        if ($chamado->status === 'cancelado') {
+            return back()->withErrors([
+                'delete' => 'Este chamado ja esta cancelado.',
             ]);
         }
 

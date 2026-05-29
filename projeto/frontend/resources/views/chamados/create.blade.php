@@ -102,7 +102,7 @@
                 </div>
             </div>
 
-            @unless(Auth::user()->isAluno())
+            @if (Auth::user()->canManageTickets())
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label for="secao_tecnica" class="mb-1 block text-sm font-semibold text-gray-800">Seccao tecnica</label>
@@ -145,7 +145,7 @@
                         </select>
                     </div>
                 </div>
-            @endunless
+            @endif
 
             @if (Auth::user()->isAluno())
                 <div class="rounded border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-700">

@@ -27,7 +27,7 @@ class ChamadoPolicy
         }
 
         // Equipe de manutenção pode ver todos
-        if ($user->isEquipeManutenacao()) {
+        if ($user->isEquipeManutencao()) {
             return true;
         }
 
@@ -63,7 +63,16 @@ class ChamadoPolicy
      */
     public function update(User $user, Chamado $chamado): bool
     {
-        return $user->canEditTicket($chamado);
+        if ($user->isAdmin() || $user->isEquipeManutencao()) {
+            return true;
+        }
+
+        if ($user->isProfessor()) {
+            return $chamado->id_usuario === $user->id_usuario
+                && in_array($chamado->status, ['aberto', 'em_andamento']);
+        }
+
+        return false;
     }
 
     /**
@@ -71,22 +80,7 @@ class ChamadoPolicy
      */
     public function delete(User $user, Chamado $chamado): bool
     {
-        // Alunos nunca podem deletar
-        if ($user->isAluno()) {
-            return false;
-        }
-        
-        // Admin pode deletar qualquer um
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // Professor pode deletar apenas seus próprios chamados e apenas se estiver aberto
-        if ($user->isProfessor()) {
-            return $chamado->id_usuario === $user->id_usuario && $chamado->status === 'aberto';
-        }
-
-        return false;
+        return $user->isAdmin() || $user->isEquipeManutencao();
     }
 
     /**
@@ -105,7 +99,7 @@ class ChamadoPolicy
         }
 
         // Equipe de manutenção pode
-        if ($user->isEquipeManutenacao()) {
+        if ($user->isEquipeManutencao()) {
             return true;
         }
 

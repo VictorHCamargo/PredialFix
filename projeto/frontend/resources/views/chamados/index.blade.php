@@ -32,12 +32,23 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="mb-6 rounded border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+                <ul class="list-disc space-y-1 pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @php
             $total = $chamados->total();
             $perPage = $chamados->perPage();
             $emAndamentoCount = $statusCounts['em_andamento'] ?? 0;
             $concluidosCount = $statusCounts['concluido'] ?? 0;
             $canceladosCount = $statusCounts['cancelado'] ?? 0;
+            $podeCancelarChamados = auth()->user()->isAdmin() || auth()->user()->isEquipeManutencao();
         @endphp
 
         <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -172,6 +183,49 @@
                                                 Avaliar
                                             </a>
                                         @endif
+
+                                        @if ($podeCancelarChamados && $chamado->status !== 'cancelado')
+                                            <button type="button" onclick="openCancelModal('{{ $chamado->id_chamado }}')" class="rounded bg-red-600 px-3 py-1 font-semibold text-white hover:bg-red-700">
+                                                Cancelar
+                                            </button>
+
+                                            <div id="cancelModal-{{ $chamado->id_chamado }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+                                                <div class="w-full max-w-md rounded-lg bg-white text-left shadow-lg">
+                                                    <div class="border-b border-gray-200 px-6 py-4">
+                                                        <h3 class="text-lg font-semibold text-red-600">Cancelar chamado #{{ $chamado->id_chamado }}</h3>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('chamados.destroy', $chamado->id_chamado) }}" class="space-y-4 px-6 py-5">
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <div>
+                                                            <label for="justificativa_cancelamento_{{ $chamado->id_chamado }}" class="mb-2 block text-sm font-medium text-gray-700">
+                                                                Justificativa obrigatoria
+                                                            </label>
+                                                            <textarea
+                                                                id="justificativa_cancelamento_{{ $chamado->id_chamado }}"
+                                                                name="justificativa_cancelamento"
+                                                                rows="5"
+                                                                required
+                                                                minlength="10"
+                                                                class="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                                                                placeholder="Explique o motivo do cancelamento..."
+                                                            ></textarea>
+                                                        </div>
+
+                                                        <div class="flex gap-3 border-t border-gray-200 pt-4">
+                                                            <button type="button" onclick="closeCancelModal('{{ $chamado->id_chamado }}')" class="flex-1 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300">
+                                                                Voltar
+                                                            </button>
+                                                            <button type="submit" class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                                                                Confirmar
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -208,5 +262,27 @@
     </main>
 
     <x-footer />
+
+    <script>
+        function openCancelModal(id) {
+            const modal = document.getElementById(`cancelModal-${id}`);
+            modal?.classList.remove('hidden');
+            modal?.classList.add('flex');
+        }
+
+        function closeCancelModal(id) {
+            const modal = document.getElementById(`cancelModal-${id}`);
+            modal?.classList.add('hidden');
+            modal?.classList.remove('flex');
+        }
+
+        document.querySelectorAll('[id^="cancelModal-"]').forEach((modal) => {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    closeCancelModal(modal.id.replace('cancelModal-', ''));
+                }
+            });
+        });
+    </script>
 </body>
 </html>

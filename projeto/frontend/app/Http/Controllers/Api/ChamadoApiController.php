@@ -75,6 +75,13 @@ class ChamadoApiController extends Controller {
     public function store(Request $request): JsonResponse {
         $user = $request->user();
 
+        if ($user->isAluno()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alunos nao podem criar chamados',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'descricao' => 'required|string',
             'id_patrimonio' => 'nullable|string|max:100',
@@ -105,6 +112,10 @@ class ChamadoApiController extends Controller {
         }
 
         try {
+            if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
+                unset($validated['prioridade'], $validated['secao_tecnica'], $validated['complexidade'], $validated['tipo_trabalho']);
+            }
+
             $chamado = Chamado::create([
                 'id_usuario' => $user->id_usuario,
                 'descricao' => $validated['descricao'],
@@ -282,7 +293,7 @@ class ChamadoApiController extends Controller {
                 );
             }
 
-            if (!empty($mudancas) && !array_intersect($mudancas, ['prioridade', 'complexidade'])) {
+            if (!empty(array_diff($mudancas, ['prioridade', 'complexidade']))) {
                 NotificacaoHelper::disparar(
                     'Chamado #' . $chamado->id_chamado . ' foi atualizado.',
                     'edicao',
@@ -320,6 +331,13 @@ class ChamadoApiController extends Controller {
                 'success' => false,
                 'message' => 'Sem permissao para cancelar este chamado',
             ], 403);
+        }
+
+        if ($chamado->status === 'cancelado') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este chamado ja esta cancelado',
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -417,11 +435,13 @@ class ChamadoApiController extends Controller {
                 $mensagem = 'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $descricao;
             }
 
+            $tipoNotificacao = $novoStatus === 'cancelado' ? 'cancelamento' : 'status';
+
             NotificacaoHelper::disparar(
                 $mensagem,
-                'status',
+                $tipoNotificacao,
                 $chamado->id_chamado,
-                NotificacaoHelper::obterDestinatarios('status', $chamado, $user),
+                NotificacaoHelper::obterDestinatarios($tipoNotificacao, $chamado, $user),
             );
 
             if ($responsavelAnterior !== $chamado->id_usuario_responsavel) {
