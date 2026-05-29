@@ -2,46 +2,37 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\NotificacaoHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Chamado;
 use App\Models\HistoricoStatusChamado;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
-class ChamadoApiController extends Controller
-{
-    /**
-     * Listar chamados do usuário
-     */
-    public function index(Request $request): JsonResponse
-    {
+class ChamadoApiController extends Controller {
+    public function index(Request $request): JsonResponse {
         $user = $request->user();
-
-        // Se não tem código de entrada, vê só seus chamados
-        $query = Chamado::query();
+        $query = Chamado::query()->with(['local', 'tipoProblema', 'usuario', 'usuarioResponsavel']);
 
         if (!$user->cod_entrada) {
-            $query->where('id_usuario', $user->id);
+            $query->where('id_usuario', $user->id_usuario);
         }
 
-        // Filtros opcionais
         if ($request->has('status')) {
             $query->where('status', $request->status);
-        }
-
-        if ($request->has('tipo_chamado')) {
-            $query->where('tipo_chamado', $request->tipo_chamado);
         }
 
         if ($request->has('prioridade')) {
             $query->where('prioridade', $request->prioridade);
         }
 
-        // Paginação
-        $perPage = $request->get('per_page', 10);
-        $chamados = $query->with(['local', 'tipoProblema', 'usuario'])
-            ->orderBy('prioridade', 'asc')
-            ->orderBy('data_abertura', 'desc')
+        $perPage = (int) $request->get('per_page', 10);
+        $chamados = $query
+            ->orderByRaw(
+                "CASE WHEN prioridade='alta' THEN 1 WHEN prioridade='media' THEN 2 WHEN prioridade='baixa' THEN 3 ELSE 4 END",
+            )
+            ->orderByDesc('data_abertura')
             ->paginate($perPage);
 
         return response()->json([
@@ -50,26 +41,28 @@ class ChamadoApiController extends Controller
         ]);
     }
 
-    /**
-     * Ver detalhes de um chamado
-     */
-    public function show(Request $request, $id): JsonResponse
-    {
+    public function show(Request $request, $id): JsonResponse {
         $user = $request->user();
-        $chamado = Chamado::with(['local', 'tipoProblema', 'usuario', 'historico', 'feedback'])->find($id);
+        $chamado = Chamado::with([
+            'local',
+            'tipoProblema',
+            'usuario',
+            'usuarioResponsavel',
+            'historicoStatus.usuario',
+            'feedback',
+        ])->find($id);
 
         if (!$chamado) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chamado não encontrado',
+                'message' => 'Chamado nao encontrado',
             ], 404);
         }
 
-        // Verificar permissão
-        if (!$user->cod_entrada && $chamado->id_usuario !== $user->id) {
+        if (!$user->cod_entrada && $chamado->id_usuario !== $user->id_usuario) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sem permissão para acessar este chamado',
+                'message' => 'Sem permissao para acessar este chamado',
             ], 403);
         }
 
@@ -79,42 +72,76 @@ class ChamadoApiController extends Controller
         ]);
     }
 
-    /**
-     * Criar novo chamado
-     */
-    public function store(Request $request): JsonResponse
-    {
+    public function store(Request $request): JsonResponse {
+        $user = $request->user();
+
         $validated = $request->validate([
             'descricao' => 'required|string',
+            'id_patrimonio' => 'nullable|string|max:100',
             'id_local' => 'required|exists:locais,id_local',
-            'id_tipo' => 'required|exists:tipo_problema,id_tipo',
-            'tipo_chamado' => 'nullable|in:interno,externo',
+            'id_tipo' => 'required|exists:tipo_problemas,id_tipo',
+            'id_equipamento' => 'nullable|exists:equipamentos,id_equipamento',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'secao_tecnica' => 'nullable|in:eletrica,hidraulica,civil,mecanica',
+            'complexidade' => 'nullable|in:simples,media,complexa',
+            'tipo_trabalho' => 'nullable|in:preventiva,corretiva,melhoria',
+            'tipo_chamado' => 'nullable|in:interno',
+            'confirmar_duplicado' => 'nullable|boolean',
         ]);
+
+        $idPatrimonio = trim((string) ($validated['id_patrimonio'] ?? ''));
+        if ($idPatrimonio !== '') {
+            $chamadoExistente = Chamado::where('id_patrimonio', $idPatrimonio)
+                ->whereIn('status', ['aberto', 'em_andamento'])
+                ->first();
+
+            if ($chamadoExistente && !$request->boolean('confirmar_duplicado')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ja existe um chamado ativo para este patrimonio.',
+                    'alerta_duplicado' => $chamadoExistente->id_chamado,
+                ], 409);
+            }
+        }
 
         try {
             $chamado = Chamado::create([
-                'id_usuario' => $request->user()->id,
+                'id_usuario' => $user->id_usuario,
                 'descricao' => $validated['descricao'],
+                'id_patrimonio' => $idPatrimonio !== '' ? $idPatrimonio : null,
                 'id_local' => $validated['id_local'],
                 'id_tipo' => $validated['id_tipo'],
-                'tipo_chamado' => $validated['tipo_chamado'] ?? 'interno',
-                'status' => 'pendente',
+                'id_equipamento' => $validated['id_equipamento'] ?? null,
+                'prioridade' => $validated['prioridade'] ?? null,
+                'secao_tecnica' => $validated['secao_tecnica'] ?? null,
+                'complexidade' => $validated['complexidade'] ?? null,
+                'tipo_trabalho' => $validated['tipo_trabalho'] ?? null,
+                'tipo_chamado' => 'interno',
+                'status' => 'aberto',
                 'data_abertura' => now(),
+                'data_ultimo_status' => now(),
             ]);
 
-            // Registrar no histórico
             HistoricoStatusChamado::create([
                 'id_chamado' => $chamado->id_chamado,
-                'status_anterior' => null,
-                'status_novo' => 'pendente',
-                'descricao' => 'Chamado criado',
-                'id_usuario' => $request->user()->id,
+                'status_anterior' => 'aberto',
+                'status_novo' => 'aberto',
+                'descricao_mudanca' => 'Chamado criado por ' . $user->nome,
+                'id_usuario' => $user->id_usuario,
+                'prioridade' => $chamado->prioridade,
             ]);
+
+            NotificacaoHelper::disparar(
+                'Novo chamado #' . $chamado->id_chamado . ' aberto por ' . $user->nome . '.',
+                'criacao',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('criacao', $chamado, $user),
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Chamado criado com sucesso',
-                'data' => $chamado->load(['local', 'tipoProblema']),
+                'data' => $chamado->load(['local', 'tipoProblema', 'usuario']),
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -124,42 +151,150 @@ class ChamadoApiController extends Controller
         }
     }
 
-    /**
-     * Atualizar chamado
-     */
-    public function update(Request $request, $id): JsonResponse
-    {
+    public function update(Request $request, $id): JsonResponse {
         $user = $request->user();
         $chamado = Chamado::find($id);
 
         if (!$chamado) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chamado não encontrado',
+                'message' => 'Chamado nao encontrado',
             ], 404);
         }
 
-        // Verificar permissão de edição
-        if (!$user->canEditTicket($chamado)) {
+        if ($user->isAluno()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sem permissão para atualizar este chamado',
+                'message' => 'Sua funcao nao tem permissao para atualizar este chamado',
             ], 403);
         }
 
-        $validated = $request->validate([
-            'descricao' => 'nullable|string',
-            'id_local' => 'nullable|exists:locais,id_local',
-            'id_tipo' => 'nullable|exists:tipo_problemas,id_tipo',
-        ]);
+        if ($user->isProfessor()) {
+            if ($chamado->id_usuario !== $user->id_usuario || !in_array($chamado->status, ['aberto', 'em_andamento'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Voce so pode editar seus proprios chamados enquanto estiverem abertos ou em andamento',
+                ], 403);
+            }
 
-        try {
-            $chamado->update(array_filter($validated));
+            $validated = $request->validate([
+                'descricao' => 'required|string',
+            ]);
+
+            $chamado->update($validated);
+
+            HistoricoStatusChamado::create([
+                'id_chamado' => $chamado->id_chamado,
+                'status_anterior' => $chamado->status,
+                'status_novo' => $chamado->status,
+                'descricao_mudanca' => 'Descricao editada pelo professor: ' . $user->nome,
+                'id_usuario' => $user->id_usuario,
+            ]);
+
+            NotificacaoHelper::disparar(
+                'Chamado #' . $chamado->id_chamado . ' foi atualizado por ' . $user->nome . '.',
+                'edicao',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('edicao', $chamado, $user),
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Chamado atualizado com sucesso',
-                'data' => $chamado->load(['local', 'tipoProblema']),
+                'data' => $chamado->load(['local', 'tipoProblema', 'usuario']),
+            ]);
+        }
+
+        if (!$user->canEditTicket($chamado)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sem permissao para atualizar este chamado',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'descricao' => 'required|string',
+            'id_patrimonio' => 'nullable|string|max:100',
+            'id_local' => 'required|exists:locais,id_local',
+            'id_tipo' => 'required|exists:tipo_problemas,id_tipo',
+            'id_equipamento' => 'nullable|exists:equipamentos,id_equipamento',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'secao_tecnica' => 'nullable|in:eletrica,hidraulica,civil,mecanica',
+            'complexidade' => 'nullable|in:simples,media,complexa',
+            'tipo_trabalho' => 'nullable|in:preventiva,corretiva,melhoria',
+        ]);
+
+        $validated['tipo_chamado'] = 'interno';
+        $original = $chamado->only([
+            'descricao',
+            'id_patrimonio',
+            'tipo_chamado',
+            'id_local',
+            'id_tipo',
+            'id_equipamento',
+            'prioridade',
+            'secao_tecnica',
+            'complexidade',
+            'tipo_trabalho',
+        ]);
+
+        try {
+            $validated['id_patrimonio'] = isset($validated['id_patrimonio']) ? trim((string) $validated['id_patrimonio']) : null;
+            if ($validated['id_patrimonio'] === '') {
+                $validated['id_patrimonio'] = null;
+            }
+
+            $chamado->update($validated);
+
+            $mudancas = [];
+            foreach ($original as $campo => $valorAnterior) {
+                if ($chamado->$campo != $valorAnterior) {
+                    $mudancas[] = $campo;
+                }
+            }
+
+            HistoricoStatusChamado::create([
+                'id_chamado' => $chamado->id_chamado,
+                'status_anterior' => $chamado->status,
+                'status_novo' => $chamado->status,
+                'descricao_mudanca' => $mudancas
+                    ? 'Campos alterados: ' . implode(', ', $mudancas) . '.'
+                    : 'Chamado atualizado por ' . $user->nome . '.',
+                'id_usuario' => $user->id_usuario,
+                'prioridade' => $chamado->prioridade,
+            ]);
+
+            if (in_array('prioridade', $mudancas, true)) {
+                NotificacaoHelper::disparar(
+                    'Prioridade do chamado #' . $chamado->id_chamado . ' foi alterada para ' . ucfirst((string) $chamado->prioridade) . '.',
+                    'prioridade',
+                    $chamado->id_chamado,
+                    NotificacaoHelper::obterDestinatarios('prioridade', $chamado, $user),
+                );
+            }
+
+            if (in_array('complexidade', $mudancas, true)) {
+                NotificacaoHelper::disparar(
+                    'Complexidade do chamado #' . $chamado->id_chamado . ' foi atualizada.',
+                    'complexidade',
+                    $chamado->id_chamado,
+                    NotificacaoHelper::obterDestinatarios('complexidade', $chamado, $user),
+                );
+            }
+
+            if (!empty($mudancas) && !array_intersect($mudancas, ['prioridade', 'complexidade'])) {
+                NotificacaoHelper::disparar(
+                    'Chamado #' . $chamado->id_chamado . ' foi atualizado.',
+                    'edicao',
+                    $chamado->id_chamado,
+                    NotificacaoHelper::obterDestinatarios('edicao', $chamado, $user),
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Chamado atualizado com sucesso',
+                'data' => $chamado->load(['local', 'tipoProblema', 'usuario']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -169,98 +304,139 @@ class ChamadoApiController extends Controller
         }
     }
 
-    /**
-     * Deletar chamado
-     */
-    public function destroy(Request $request, $id): JsonResponse
-    {
+    public function destroy(Request $request, $id): JsonResponse {
         $user = $request->user();
         $chamado = Chamado::find($id);
 
         if (!$chamado) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chamado não encontrado',
+                'message' => 'Chamado nao encontrado',
             ], 404);
         }
 
-        // Apenas usuário que criou pode deletar
-        if ($chamado->id_usuario !== $user->id) {
+        if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sem permissão para deletar este chamado',
-            ], 403);
-        }
-
-        try {
-            $chamado->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Chamado deletado com sucesso',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao deletar chamado: ' . $e->getMessage(),
-            ], 422);
-        }
-    }
-
-    /**
-     * Alterar status do chamado
-     */
-    public function updateStatus(Request $request, $id): JsonResponse
-    {
-        $user = $request->user();
-        $chamado = Chamado::find($id);
-
-        if (!$chamado) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Chamado não encontrado',
-            ], 404);
-        }
-
-        // Professor e aluno não podem alterar status
-        if ($user->isProfessor() || $user->isAluno()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sua função não tem permissão para alterar o status de chamados',
+                'message' => 'Sem permissao para cancelar este chamado',
             ], 403);
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:pendente,em_andamento,concluido,cancelado',
-            'prioridade' => 'nullable|in:baixa,media,alta',
-            'descricao' => 'nullable|string',
+            'justificativa_cancelamento' => 'required|string|min:10',
         ]);
 
         try {
-            $statusAnterior = $chamado->status;
+            $this->cancelarChamado($chamado, $validated['justificativa_cancelamento'], $user);
 
-            // Atualizar status
-            $chamado->update([
-                'status' => $validated['status'],
-                'prioridade' => $validated['prioridade'] ?? $chamado->prioridade,
-                'data_ultimo_status' => now(),
-                'id_usuario_responsavel' => $user->id,
+            return response()->json([
+                'success' => true,
+                'message' => 'Chamado cancelado com sucesso',
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao cancelar chamado: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
 
-            // Registrar no histórico
+    public function updateStatus(Request $request, $id): JsonResponse {
+        $user = $request->user();
+        $chamado = Chamado::find($id);
+
+        if (!$chamado) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Chamado nao encontrado',
+            ], 404);
+        }
+
+        if ($user->isProfessor() || $user->isAluno()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sua funcao nao tem permissao para alterar o status de chamados',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'status_descricao' => 'nullable|string',
+        ]);
+
+        $statusAtual = $chamado->status;
+        $novoStatus = $validated['status'];
+        $descricao = trim((string) ($validated['status_descricao'] ?? ''));
+        $responsavelAnterior = $chamado->id_usuario_responsavel;
+
+        if (!$this->validarTransicaoStatus($user, $statusAtual, $novoStatus)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Voce nao tem permissao para realizar esta alteracao de status',
+            ], 403);
+        }
+
+        if ($novoStatus === 'cancelado' && mb_strlen($descricao) < 10) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A justificativa de cancelamento precisa ter pelo menos 10 caracteres',
+            ], 422);
+        }
+
+        if ($novoStatus === 'em_andamento' && !empty($validated['prioridade'])) {
+            $chamado->prioridade = $validated['prioridade'];
+        }
+
+        try {
+            $chamado->status = $novoStatus;
+            $chamado->status_descricao = $descricao !== '' ? $descricao : null;
+            $chamado->id_usuario_responsavel = $user->id_usuario;
+            $chamado->data_ultimo_status = now();
+            $chamado->data_conclusao = $novoStatus === 'concluido' ? now() : null;
+
+            if ($novoStatus === 'cancelado') {
+                $chamado->data_conclusao = null;
+            }
+
+            $chamado->save();
+
             HistoricoStatusChamado::create([
                 'id_chamado' => $chamado->id_chamado,
-                'status_anterior' => $statusAnterior,
-                'status_novo' => $validated['status'],
-                'descricao' => $validated['descricao'] ?? "Status alterado de {$statusAnterior} para {$validated['status']}",
-                'id_usuario' => $user->id,
-                'prioridade_definida' => $validated['prioridade'],
+                'status_anterior' => $statusAtual,
+                'status_novo' => $novoStatus,
+                'descricao_mudanca' => $descricao !== ''
+                    ? $descricao
+                    : 'Status alterado de ' . $statusAtual . ' para ' . $novoStatus,
+                'id_usuario' => $user->id_usuario,
+                'prioridade' => $validated['prioridade'] ?? null,
             ]);
+
+            $mensagem = 'Chamado #' . $chamado->id_chamado . ' teve o status alterado para ' . str_replace('_', ' ', $novoStatus) . '.';
+            if ($novoStatus === 'cancelado' && $descricao !== '') {
+                $mensagem = 'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $descricao;
+            }
+
+            NotificacaoHelper::disparar(
+                $mensagem,
+                'status',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('status', $chamado, $user),
+            );
+
+            if ($responsavelAnterior !== $chamado->id_usuario_responsavel) {
+                NotificacaoHelper::disparar(
+                    'Responsavel definido para o chamado #' . $chamado->id_chamado . '.',
+                    'atribuicao',
+                    $chamado->id_chamado,
+                    NotificacaoHelper::obterDestinatarios('atribuicao', $chamado, $user),
+                );
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Status atualizado com sucesso',
-                'data' => $chamado->load(['local', 'tipoProblema']),
+                'data' => $chamado->load(['local', 'tipoProblema', 'usuario']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -268,5 +444,55 @@ class ChamadoApiController extends Controller
                 'message' => 'Erro ao atualizar status: ' . $e->getMessage(),
             ], 422);
         }
+    }
+
+    private function cancelarChamado(Chamado $chamado, string $justificativa, User $user): void {
+        $statusAnterior = $chamado->status;
+
+        $chamado->status = 'cancelado';
+        $chamado->status_descricao = $justificativa;
+        $chamado->data_ultimo_status = now();
+        $chamado->data_conclusao = null;
+        $chamado->id_usuario_responsavel = $user->id_usuario;
+        $chamado->save();
+
+        HistoricoStatusChamado::create([
+            'id_chamado' => $chamado->id_chamado,
+            'status_anterior' => $statusAnterior,
+            'status_novo' => 'cancelado',
+            'descricao_mudanca' => $justificativa,
+            'id_usuario' => $user->id_usuario,
+        ]);
+
+        NotificacaoHelper::disparar(
+            'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $justificativa,
+            'cancelamento',
+            $chamado->id_chamado,
+            NotificacaoHelper::obterDestinatarios('cancelamento', $chamado, $user),
+        );
+    }
+
+    private function validarTransicaoStatus(User $user, string $statusAtual, string $novoStatus): bool {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (!$user->isEquipeManutencao()) {
+            return false;
+        }
+
+        if ($novoStatus === 'cancelado') {
+            return true;
+        }
+
+        if ($statusAtual === 'aberto' && $novoStatus === 'em_andamento') {
+            return true;
+        }
+
+        if ($statusAtual === 'em_andamento' && $novoStatus === 'concluido') {
+            return true;
+        }
+
+        return false;
     }
 }

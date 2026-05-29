@@ -67,7 +67,7 @@ class AuthApiController extends Controller
             'nome' => 'required|string|max:255',
             'email' => 'required|email|unique:usuarios,email',
             'password' => 'required|string|min:6|confirmed',
-            'nivel_acesso' => 'nullable|in:professor,aluno,visitante',
+            'nivel_acesso' => 'nullable|in:professor,aluno',
             'setor' => 'nullable|string',
         ]);
 

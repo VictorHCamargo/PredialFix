@@ -76,7 +76,6 @@
                                         'tecnico_manutencao' => 'Técnico de Manutenção',
                                         'professor' => 'Professor',
                                         'aluno' => 'Aluno',
-                                        'visitante' => 'Visitante',
                                     ];
                                 @endphp
                                 {{
@@ -207,7 +206,7 @@
                                         <div class="flex items-center gap-1">
                                             @for ($i = 1; $i <= 5; $i++)
                                                 <span
-                                                    class="text-lg @if($i <= $feedback->avaliacao) text-yellow-400 @else text-gray-300 @endif"
+                                                    class="text-lg @if($i <= $feedback->nota) text-yellow-400 @else text-gray-300 @endif"
                                                     >★</span
                                                 >
                                             @endfor

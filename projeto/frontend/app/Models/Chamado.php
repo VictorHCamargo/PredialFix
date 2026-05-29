@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chamado extends Model {
     protected $primaryKey = 'id_chamado';
+
     protected $fillable = [
         'descricao',
         'prioridade',
@@ -21,6 +22,7 @@ class Chamado extends Model {
         'complexidade',
         'tipo_trabalho',
         'tipo_chamado',
+        'id_patrimonio',
         'status_descricao',
         'data_ultimo_status',
     ];
