@@ -15,27 +15,44 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   User? _user;
   bool _isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser();
+    }
   }
 
   Future<void> _loadUser() async {
     final authService = context.read<AuthService>();
-    final user = await authService.getCurrentUser();
-    
-    setState(() {
-      _user = user;
-      _isLoading = false;
-    });
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _errorMessage = null;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar usuário';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Erro ao carregar usuário')));
+    }
   }
 
   Future<void> _handleLogout() async {
     final authService = context.read<AuthService>();
     await authService.logout();
-    
+
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed('/login');
   }
@@ -51,160 +68,159 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
           : _user == null
-              ? const Center(
-                  child: Text('Nenhum usuário carregado'),
-                )
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(16),
-                            bottomRight: Radius.circular(16),
+          ? const Center(child: Text('Nenhum usuário carregado'))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: Text(
+                            (_user!.nome[0]).toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
                         ),
-                        child: Column(
+                        const SizedBox(height: 16),
+                        Text(
+                          _user!.nome,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _user!.email,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildInfoCard(
+                          icon: Icons.person,
+                          label: 'Nome',
+                          value: _user!.nome,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoCard(
+                          icon: Icons.email,
+                          label: 'Email',
+                          value: _user!.email,
+                        ),
+                        if (_user!.cpf != null)
+                          Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              _buildInfoCard(
+                                icon: Icons.card_giftcard,
+                                label: 'CPF',
+                                value: _user!.cpf!,
+                              ),
+                            ],
+                          ),
+                        if (_user!.telefone != null)
+                          Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              _buildInfoCard(
+                                icon: Icons.phone,
+                                label: 'Telefone',
+                                value: _user!.telefone!,
+                              ),
+                            ],
+                          ),
+                        Column(
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                (_user!.nome[0]).toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _user!.nome,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _user!.email,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
+                            const SizedBox(height: 12),
+                            _buildInfoCard(
+                              icon: Icons.badge,
+                              label: 'Papel',
+                              value: _user!.role,
                             ),
                           ],
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _buildInfoCard(
-                              icon: Icons.person,
-                              label: 'Nome',
-                              value: _user!.nome,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildInfoCard(
-                              icon: Icons.email,
-                              label: 'Email',
-                              value: _user!.email,
-                            ),
-                            if (_user!.cpf != null)
-                              Column(
-                                children: [
-                                  const SizedBox(height: 12),
-                                  _buildInfoCard(
-                                    icon: Icons.card_giftcard,
-                                    label: 'CPF',
-                                    value: _user!.cpf!,
-                                  ),
-                                ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text(
+                                'Tem certeza que deseja sair?',
                               ),
-                            if (_user!.telefone != null)
-                              Column(
-                                children: [
-                                  const SizedBox(height: 12),
-                                  _buildInfoCard(
-                                    icon: Icons.phone,
-                                    label: 'Telefone',
-                                    value: _user!.telefone!,
-                                  ),
-                                ],
-                              ),
-                            Column(
-                              children: [
-                                const SizedBox(height: 12),
-                                _buildInfoCard(
-                                  icon: Icons.badge,
-                                  label: 'Papel',
-                                  value: _user!.role,
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _handleLogout();
+                                  },
+                                  child: const Text('Sair'),
                                 ),
                               ],
                             ),
-                          ],
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Logout'),
-                                  content: const Text(
-                                    'Tem certeza que deseja sair?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        _handleLogout();
-                                      },
-                                      child: const Text('Sair'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Sair',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
+                        child: const Text(
+                          'Sair',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
     );
   }
 

@@ -13,19 +13,26 @@ class AppDrawer extends StatefulWidget {
 
 class _AppDrawerState extends State<AppDrawer> {
   User? _user;
+  bool _loaded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser();
+    }
   }
 
   Future<void> _loadUser() async {
     final authService = context.read<AuthService>();
-    final user = await authService.getCurrentUser();
-    setState(() {
-      _user = user;
-    });
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -65,10 +72,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   const SizedBox(height: 4),
                   Text(
                     _user?.email ?? '',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -162,10 +166,7 @@ class _AppDrawerState extends State<AppDrawer> {
     bool isRed = false,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isRed ? Colors.red : AppTheme.primaryColor,
-      ),
+      leading: Icon(icon, color: isRed ? Colors.red : AppTheme.primaryColor),
       title: Text(
         title,
         style: TextStyle(

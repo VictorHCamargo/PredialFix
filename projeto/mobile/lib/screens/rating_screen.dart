@@ -14,14 +14,18 @@ class RatingScreen extends StatefulWidget {
 }
 
 class _RatingScreenState extends State<RatingScreen> {
-  late Future<List<Chamado>> _chamadosFuture;
+  Future<List<Chamado>>? _chamadosFuture;
+  bool _loaded = false;
   int? _selectedRating;
   String _selectedComment = '';
 
   @override
-  void initState() {
-    super.initState();
-    _chamadosFuture = context.read<ChamadoService>().getChamados();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _chamadosFuture = context.read<ChamadoService>().getChamados();
+    }
   }
 
   @override
@@ -36,14 +40,17 @@ class _RatingScreenState extends State<RatingScreen> {
       body: FutureBuilder<List<Chamado>>(
         future: _chamadosFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (_chamadosFuture == null ||
+              snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
+          if (snapshot.hasError) {
+            return const Center(child: Text('Erro ao carregar chamados'));
+          }
+
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('Nenhum chamado para avaliar'),
-            );
+            return const Center(child: Text('Nenhum chamado para avaliar'));
           }
 
           final chamados = snapshot.data!
@@ -72,7 +79,7 @@ class _RatingScreenState extends State<RatingScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: ExpansionTile(
         title: Text(chamado.descricao),
-        subtitle: Text('Local: \${chamado.local?.nome ?? "N/A"}'),
+        subtitle: Text('Local: ${chamado.local?.nome ?? "N/A"}'),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -81,10 +88,7 @@ class _RatingScreenState extends State<RatingScreen> {
               children: [
                 const Text(
                   'Sua Avaliação:',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -106,10 +110,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Comentário (opcional):',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -177,7 +178,7 @@ class _RatingScreenState extends State<RatingScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro: \${e.toString()}'),
+          content: Text('Erro ao enviar avaliação'),
           backgroundColor: Colors.red,
         ),
       );

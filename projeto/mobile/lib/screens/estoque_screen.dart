@@ -15,22 +15,43 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
   late EstoqueService estoqueService;
   List<EstoqueInterno> itens = [];
   bool isLoading = true;
+  bool _loaded = false;
   String filterStatus = 'todos';
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    estoqueService = context.read<EstoqueService>();
-    _loadEstoque();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      estoqueService = context.read<EstoqueService>();
+      _loadEstoque();
+    }
   }
 
   Future<void> _loadEstoque() async {
-    setState(() => isLoading = true);
-    final items = await estoqueService.getEstoque();
     setState(() {
-      itens = items;
-      isLoading = false;
+      isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final items = await estoqueService.getEstoque();
+      if (!mounted) return;
+      setState(() {
+        itens = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar estoque';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Erro ao carregar estoque')));
+    }
   }
 
   List<EstoqueInterno> get filteredItens {
@@ -38,178 +59,206 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
     return itens.where((item) => item.statusItem == filterStatus).toList();
   }
 
-  void _showFormDialog({EstoqueInterno? item}) {
+  Future<void> _showFormDialog({EstoqueInterno? item}) async {
     final nomeController = TextEditingController(text: item?.nomeItem);
     final descricaoController = TextEditingController(text: item?.descricao);
-    final quantidadeController =
-        TextEditingController(text: item?.quantidade.toString() ?? '');
+    final quantidadeController = TextEditingController(
+      text: item?.quantidade.toString() ?? '',
+    );
     final categoriaController = TextEditingController(text: item?.categoria);
-    final localizacaoController =
-        TextEditingController(text: item?.localizacao);
+    final localizacaoController = TextEditingController(
+      text: item?.localizacao,
+    );
     final valorUnitarioController = TextEditingController(
-        text: item?.valorUnitario.toStringAsFixed(2) ?? '');
-    final codigoController =
-        TextEditingController(text: item?.codigoPatrimonio);
+      text: item?.valorUnitario.toStringAsFixed(2) ?? '',
+    );
+    final codigoController = TextEditingController(
+      text: item?.codigoPatrimonio,
+    );
     final obsController = TextEditingController(text: item?.observacoes);
     String selectedStatus = item?.statusItem ?? 'disponivel';
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(item == null ? 'Novo Item de Estoque' : 'Editar Item'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nomeController,
-                decoration: InputDecoration(
-                  labelText: 'Nome do Item',
-                  border: OutlineInputBorder(),
+    try {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(item == null ? 'Novo Item de Estoque' : 'Editar Item'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nomeController,
+                  decoration: InputDecoration(
+                    labelText: 'Nome do Item',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descricaoController,
-                decoration: InputDecoration(
-                  labelText: 'Descrição',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descricaoController,
+                  decoration: InputDecoration(
+                    labelText: 'Descrição',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
                 ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: quantidadeController,
-                decoration: InputDecoration(
-                  labelText: 'Quantidade',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: quantidadeController,
+                  decoration: InputDecoration(
+                    labelText: 'Quantidade',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: categoriaController,
-                decoration: InputDecoration(
-                  labelText: 'Categoria',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: categoriaController,
+                  decoration: InputDecoration(
+                    labelText: 'Categoria',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: localizacaoController,
-                decoration: InputDecoration(
-                  labelText: 'Localização',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: localizacaoController,
+                  decoration: InputDecoration(
+                    labelText: 'Localização',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: valorUnitarioController,
-                decoration: InputDecoration(
-                  labelText: 'Valor Unitário (R\$)',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: valorUnitarioController,
+                  decoration: InputDecoration(
+                    labelText: 'Valor Unitário (R\$)',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                 ),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: codigoController,
-                decoration: InputDecoration(
-                  labelText: 'Código de Patrimônio',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: codigoController,
+                  decoration: InputDecoration(
+                    labelText: 'Código de Patrimônio',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedStatus,
-                decoration: InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedStatus,
+                  decoration: InputDecoration(
+                    labelText: 'Status',
+                    border: OutlineInputBorder(),
+                  ),
+                  items:
+                      ['disponivel', 'indisponivel', 'danificado', 'descartado']
+                          .map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+                              child: Text(_statusText(status)),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) {
+                    selectedStatus = value ?? 'disponivel';
+                  },
                 ),
-                items: ['disponivel', 'indisponivel', 'danificado', 'descartado']
-                    .map((status) => DropdownMenuItem(
-                          value: status,
-                          child: Text(_statusText(status)),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedStatus = value ?? 'disponivel';
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: obsController,
-                decoration: InputDecoration(
-                  labelText: 'Observações',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: obsController,
+                  decoration: InputDecoration(
+                    labelText: 'Observações',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
                 ),
-                maxLines: 2,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
+              ],
             ),
-            onPressed: () async {
-              final quantidade = int.tryParse(quantidadeController.text) ?? 0;
-              final valorUnitario =
-                  double.tryParse(valorUnitarioController.text) ?? 0.0;
-
-              if (item == null) {
-                final newItem = await estoqueService.createEstoque(
-                  nomeItem: nomeController.text,
-                  descricao: descricaoController.text,
-                  quantidade: quantidade,
-                  categoria: categoriaController.text,
-                  localizacao: localizacaoController.text,
-                  valorUnitario: valorUnitario,
-                  codigoPatrimonio: codigoController.text,
-                  statusItem: selectedStatus,
-                  observacoes:
-                      obsController.text.isEmpty ? null : obsController.text,
-                );
-                if (newItem != null) {
-                  Navigator.pop(context);
-                  _loadEstoque();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Item criado!')),
-                  );
-                }
-              } else {
-                final updated = await estoqueService.updateEstoque(
-                  item.id,
-                  nomeItem: nomeController.text,
-                  descricao: descricaoController.text,
-                  quantidade: quantidade,
-                  categoria: categoriaController.text,
-                  localizacao: localizacaoController.text,
-                  valorUnitario: valorUnitario,
-                  codigoPatrimonio: codigoController.text,
-                  statusItem: selectedStatus,
-                  observacoes:
-                      obsController.text.isEmpty ? null : obsController.text,
-                );
-                if (updated != null) {
-                  Navigator.pop(context);
-                  _loadEstoque();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Item atualizado!')),
-                  );
-                }
-              }
-            },
-            child: Text(item == null ? 'Criar' : 'Atualizar'),
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              onPressed: () async {
+                final quantidade = int.tryParse(quantidadeController.text) ?? 0;
+                final valorUnitario =
+                    double.tryParse(valorUnitarioController.text) ?? 0.0;
+
+                if (item == null) {
+                  final newItem = await estoqueService.createEstoque(
+                    nomeItem: nomeController.text,
+                    descricao: descricaoController.text,
+                    quantidade: quantidade,
+                    categoria: categoriaController.text,
+                    localizacao: localizacaoController.text,
+                    valorUnitario: valorUnitario,
+                    codigoPatrimonio: codigoController.text,
+                    statusItem: selectedStatus,
+                    observacoes: obsController.text.isEmpty
+                        ? null
+                        : obsController.text,
+                  );
+                  if (newItem != null) {
+                    Navigator.pop(context);
+                    _loadEstoque();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Item criado!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Erro ao criar item')),
+                    );
+                  }
+                } else {
+                  final updated = await estoqueService.updateEstoque(
+                    item.id,
+                    nomeItem: nomeController.text,
+                    descricao: descricaoController.text,
+                    quantidade: quantidade,
+                    categoria: categoriaController.text,
+                    localizacao: localizacaoController.text,
+                    valorUnitario: valorUnitario,
+                    codigoPatrimonio: codigoController.text,
+                    statusItem: selectedStatus,
+                    observacoes: obsController.text.isEmpty
+                        ? null
+                        : obsController.text,
+                  );
+                  if (updated != null) {
+                    Navigator.pop(context);
+                    _loadEstoque();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Item atualizado!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Erro ao atualizar item')),
+                    );
+                  }
+                }
+              },
+              child: Text(item == null ? 'Criar' : 'Atualizar'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      nomeController.dispose();
+      descricaoController.dispose();
+      quantidadeController.dispose();
+      categoriaController.dispose();
+      localizacaoController.dispose();
+      valorUnitarioController.dispose();
+      codigoController.dispose();
+      obsController.dispose();
+    }
   }
 
   String _statusText(String status) {
@@ -239,16 +288,18 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(context);
               final success = await estoqueService.deleteEstoque(id);
               if (success) {
                 _loadEstoque();
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Item deletado!')));
+              } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item deletado!')),
+                  const SnackBar(content: Text('Erro ao deletar item')),
                 );
               }
             },
@@ -268,6 +319,8 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
           : Column(
               children: [
                 // Filtro de status
@@ -297,12 +350,18 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.inventory_2, size: 64, color: Colors.grey[400]),
+                              Icon(
+                                Icons.inventory_2,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
                               const SizedBox(height: 16),
                               Text(
                                 'Nenhum item encontrado',
                                 style: TextStyle(
-                                    color: Colors.grey[600], fontSize: 16),
+                                  color: Colors.grey[600],
+                                  fontSize: 16,
+                                ),
                               ),
                             ],
                           ),
@@ -337,21 +396,28 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                                             PopupMenuItem(
                                               child: const Text('Editar'),
                                               onTap: () {
-                                                Future.delayed(Duration.zero,
-                                                    () {
-                                                  _showFormDialog(item: item);
-                                                });
+                                                Future.delayed(
+                                                  Duration.zero,
+                                                  () {
+                                                    _showFormDialog(item: item);
+                                                  },
+                                                );
                                               },
                                             ),
                                             PopupMenuItem(
-                                              child: const Text('Deletar',
-                                                  style: TextStyle(
-                                                      color: Colors.red)),
+                                              child: const Text(
+                                                'Deletar',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              ),
                                               onTap: () {
-                                                Future.delayed(Duration.zero,
-                                                    () {
-                                                  _deleteItem(item.id);
-                                                });
+                                                Future.delayed(
+                                                  Duration.zero,
+                                                  () {
+                                                    _deleteItem(item.id);
+                                                  },
+                                                );
                                               },
                                             ),
                                           ],
@@ -359,10 +425,13 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    Text(item.descricao,
-                                        style: TextStyle(
-                                            color: Colors.grey[700],
-                                            fontSize: 13)),
+                                    Text(
+                                      item.descricao,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                     const SizedBox(height: 8),
                                     Row(
                                       mainAxisAlignment:
@@ -372,31 +441,35 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text('Qtd: ${item.quantidade}',
-                                                style: const TextStyle(
-                                                    fontSize: 12)),
                                             Text(
-                                                'R\$ ${item.valorTotal.toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.w600,
-                                                    color: AppTheme
-                                                        .primaryColor)),
+                                              'Qtd: ${item.quantidade}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              'R\$ ${item.valorTotal.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                         Chip(
                                           label: Text(
                                             _statusText(item.statusItem),
                                             style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11),
+                                              color: Colors.white,
+                                              fontSize: 11,
+                                            ),
                                           ),
                                           backgroundColor: _statusColor(
-                                              item.statusItem),
+                                            item.statusItem,
+                                          ),
                                           materialTapTargetSize:
-                                              MaterialTapTargetSize
-                                                  .shrinkWrap,
+                                              MaterialTapTargetSize.shrinkWrap,
                                         ),
                                       ],
                                     ),
@@ -406,7 +479,7 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                             );
                           },
                         ),
-                )
+                ),
               ],
             ),
       floatingActionButton: FloatingActionButton(

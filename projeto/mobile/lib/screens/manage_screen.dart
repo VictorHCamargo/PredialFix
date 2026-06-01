@@ -15,28 +15,43 @@ class ManageScreen extends StatefulWidget {
 class _ManageScreenState extends State<ManageScreen> {
   List<Chamado> _chamados = [];
   bool _isLoading = true;
+  bool _loaded = false;
   String? _selectedStatus;
+  String? _errorMessage;
   late ChamadoService _chamadoService;
 
   @override
-  void initState() {
-    super.initState();
-    _loadChamados();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _chamadoService = context.read<ChamadoService>();
+      _loadChamados();
+    }
   }
 
   Future<void> _loadChamados() async {
-    _chamadoService = context.read<ChamadoService>();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       final chamados = await _chamadoService.getChamados();
+      if (!mounted) return;
       setState(() {
         _chamados = chamados;
         _isLoading = false;
       });
-    } catch (e) {
-      print('Erro ao carregar chamados: $e');
+    } catch (_) {
+      if (!mounted) return;
       setState(() {
+        _errorMessage = 'Erro ao carregar chamados';
         _isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar chamados')),
+      );
     }
   }
 
@@ -63,6 +78,12 @@ class _ManageScreenState extends State<ManageScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: _buildErrorMessage(_errorMessage!),
+                    ),
+
                   // Estatísticas
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -79,21 +100,24 @@ class _ManageScreenState extends State<ManageScreen> {
                           const SizedBox(width: 12),
                           _buildStatCard(
                             title: 'Em Andamento',
-                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length}',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length}',
                             icon: Icons.hourglass_bottom,
                             color: Colors.orange,
                           ),
                           const SizedBox(width: 12),
                           _buildStatCard(
                             title: 'Concluídos',
-                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'concluido').length}',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'concluido').length}',
                             icon: Icons.check_circle,
                             color: Colors.green,
                           ),
                           const SizedBox(width: 12),
                           _buildStatCard(
                             title: 'Pendentes',
-                            value: '${_chamados.where((c) => c.status.toLowerCase() == 'pendente').length}',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'pendente').length}',
                             icon: Icons.pending_actions,
                             color: Colors.red,
                           ),
@@ -111,7 +135,7 @@ class _ManageScreenState extends State<ManageScreen> {
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -197,7 +221,9 @@ class _ManageScreenState extends State<ManageScreen> {
                                 children: [
                                   for (var chamado in _filteredChamados)
                                     Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
                                       child: _buildChamadoItem(chamado),
                                     ),
                                 ],
@@ -238,6 +264,19 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
+  Widget _buildErrorMessage(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        border: Border.all(color: Colors.red),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(message, style: const TextStyle(color: Colors.red)),
+    );
+  }
+
   Widget _buildStatCard({
     required String title,
     required String value,
@@ -248,9 +287,9 @@ class _ManageScreenState extends State<ManageScreen> {
       width: 120,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -286,7 +325,7 @@ class _ManageScreenState extends State<ManageScreen> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -326,7 +365,7 @@ class _ManageScreenState extends State<ManageScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(chamado.status).withOpacity(0.2),
+                  color: _getStatusColor(chamado.status).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(

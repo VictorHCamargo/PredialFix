@@ -18,26 +18,46 @@ class _HomeScreenState extends State<HomeScreen> {
   int _emAndamento = 0;
   int _concluidos = 0;
   List<Chamado> _chamadasRecentes = [];
+  bool _isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
     final chamadoService = context.read<ChamadoService>();
-    
+
     try {
       final chamados = await chamadoService.getChamados();
+      if (!mounted) return;
       setState(() {
         _totalChamados = chamados.length;
-        _emAndamento = chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length;
-        _concluidos = chamados.where((c) => c.status.toLowerCase() == 'concluido').length;
+        _emAndamento = chamados
+            .where((c) => c.status.toLowerCase() == 'em_andamento')
+            .length;
+        _concluidos = chamados
+            .where((c) => c.status.toLowerCase() == 'concluido')
+            .length;
         _chamadasRecentes = chamados.take(3).toList();
+        _errorMessage = null;
+        _isLoading = false;
       });
-    } catch (e) {
-      print('Erro ao carregar chamados: $e');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar chamados';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar chamados')),
+      );
     }
   }
 
@@ -46,83 +66,103 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Home'), elevation: 4),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Grid de Cards com Estatísticas
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatCard(
-                    title: 'Total',
-                    value: '$_totalChamados',
-                    icon: Icons.list_alt,
-                    color: AppTheme.primaryColor,
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: _buildErrorMessage(_errorMessage!),
+                    ),
+
+                  // Grid de Cards com Estatísticas
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildStatCard(
+                          title: 'Total',
+                          value: '$_totalChamados',
+                          icon: Icons.list_alt,
+                          color: AppTheme.primaryColor,
+                        ),
+                        _buildStatCard(
+                          title: 'Em Andamento',
+                          value: '$_emAndamento',
+                          icon: Icons.hourglass_bottom,
+                          color: Colors.orange,
+                        ),
+                        _buildStatCard(
+                          title: 'Concluídos',
+                          value: '$_concluidos',
+                          icon: Icons.check_circle,
+                          color: Colors.green,
+                        ),
+                        _buildStatCard(
+                          title: 'Pendentes',
+                          value:
+                              '${_totalChamados - _emAndamento - _concluidos}',
+                          icon: Icons.pending_actions,
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
                   ),
-                  _buildStatCard(
-                    title: 'Em Andamento',
-                    value: '$_emAndamento',
-                    icon: Icons.hourglass_bottom,
-                    color: Colors.orange,
+
+                  // Seção Chamados Recentes
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: const Text(
+                      'Chamados Recentes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimaryColor,
+                      ),
+                    ),
                   ),
-                  _buildStatCard(
-                    title: 'Concluídos',
-                    value: '$_concluidos',
-                    icon: Icons.check_circle,
-                    color: Colors.green,
+
+                  // Lista de Chamados Recentes
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _chamadasRecentes.isEmpty
+                        ? const Center(child: Text('Nenhum chamado encontrado'))
+                        : Column(
+                            children: [
+                              for (var chamado in _chamadasRecentes)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _buildChamadoCard(chamado),
+                                ),
+                            ],
+                          ),
                   ),
-                  _buildStatCard(
-                    title: 'Pendentes',
-                    value: '${_totalChamados - _emAndamento - _concluidos}',
-                    icon: Icons.pending_actions,
-                    color: Colors.red,
-                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
+    );
+  }
 
-            // Seção Chamados Recentes
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: const Text(
-                'Chamados Recentes',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-            ),
-
-            // Lista de Chamados Recentes
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _chamadasRecentes.isEmpty
-                  ? const Center(
-                      child: Text('Nenhum chamado encontrado'),
-                    )
-                  : Column(
-                      children: [
-                        for (var chamado in _chamadasRecentes)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _buildChamadoCard(chamado),
-                          ),
-                      ],
-                    ),
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
+  Widget _buildErrorMessage(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        border: Border.all(color: Colors.red),
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Text(message, style: const TextStyle(color: Colors.red)),
     );
   }
 
@@ -139,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -150,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -192,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -219,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(chamado.status).withOpacity(0.2),
+                  color: _getStatusColor(chamado.status).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(

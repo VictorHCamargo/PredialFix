@@ -114,10 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Center(
-                    child: Text(
-                      '🔧',
-                      style: TextStyle(fontSize: 48),
-                    ),
+                    child: Text('🔧', style: TextStyle(fontSize: 48)),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -127,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       border: Border.all(color: Colors.red),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -285,8 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: _isLoading
                           ? null
                           : () {
-                              Navigator.of(context)
-                                  .pushNamed('/register');
+                              Navigator.of(context).pushNamed('/register');
                             },
                       child: const Text(
                         'Registre-se aqui',
@@ -307,4 +303,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

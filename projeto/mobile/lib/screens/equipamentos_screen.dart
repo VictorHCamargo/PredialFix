@@ -15,129 +15,174 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
   late EquipamentoService equipamentoService;
   List<Equipamento> equipamentos = [];
   bool isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    equipamentoService = context.read<EquipamentoService>();
-    _loadEquipamentos();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      equipamentoService = context.read<EquipamentoService>();
+      _loadEquipamentos();
+    }
   }
 
   Future<void> _loadEquipamentos() async {
-    setState(() => isLoading = true);
-    final items = await equipamentoService.getEquipamentos();
     setState(() {
-      equipamentos = items;
-      isLoading = false;
+      isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final items = await equipamentoService.getEquipamentos();
+      if (!mounted) return;
+      setState(() {
+        equipamentos = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Erro ao carregar equipamentos';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar equipamentos')),
+      );
+    }
   }
 
-  void _showFormDialog({Equipamento? equipamento}) {
-    final tagController = TextEditingController(text: equipamento?.tagIdentificacao);
+  Future<void> _showFormDialog({Equipamento? equipamento}) async {
+    final tagController = TextEditingController(
+      text: equipamento?.tagIdentificacao,
+    );
     final nomeController = TextEditingController(text: equipamento?.nome);
     final marcaController = TextEditingController(text: equipamento?.marca);
     String selectedStatus = equipamento?.status ?? 'ativo';
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(equipamento == null ? 'Novo Equipamento' : 'Editar Equipamento'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: tagController,
-                decoration: InputDecoration(
-                  labelText: 'Tag de Identificação',
-                  border: OutlineInputBorder(),
+    try {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            equipamento == null ? 'Novo Equipamento' : 'Editar Equipamento',
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: tagController,
+                  decoration: InputDecoration(
+                    labelText: 'Tag de Identificação',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nomeController,
-                decoration: InputDecoration(
-                  labelText: 'Nome do Equipamento',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nomeController,
+                  decoration: InputDecoration(
+                    labelText: 'Nome do Equipamento',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: marcaController,
-                decoration: InputDecoration(
-                  labelText: 'Marca',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: marcaController,
+                  decoration: InputDecoration(
+                    labelText: 'Marca',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButton<String>(
-                value: selectedStatus,
-                isExpanded: true,
-                items: ['ativo', 'manutencao', 'inativo']
-                    .map((status) => DropdownMenuItem(
+                const SizedBox(height: 16),
+                DropdownButton<String>(
+                  value: selectedStatus,
+                  isExpanded: true,
+                  items: ['ativo', 'manutencao', 'inativo']
+                      .map(
+                        (status) => DropdownMenuItem(
                           value: status,
                           child: Text(
                             status == 'ativo'
                                 ? 'Ativo'
                                 : status == 'manutencao'
-                                    ? 'Em Manutenção'
-                                    : 'Inativo',
+                                ? 'Em Manutenção'
+                                : 'Inativo',
                           ),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  selectedStatus = value ?? 'ativo';
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    selectedStatus = value ?? 'ativo';
+                  },
+                ),
+              ],
             ),
-            onPressed: () async {
-              if (equipamento == null) {
-                final newEquip = await equipamentoService.createEquipamento(
-                  tagIdentificacao: tagController.text,
-                  nome: nomeController.text,
-                  marca: marcaController.text,
-                  status: selectedStatus,
-                );
-                if (newEquip != null) {
-                  Navigator.pop(context);
-                  _loadEquipamentos();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Equipamento criado!')),
-                  );
-                }
-              } else {
-                final updated = await equipamentoService.updateEquipamento(
-                  equipamento.id,
-                  tagIdentificacao: tagController.text,
-                  nome: nomeController.text,
-                  marca: marcaController.text,
-                  status: selectedStatus,
-                );
-                if (updated != null) {
-                  Navigator.pop(context);
-                  _loadEquipamentos();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Equipamento atualizado!')),
-                  );
-                }
-              }
-            },
-            child: Text(equipamento == null ? 'Criar' : 'Atualizar'),
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              onPressed: () async {
+                if (equipamento == null) {
+                  final newEquip = await equipamentoService.createEquipamento(
+                    tagIdentificacao: tagController.text,
+                    nome: nomeController.text,
+                    marca: marcaController.text,
+                    status: selectedStatus,
+                  );
+                  if (newEquip != null) {
+                    Navigator.pop(context);
+                    _loadEquipamentos();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Equipamento criado!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Erro ao criar equipamento'),
+                      ),
+                    );
+                  }
+                } else {
+                  final updated = await equipamentoService.updateEquipamento(
+                    equipamento.id,
+                    tagIdentificacao: tagController.text,
+                    nome: nomeController.text,
+                    marca: marcaController.text,
+                    status: selectedStatus,
+                  );
+                  if (updated != null) {
+                    Navigator.pop(context);
+                    _loadEquipamentos();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Equipamento atualizado!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Erro ao atualizar equipamento'),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text(equipamento == null ? 'Criar' : 'Atualizar'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      tagController.dispose();
+      nomeController.dispose();
+      marcaController.dispose();
+    }
   }
 
   void _deleteEquipamento(int id) {
@@ -152,9 +197,7 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(context);
               final success = await equipamentoService.deleteEquipamento(id);
@@ -162,6 +205,10 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                 _loadEquipamentos();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Equipamento deletado!')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Erro ao deletar equipamento')),
                 );
               }
             },
@@ -181,88 +228,97 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
           : equipamentos.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.devices_other, size: 64, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Nenhum equipamento cadastrado',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.devices_other, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Nenhum equipamento cadastrado',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: equipamentos.length,
-                  itemBuilder: (context, index) {
-                    final equip = equipamentos[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: Icon(Icons.build,
-                            color: AppTheme.primaryColor),
-                        title: Text(equip.nome),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text('Tag: ${equip.tagIdentificacao}',
-                                style: const TextStyle(fontSize: 12)),
-                            Text('Marca: ${equip.marca}',
-                                style: const TextStyle(fontSize: 12)),
-                            const SizedBox(height: 4),
-                            Chip(
-                              label: Text(
-                                equip.status == 'ativo'
-                                    ? 'Ativo'
-                                    : equip.status == 'manutencao'
-                                        ? 'Em Manutenção'
-                                        : 'Inativo',
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 11),
-                              ),
-                              backgroundColor: equip.status == 'ativo'
-                                  ? Colors.green
-                                  : equip.status == 'manutencao'
-                                      ? Colors.orange
-                                      : Colors.red,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ],
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: equipamentos.length,
+              itemBuilder: (context, index) {
+                final equip = equipamentos[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: Icon(Icons.build, color: AppTheme.primaryColor),
+                    title: Text(equip.nome),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tag: ${equip.tagIdentificacao}',
+                          style: const TextStyle(fontSize: 12),
                         ),
-                        trailing: PopupMenuButton(
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              child: const Text('Editar'),
-                              onTap: () {
-                                Future.delayed(Duration.zero, () {
-                                  _showFormDialog(equipamento: equip);
-                                });
-                              },
-                            ),
-                            PopupMenuItem(
-                              child: const Text('Deletar',
-                                  style: TextStyle(color: Colors.red)),
-                              onTap: () {
-                                Future.delayed(Duration.zero, () {
-                                  _deleteEquipamento(equip.id);
-                                });
-                              },
-                            ),
-                          ],
+                        Text(
+                          'Marca: ${equip.marca}',
+                          style: const TextStyle(fontSize: 12),
                         ),
-                        onTap: () {
-                          _showFormDialog(equipamento: equip);
-                        },
-                      ),
-                    );
-                  },
-                ),
+                        const SizedBox(height: 4),
+                        Chip(
+                          label: Text(
+                            equip.status == 'ativo'
+                                ? 'Ativo'
+                                : equip.status == 'manutencao'
+                                ? 'Em Manutenção'
+                                : 'Inativo',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
+                          ),
+                          backgroundColor: equip.status == 'ativo'
+                              ? Colors.green
+                              : equip.status == 'manutencao'
+                              ? Colors.orange
+                              : Colors.red,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ],
+                    ),
+                    trailing: PopupMenuButton(
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          child: const Text('Editar'),
+                          onTap: () {
+                            Future.delayed(Duration.zero, () {
+                              _showFormDialog(equipamento: equip);
+                            });
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: const Text(
+                            'Deletar',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          onTap: () {
+                            Future.delayed(Duration.zero, () {
+                              _deleteEquipamento(equip.id);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      _showFormDialog(equipamento: equip);
+                    },
+                  ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.primaryColor,
         onPressed: () => _showFormDialog(),

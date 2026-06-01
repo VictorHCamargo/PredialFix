@@ -7,15 +7,10 @@ class FeedbackService {
   FeedbackService({required ApiService apiService}) : _apiService = apiService;
 
   Future<List<Feedback>> getFeedbacks() async {
-    try {
-      final response = await _apiService.getFeedbacks();
-      
-      // response is List<Map<String, dynamic>>
-      return response.map((item) => Feedback.fromJson(item)).toList();
-    } catch (e) {
-      print('Get feedbacks error: $e');
-      return [];
-    }
+    final response = await _apiService.getFeedbacks();
+
+    // response is List<Map<String, dynamic>>
+    return response.map((item) => Feedback.fromJson(item)).toList();
   }
 
   Future<Feedback?> createFeedback({
@@ -24,17 +19,15 @@ class FeedbackService {
     String? comentario,
   }) async {
     try {
-      final data = {
-        'avaliacao': avaliacao,
-        'comentario': comentario,
-      };
+      final data = {'avaliacao': avaliacao, 'comentario': comentario};
 
       final response = await _apiService.createFeedback(idChamado, data);
-      
+
       // response is Map<String, dynamic>
-      return Feedback.fromJson(response.containsKey('data') ? response['data'] : response);
-    } catch (e) {
-      print('Create feedback error: $e');
+      return Feedback.fromJson(
+        response.containsKey('data') ? response['data'] : response,
+      );
+    } catch (_) {
       return null;
     }
   }

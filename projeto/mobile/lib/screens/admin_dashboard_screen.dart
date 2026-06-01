@@ -12,20 +12,32 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  late String userRole;
+  String userRole = 'aluno';
+  bool _loaded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser();
+    }
   }
 
   Future<void> _loadUser() async {
     final authService = context.read<AuthService>();
-    final user = await authService.getCurrentUser();
-    setState(() {
-      userRole = user?.role ?? 'admin';
-    });
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        userRole = user?.role ?? 'admin';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Erro ao carregar usuário')));
+    }
   }
 
   @override
@@ -65,7 +77,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Text(
                       'Gerencie usuários, chamados, estoque e equipamentos',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 14,
                       ),
                     ),
@@ -145,9 +157,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     color: const Color(0xFF06B6D4),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Locais - Em breve'),
-                        ),
+                        const SnackBar(content: Text('Locais - Em breve')),
                       );
                     },
                   ),
@@ -160,9 +170,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     color: const Color(0xFFEC4899),
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tipos - Em breve'),
-                        ),
+                        const SnackBar(content: Text('Tipos - Em breve')),
                       );
                     },
                   ),
@@ -188,9 +196,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 subtitle: 'Ver todas as alterações de status',
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Histórico - Em breve'),
-                    ),
+                    const SnackBar(content: Text('Histórico - Em breve')),
                   );
                 },
               ),
@@ -200,9 +206,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 subtitle: 'Gerar e visualizar relatórios',
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Relatórios - Em breve'),
-                    ),
+                    const SnackBar(content: Text('Relatórios - Em breve')),
                   );
                 },
               ),
@@ -212,9 +216,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 subtitle: 'Gerenciar contas de usuários',
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Usuários - Em breve'),
-                    ),
+                    const SnackBar(content: Text('Usuários - Em breve')),
                   );
                 },
               ),
@@ -247,8 +249,8 @@ class _AdminMenuCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: color.withValues(alpha: 0.1),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(16),
@@ -256,10 +258,7 @@ class _AdminMenuCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              icon,
-              style: const TextStyle(fontSize: 32),
-            ),
+            Text(icon, style: const TextStyle(fontSize: 32)),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -318,7 +317,7 @@ class _QuickAccessTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(icon, color: AppTheme.primaryColor, size: 20),
@@ -346,8 +345,7 @@ class _QuickAccessTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios,
-                size: 16, color: Colors.grey[400]),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
           ],
         ),
       ),
