@@ -94,15 +94,6 @@ class AuthService {
       if (token != null) {
         _apiService.setToken(token);
 
-<<<<<<< HEAD
-=======
-        final storedUser = await _storageService.getUser();
-        if (storedUser != null) {
-          _apiService.setCurrentUser(storedUser.toJson());
-          return true;
-        }
-
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
         final response = await _apiService.getCurrentUser();
         final userData = response['user'] ?? response;
         final user = User.fromJson(
@@ -113,10 +104,6 @@ class AuthService {
       }
       return false;
     } catch (_) {
-<<<<<<< HEAD
-=======
-      _apiService.clearToken();
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       return false;
     }
   }

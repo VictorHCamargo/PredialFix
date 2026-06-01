@@ -7,21 +7,10 @@ class ChamadoService {
   ChamadoService({required ApiService apiService}) : _apiService = apiService;
 
   Future<List<Chamado>> getChamados() async {
-<<<<<<< HEAD
     final response = await _apiService.getChamados();
 
     // response is List<Map<String, dynamic>>
     return response.map((item) => Chamado.fromJson(item)).toList();
-=======
-    try {
-      final response = await _apiService.getChamados();
-      
-      // response is List<Map<String, dynamic>>
-      return response.map((item) => Chamado.fromJson(item)).toList();
-    } catch (_) {
-      return [];
-    }
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   Future<Chamado?> getChamado(int id) async {
@@ -30,13 +19,9 @@ class ChamadoService {
 
       // response is Map<String, dynamic>
       // Handle both direct data and nested 'data' key
-<<<<<<< HEAD
       return Chamado.fromJson(
         response.containsKey('data') ? response['data'] : response,
       );
-=======
-      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     } catch (_) {
       return null;
     }
@@ -61,13 +46,9 @@ class ChamadoService {
       final response = await _apiService.createChamado(data);
 
       // response is Map<String, dynamic>
-<<<<<<< HEAD
       return Chamado.fromJson(
         response.containsKey('data') ? response['data'] : response,
       );
-=======
-      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     } catch (_) {
       return null;
     }
@@ -91,13 +72,9 @@ class ChamadoService {
       final response = await _apiService.updateChamado(id, data);
 
       // response is Map<String, dynamic>
-<<<<<<< HEAD
       return Chamado.fromJson(
         response.containsKey('data') ? response['data'] : response,
       );
-=======
-      return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     } catch (_) {
       return null;
     }

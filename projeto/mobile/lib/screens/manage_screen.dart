@@ -16,58 +16,35 @@ class _ManageScreenState extends State<ManageScreen> {
   List<Chamado> _chamados = [];
   bool _isLoading = true;
   bool _loaded = false;
-<<<<<<< HEAD
   String? _selectedStatus;
   String? _errorMessage;
   late ChamadoService _chamadoService;
-=======
-  String? _errorMessage;
-  String? _selectedStatus;
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
-<<<<<<< HEAD
       _chamadoService = context.read<ChamadoService>();
       _loadChamados();
     }
   }
 
   Future<void> _loadChamados() async {
-=======
-      _loadChamados(context.read<ChamadoService>());
-    }
-  }
-
-  Future<void> _loadChamados(ChamadoService chamadoService) async {
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-<<<<<<< HEAD
       final chamados = await _chamadoService.getChamados();
       if (!mounted) return;
-=======
-      final chamados = await chamadoService.getChamados();
-      if (!mounted) return;
-
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         _chamados = chamados;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
-<<<<<<< HEAD
-=======
-
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         _errorMessage = 'Erro ao carregar chamados';
         _isLoading = false;

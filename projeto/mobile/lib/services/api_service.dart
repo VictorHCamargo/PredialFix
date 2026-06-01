@@ -370,13 +370,8 @@ class ApiService {
 
   // Authentication methods
   Future<Map<String, dynamic>> login(String email, String password) async {
-<<<<<<< HEAD
     // Simula delay de requisição
     await _simulateAsync();
-=======
-    // Simula delay de requisiÃ§Ã£o
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     // Procura o usuÃ¡rio nos dados mock
     final userMap = _mockUsers.firstWhere(
@@ -404,11 +399,7 @@ class ApiService {
     String passwordConfirmation,
   ) async {
     // Simula delay
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     // Valida campos
     if (password != passwordConfirmation) {
@@ -440,21 +431,13 @@ class ApiService {
 
   Future<void> logout() async {
     // Simula delay
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     clearToken();
   }
 
   // User methods
   Future<Map<String, dynamic>> getCurrentUser() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -465,11 +448,7 @@ class ApiService {
 
   // Chamado methods
   Future<List<Map<String, dynamic>>> getChamados() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -485,11 +464,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getChamado(int id) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -507,14 +482,8 @@ class ApiService {
     return Map<String, dynamic>.from(chamado);
   }
 
-<<<<<<< HEAD
   Future<Map<String, dynamic>> createChamado(Map<String, dynamic> data) async {
     await _simulateAsync();
-=======
-  Future<Map<String, dynamic>> createChamado(
-      Map<String, dynamic> data) async {
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -548,11 +517,7 @@ class ApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -570,11 +535,7 @@ class ApiService {
   }
 
   Future<void> deleteChamado(int id) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -585,11 +546,7 @@ class ApiService {
 
   // Feedback methods
   Future<List<Map<String, dynamic>>> getFeedbacks() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -603,11 +560,7 @@ class ApiService {
     int idChamado,
     Map<String, dynamic> data,
   ) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) {
       throw Exception('UsuÃ¡rio nÃ£o autenticado');
@@ -625,33 +578,18 @@ class ApiService {
 
   // Reference data methods
   Future<List<Map<String, dynamic>>> getLocais() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     return _mockLocais.map((l) => Map<String, dynamic>.from(l)).toList();
   }
 
   Future<List<Map<String, dynamic>>> getTiposProblema() async {
-<<<<<<< HEAD
     await _simulateAsync();
     return _mockTiposProblema.map((t) => Map<String, dynamic>.from(t)).toList();
-=======
-    await Future.microtask(() {});
-    return _mockTiposProblema
-        .map((t) => Map<String, dynamic>.from(t))
-        .toList();
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   // Equipamentos methods
   Future<List<Map<String, dynamic>>> getEquipamentos() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null || _currentUser!['role'] != 'administrador') {
       throw Exception('Acesso negado');
@@ -661,14 +599,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> createEquipamento(
-<<<<<<< HEAD
     Map<String, dynamic> data,
   ) async {
     await _simulateAsync();
-=======
-      Map<String, dynamic> data) async {
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null || _currentUser!['role'] != 'administrador') {
       throw Exception('Acesso negado');
@@ -695,11 +628,7 @@ class ApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null || _currentUser!['role'] != 'administrador') {
       throw Exception('Acesso negado');
@@ -713,11 +642,7 @@ class ApiService {
   }
 
   Future<void> deleteEquipamento(int id) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null || _currentUser!['role'] != 'administrador') {
       throw Exception('Acesso negado');
@@ -728,11 +653,7 @@ class ApiService {
 
   // Estoque methods
   Future<List<Map<String, dynamic>>> getEstoque() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -743,14 +664,8 @@ class ApiService {
     return _mockEstoque.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
-<<<<<<< HEAD
   Future<Map<String, dynamic>> createEstoque(Map<String, dynamic> data) async {
     await _simulateAsync();
-=======
-  Future<Map<String, dynamic>> createEstoque(
-      Map<String, dynamic> data) async {
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -790,11 +705,7 @@ class ApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -819,11 +730,7 @@ class ApiService {
   }
 
   Future<void> deleteEstoque(int id) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -836,11 +743,7 @@ class ApiService {
 
   // OrÃ§amento methods
   Future<List<Map<String, dynamic>>> getOrcamentos() async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -852,14 +755,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> createOrcamento(
-<<<<<<< HEAD
     Map<String, dynamic> data,
   ) async {
     await _simulateAsync();
-=======
-      Map<String, dynamic> data) async {
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) throw Exception('UsuÃ¡rio nÃ£o autenticado');
 
@@ -882,11 +780,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> approveOrcamento(int id) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -903,11 +797,7 @@ class ApiService {
 
   // HistÃ³rico methods
   Future<List<Map<String, dynamic>>> getHistorico(int idChamado) async {
-<<<<<<< HEAD
     await _simulateAsync();
-=======
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     return _mockHistorico
         .where((h) => h['id_chamado'] == idChamado)
@@ -915,14 +805,8 @@ class ApiService {
         .toList();
   }
 
-<<<<<<< HEAD
   Future<Map<String, dynamic>> addHistorico(Map<String, dynamic> data) async {
     await _simulateAsync();
-=======
-  Future<Map<String, dynamic>> addHistorico(
-      Map<String, dynamic> data) async {
-    await Future.microtask(() {});
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     if (_currentUser == null) throw Exception('UsuÃ¡rio nÃ£o autenticado');
 

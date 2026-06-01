@@ -20,7 +20,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
-<<<<<<< HEAD
       _loadUser();
     }
   }
@@ -39,19 +38,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Erro ao carregar usuário')));
     }
-=======
-      _loadUser(context.read<AuthService>());
-    }
-  }
-
-  Future<void> _loadUser(AuthService authService) async {
-    final user = await authService.getCurrentUser();
-    if (!mounted) return;
-
-    setState(() {
-      userRole = user?.role ?? 'admin';
-    });
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   @override

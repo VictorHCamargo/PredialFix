@@ -8,7 +8,6 @@ class ReferenceService {
   ReferenceService({required ApiService apiService}) : _apiService = apiService;
 
   Future<List<Local>> getLocais() async {
-<<<<<<< HEAD
     final response = await _apiService.getLocais();
 
     // response is List<Map<String, dynamic>>
@@ -20,26 +19,5 @@ class ReferenceService {
 
     // response is List<Map<String, dynamic>>
     return response.map((item) => TipoProblema.fromJson(item)).toList();
-=======
-    try {
-      final response = await _apiService.getLocais();
-      
-      // response is List<Map<String, dynamic>>
-      return response.map((item) => Local.fromJson(item)).toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<List<TipoProblema>> getTiposProblema() async {
-    try {
-      final response = await _apiService.getTiposProblema();
-      
-      // response is List<Map<String, dynamic>>
-      return response.map((item) => TipoProblema.fromJson(item)).toList();
-    } catch (_) {
-      return [];
-    }
->>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 }
