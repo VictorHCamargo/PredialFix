@@ -16,7 +16,11 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
   List<Equipamento> equipamentos = [];
   bool isLoading = true;
   bool _loaded = false;
+<<<<<<< HEAD
   String? _errorMessage;
+=======
+  String? errorMessage;
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
   @override
   void didChangeDependencies() {
@@ -31,20 +35,34 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
   Future<void> _loadEquipamentos() async {
     setState(() {
       isLoading = true;
+<<<<<<< HEAD
       _errorMessage = null;
+=======
+      errorMessage = null;
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     });
 
     try {
       final items = await equipamentoService.getEquipamentos();
       if (!mounted) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         equipamentos = items;
         isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
+<<<<<<< HEAD
       setState(() {
         _errorMessage = 'Erro ao carregar equipamentos';
+=======
+
+      setState(() {
+        errorMessage = 'Erro ao carregar equipamentos';
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,8 +77,10 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
     );
     final nomeController = TextEditingController(text: equipamento?.nome);
     final marcaController = TextEditingController(text: equipamento?.marca);
+    final screenContext = context;
     String selectedStatus = equipamento?.status ?? 'ativo';
 
+<<<<<<< HEAD
     try {
       await showDialog(
         context: context,
@@ -78,6 +98,21 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                     labelText: 'Tag de Identificação',
                     border: OutlineInputBorder(),
                   ),
+=======
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(equipamento == null ? 'Novo Equipamento' : 'Editar Equipamento'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: tagController,
+                decoration: InputDecoration(
+                  labelText: 'Tag de Identificação',
+                  border: OutlineInputBorder(),
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -110,6 +145,7 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                                 ? 'Em Manutenção'
                                 : 'Inativo',
                           ),
+<<<<<<< HEAD
                         ),
                       )
                       .toList(),
@@ -183,31 +219,114 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
       nomeController.dispose();
       marcaController.dispose();
     }
+=======
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  selectedStatus = value ?? 'ativo';
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            onPressed: () async {
+              if (equipamento == null) {
+                final newEquip = await equipamentoService.createEquipamento(
+                  tagIdentificacao: tagController.text,
+                  nome: nomeController.text,
+                  marca: marcaController.text,
+                  status: selectedStatus,
+                );
+                if (newEquip != null) {
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
+                  _loadEquipamentos();
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(content: Text('Equipamento criado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao criar equipamento'),
+                    ),
+                  );
+                }
+              } else {
+                final updated = await equipamentoService.updateEquipamento(
+                  equipamento.id,
+                  tagIdentificacao: tagController.text,
+                  nome: nomeController.text,
+                  marca: marcaController.text,
+                  status: selectedStatus,
+                );
+                if (updated != null) {
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
+                  _loadEquipamentos();
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(content: Text('Equipamento atualizado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao atualizar equipamento'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(equipamento == null ? 'Criar' : 'Atualizar'),
+          ),
+        ],
+      ),
+    ).whenComplete(() {
+      tagController.dispose();
+      nomeController.dispose();
+      marcaController.dispose();
+    });
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   void _deleteEquipamento(int id) {
+    final screenContext = context;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirmação'),
         content: const Text('Tem certeza que deseja deletar este equipamento?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               final success = await equipamentoService.deleteEquipamento(id);
+              if (!mounted) return;
+
               if (success) {
                 _loadEquipamentos();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(screenContext).showSnackBar(
                   const SnackBar(content: Text('Equipamento deletado!')),
                 );
               } else {
+<<<<<<< HEAD
                 ScaffoldMessenger.of(context).showSnackBar(
+=======
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
                   const SnackBar(content: Text('Erro ao deletar equipamento')),
                 );
               }
@@ -228,8 +347,25 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+<<<<<<< HEAD
           : _errorMessage != null
           ? Center(child: Text(_errorMessage!))
+=======
+          : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadEquipamentos,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
           : equipamentos.isEmpty
           ? Center(
               child: Column(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/orcamento.dart';
 import '../services/orcamento_service.dart';
-import '../services/chamado_service.dart';
 import '../theme/app_theme.dart';
 
 class OrcamentosScreen extends StatefulWidget {
@@ -14,10 +13,13 @@ class OrcamentosScreen extends StatefulWidget {
 
 class _OrcamentosScreenState extends State<OrcamentosScreen> {
   late OrcamentoService orcamentoService;
-  late ChamadoService chamadoService;
   List<Orcamento> orcamentos = [];
   bool isLoading = true;
   bool _loaded = false;
+<<<<<<< HEAD
+=======
+  String? errorMessage;
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   String filterStatus = 'todos';
   String? _errorMessage;
 
@@ -27,7 +29,10 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
     if (!_loaded) {
       _loaded = true;
       orcamentoService = context.read<OrcamentoService>();
+<<<<<<< HEAD
       chamadoService = context.read<ChamadoService>();
+=======
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       _loadOrcamentos();
     }
   }
@@ -35,24 +40,42 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
   Future<void> _loadOrcamentos() async {
     setState(() {
       isLoading = true;
+<<<<<<< HEAD
       _errorMessage = null;
+=======
+      errorMessage = null;
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     });
 
     try {
       final items = await orcamentoService.getOrcamentos();
       if (!mounted) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         orcamentos = items;
         isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
+<<<<<<< HEAD
       setState(() {
         _errorMessage = 'Erro ao carregar orçamentos';
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao carregar orçamentos')),
+=======
+
+      setState(() {
+        errorMessage = 'Erro ao carregar orcamentos';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar orcamentos')),
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       );
     }
   }
@@ -68,8 +91,10 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
   Future<void> _showFormDialog() async {
     final valorController = TextEditingController();
     final descricaoController = TextEditingController();
+    final screenContext = context;
     int? selectedChamadoId;
 
+<<<<<<< HEAD
     try {
       await showDialog(
         context: context,
@@ -86,6 +111,21 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
+=======
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Novo Orçamento'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: descricaoController,
+                decoration: InputDecoration(
+                  labelText: 'Descrição do Serviço',
+                  border: OutlineInputBorder(),
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -101,6 +141,7 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
                   'Selecione um Chamado:',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
+<<<<<<< HEAD
                 const SizedBox(height: 8),
                 // Simplificado - apenas usar ID do chamado
                 TextField(
@@ -181,6 +222,72 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
       }
     } catch (_) {
       if (!mounted) return;
+=======
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  selectedChamadoId = int.tryParse(value);
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            onPressed: () async {
+              final valor = double.tryParse(valorController.text);
+              if (valor == null || selectedChamadoId == null) {
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(
+                      content: Text('Preencha todos os campos corretamente')),
+                );
+                return;
+              }
+
+              final newOrcamento = await orcamentoService.createOrcamento(
+                idChamado: selectedChamadoId!,
+                valor: valor,
+                descricao: descricaoController.text,
+              );
+
+              if (newOrcamento != null) {
+                if (!mounted) return;
+                Navigator.pop(dialogContext);
+                _loadOrcamentos();
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(content: Text('Orçamento criado!')),
+                );
+              }
+
+              if (newOrcamento == null && mounted) {
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(content: Text('Erro ao criar orcamento')),
+                );
+              }
+            },
+            child: const Text('Criar'),
+          ),
+        ],
+      ),
+    ).whenComplete(() {
+      valorController.dispose();
+      descricaoController.dispose();
+    });
+  }
+
+  void _approveOrcamento(Orcamento orcamento) async {
+    final updated = await orcamentoService.approveOrcamento(orcamento.id);
+    if (!mounted) return;
+
+    if (updated != null) {
+      _loadOrcamentos();
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao aprovar orçamento')),
       );
@@ -196,8 +303,25 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+<<<<<<< HEAD
           : _errorMessage != null
           ? Center(child: Text(_errorMessage!))
+=======
+          : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadOrcamentos,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
           : Column(
               children: [
                 // Filtro de status

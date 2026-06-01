@@ -82,12 +82,27 @@ class AuthService {
     }
   }
 
-  Future<bool> restoreSession() async {
+  Future<bool> restoreSession({
+    Duration timeout = const Duration(seconds: 5),
+  }) {
+    return _restoreSession().timeout(timeout, onTimeout: () => false);
+  }
+
+  Future<bool> _restoreSession() async {
     try {
       final token = await _storageService.getToken();
       if (token != null) {
         _apiService.setToken(token);
 
+<<<<<<< HEAD
+=======
+        final storedUser = await _storageService.getUser();
+        if (storedUser != null) {
+          _apiService.setCurrentUser(storedUser.toJson());
+          return true;
+        }
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
         final response = await _apiService.getCurrentUser();
         final userData = response['user'] ?? response;
         final user = User.fromJson(
@@ -98,6 +113,10 @@ class AuthService {
       }
       return false;
     } catch (_) {
+<<<<<<< HEAD
+=======
+      _apiService.clearToken();
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       return false;
     }
   }

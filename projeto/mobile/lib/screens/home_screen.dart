@@ -27,16 +27,32 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
+<<<<<<< HEAD
       _loadData();
     }
   }
 
   Future<void> _loadData() async {
     final chamadoService = context.read<ChamadoService>();
+=======
+      _loadData(context.read<ChamadoService>());
+    }
+  }
+
+  Future<void> _loadData(ChamadoService chamadoService) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
 
     try {
       final chamados = await chamadoService.getChamados();
       if (!mounted) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         _totalChamados = chamados.length;
         _emAndamento = chamados
@@ -46,11 +62,18 @@ class _HomeScreenState extends State<HomeScreen> {
             .where((c) => c.status.toLowerCase() == 'concluido')
             .length;
         _chamadasRecentes = chamados.take(3).toList();
+<<<<<<< HEAD
         _errorMessage = null;
+=======
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         _errorMessage = 'Erro ao carregar chamados';
         _isLoading = false;
@@ -68,9 +91,40 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: const Text('Home'), elevation: 4),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+<<<<<<< HEAD
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+=======
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () =>
+                            _loadData(context.read<ChamadoService>()),
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Grid de Cards com Estatísticas
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
                 children: [
                   if (_errorMessage != null)
                     Padding(

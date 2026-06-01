@@ -7,8 +7,17 @@ class EstoqueService {
   EstoqueService({required ApiService apiService}) : _apiService = apiService;
 
   Future<List<EstoqueInterno>> getEstoque() async {
+<<<<<<< HEAD
     final response = await _apiService.getEstoque();
     return response.map((item) => EstoqueInterno.fromJson(item)).toList();
+=======
+    try {
+      final response = await _apiService.getEstoque();
+      return response.map((item) => EstoqueInterno.fromJson(item)).toList();
+    } catch (_) {
+      return [];
+    }
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   Future<EstoqueInterno?> createEstoque({

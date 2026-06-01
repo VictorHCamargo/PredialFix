@@ -20,6 +20,7 @@ class _AppDrawerState extends State<AppDrawer> {
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
+<<<<<<< HEAD
       _loadUser();
     }
   }
@@ -33,6 +34,19 @@ class _AppDrawerState extends State<AppDrawer> {
         _user = user;
       });
     } catch (_) {}
+=======
+      _loadUser(context.read<AuthService>());
+    }
+  }
+
+  Future<void> _loadUser(AuthService authService) async {
+    final user = await authService.getCurrentUser();
+    if (!mounted) return;
+
+    setState(() {
+      _user = user;
+    });
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
   }
 
   @override

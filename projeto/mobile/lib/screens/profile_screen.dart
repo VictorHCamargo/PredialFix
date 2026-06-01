@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.didChangeDependencies();
     if (!_loaded) {
       _loaded = true;
+<<<<<<< HEAD
       _loadUser();
     }
   }
@@ -32,6 +33,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = await authService.getCurrentUser();
       if (!mounted) return;
+=======
+      _loadUser(context.read<AuthService>());
+    }
+  }
+
+  Future<void> _loadUser(AuthService authService) async {
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
       setState(() {
         _user = user;
         _errorMessage = null;
@@ -39,6 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } catch (_) {
       if (!mounted) return;
+<<<<<<< HEAD
       setState(() {
         _errorMessage = 'Erro ao carregar usuário';
         _isLoading = false;
@@ -46,6 +59,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Erro ao carregar usuário')));
+=======
+
+      setState(() {
+        _errorMessage = 'Erro ao carregar perfil';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar perfil')),
+      );
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
     }
   }
 
@@ -69,6 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
+<<<<<<< HEAD
           ? Center(child: Text(_errorMessage!))
           : _user == null
           ? const Center(child: Text('Nenhum usuário carregado'))
@@ -97,6 +121,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor,
                             ),
+=======
+              ? Center(child: Text(_errorMessage!))
+              : _user == null
+              ? const Center(
+                  child: Text('Nenhum usuário carregado'),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(16),
+                            bottomRight: Radius.circular(16),
+>>>>>>> b9a8ab59d7a16e74e76cf2281ee20cddd6f3568e
                           ),
                         ),
                         const SizedBox(height: 16),
