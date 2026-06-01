@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/orcamento.dart';
 import '../services/orcamento_service.dart';
-import '../services/chamado_service.dart';
 import '../theme/app_theme.dart';
 
 class OrcamentosScreen extends StatefulWidget {
@@ -14,26 +13,47 @@ class OrcamentosScreen extends StatefulWidget {
 
 class _OrcamentosScreenState extends State<OrcamentosScreen> {
   late OrcamentoService orcamentoService;
-  late ChamadoService chamadoService;
   List<Orcamento> orcamentos = [];
   bool isLoading = true;
+  bool _loaded = false;
+  String? errorMessage;
   String filterStatus = 'todos';
 
   @override
-  void initState() {
-    super.initState();
-    orcamentoService = context.read<OrcamentoService>();
-    chamadoService = context.read<ChamadoService>();
-    _loadOrcamentos();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      orcamentoService = context.read<OrcamentoService>();
+      _loadOrcamentos();
+    }
   }
 
   Future<void> _loadOrcamentos() async {
-    setState(() => isLoading = true);
-    final items = await orcamentoService.getOrcamentos();
     setState(() {
-      orcamentos = items;
-      isLoading = false;
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      final items = await orcamentoService.getOrcamentos();
+      if (!mounted) return;
+
+      setState(() {
+        orcamentos = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'Erro ao carregar orcamentos';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar orcamentos')),
+      );
+    }
   }
 
   List<Orcamento> get filteredOrcamentos {
@@ -47,11 +67,12 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
   void _showFormDialog() {
     final valorController = TextEditingController();
     final descricaoController = TextEditingController();
+    final screenContext = context;
     int? selectedChamadoId;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Novo Orçamento'),
         content: SingleChildScrollView(
           child: Column(
@@ -96,7 +117,7 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -106,7 +127,7 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
             onPressed: () async {
               final valor = double.tryParse(valorController.text);
               if (valor == null || selectedChamadoId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(screenContext).showSnackBar(
                   const SnackBar(
                       content: Text('Preencha todos os campos corretamente')),
                 );
@@ -120,10 +141,17 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
               );
 
               if (newOrcamento != null) {
-                Navigator.pop(context);
+                if (!mounted) return;
+                Navigator.pop(dialogContext);
                 _loadOrcamentos();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(screenContext).showSnackBar(
                   const SnackBar(content: Text('Orçamento criado!')),
+                );
+              }
+
+              if (newOrcamento == null && mounted) {
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(content: Text('Erro ao criar orcamento')),
                 );
               }
             },
@@ -131,11 +159,16 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      valorController.dispose();
+      descricaoController.dispose();
+    });
   }
 
   void _approveOrcamento(Orcamento orcamento) async {
     final updated = await orcamentoService.approveOrcamento(orcamento.id);
+    if (!mounted) return;
+
     if (updated != null) {
       _loadOrcamentos();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,6 +186,20 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadOrcamentos,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
           : Column(
               children: [
                 // Filtro de status

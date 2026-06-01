@@ -13,8 +13,7 @@ class ReferenceService {
       
       // response is List<Map<String, dynamic>>
       return response.map((item) => Local.fromJson(item)).toList();
-    } catch (e) {
-      print('Get locais error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -25,8 +24,7 @@ class ReferenceService {
       
       // response is List<Map<String, dynamic>>
       return response.map((item) => TipoProblema.fromJson(item)).toList();
-    } catch (e) {
-      print('Get tipos problema error: $e');
+    } catch (_) {
       return [];
     }
   }

@@ -13,16 +13,21 @@ class AppDrawer extends StatefulWidget {
 
 class _AppDrawerState extends State<AppDrawer> {
   User? _user;
+  bool _loaded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser(context.read<AuthService>());
+    }
   }
 
-  Future<void> _loadUser() async {
-    final authService = context.read<AuthService>();
+  Future<void> _loadUser(AuthService authService) async {
     final user = await authService.getCurrentUser();
+    if (!mounted) return;
+
     setState(() {
       _user = user;
     });

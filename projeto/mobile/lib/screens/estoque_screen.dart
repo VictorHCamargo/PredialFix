@@ -15,22 +15,45 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
   late EstoqueService estoqueService;
   List<EstoqueInterno> itens = [];
   bool isLoading = true;
+  bool _loaded = false;
+  String? errorMessage;
   String filterStatus = 'todos';
 
   @override
-  void initState() {
-    super.initState();
-    estoqueService = context.read<EstoqueService>();
-    _loadEstoque();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      estoqueService = context.read<EstoqueService>();
+      _loadEstoque();
+    }
   }
 
   Future<void> _loadEstoque() async {
-    setState(() => isLoading = true);
-    final items = await estoqueService.getEstoque();
     setState(() {
-      itens = items;
-      isLoading = false;
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      final items = await estoqueService.getEstoque();
+      if (!mounted) return;
+
+      setState(() {
+        itens = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'Erro ao carregar estoque';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar estoque')),
+      );
+    }
   }
 
   List<EstoqueInterno> get filteredItens {
@@ -51,11 +74,12 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
     final codigoController =
         TextEditingController(text: item?.codigoPatrimonio);
     final obsController = TextEditingController(text: item?.observacoes);
+    final screenContext = context;
     String selectedStatus = item?.statusItem ?? 'disponivel';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(item == null ? 'Novo Item de Estoque' : 'Editar Item'),
         content: SingleChildScrollView(
           child: Column(
@@ -150,7 +174,7 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -176,10 +200,15 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                       obsController.text.isEmpty ? null : obsController.text,
                 );
                 if (newItem != null) {
-                  Navigator.pop(context);
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
                   _loadEstoque();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(content: Text('Item criado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(content: Text('Erro ao criar item')),
                   );
                 }
               } else {
@@ -197,10 +226,15 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                       obsController.text.isEmpty ? null : obsController.text,
                 );
                 if (updated != null) {
-                  Navigator.pop(context);
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
                   _loadEstoque();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(content: Text('Item atualizado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(content: Text('Erro ao atualizar item')),
                   );
                 }
               }
@@ -209,7 +243,16 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      nomeController.dispose();
+      descricaoController.dispose();
+      quantidadeController.dispose();
+      categoriaController.dispose();
+      localizacaoController.dispose();
+      valorUnitarioController.dispose();
+      codigoController.dispose();
+      obsController.dispose();
+    });
   }
 
   String _statusText(String status) {
@@ -228,14 +271,16 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
   }
 
   void _deleteItem(int id) {
+    final screenContext = context;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirmação'),
         content: const Text('Tem certeza que deseja deletar este item?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -243,12 +288,18 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
               backgroundColor: Colors.red,
             ),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               final success = await estoqueService.deleteEstoque(id);
+              if (!mounted) return;
+
               if (success) {
                 _loadEstoque();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(screenContext).showSnackBar(
                   const SnackBar(content: Text('Item deletado!')),
+                );
+              } else {
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(content: Text('Erro ao deletar item')),
                 );
               }
             },
@@ -268,6 +319,20 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadEstoque,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
           : Column(
               children: [
                 // Filtro de status

@@ -12,8 +12,7 @@ class FeedbackService {
       
       // response is List<Map<String, dynamic>>
       return response.map((item) => Feedback.fromJson(item)).toList();
-    } catch (e) {
-      print('Get feedbacks error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -33,8 +32,7 @@ class FeedbackService {
       
       // response is Map<String, dynamic>
       return Feedback.fromJson(response.containsKey('data') ? response['data'] : response);
-    } catch (e) {
-      print('Create feedback error: $e');
+    } catch (_) {
       return null;
     }
   }

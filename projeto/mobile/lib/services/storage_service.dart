@@ -6,28 +6,56 @@ class StorageService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
+  Future<SharedPreferences>? _prefsFuture;
 
   Future<void> init() async {
-    _prefs = await SharedPreferences.getInstance();
+    await _ensurePrefs();
+  }
+
+  Future<SharedPreferences> _ensurePrefs() {
+    final prefs = _prefs;
+    if (prefs != null) {
+      return Future.value(prefs);
+    }
+
+    final pendingPrefs = _prefsFuture;
+    if (pendingPrefs != null) {
+      return pendingPrefs;
+    }
+
+    final future = SharedPreferences.getInstance().then((prefs) {
+      _prefs = prefs;
+      return prefs;
+    }).catchError((Object error) {
+      _prefsFuture = null;
+      throw error;
+    });
+
+    _prefsFuture = future;
+    return future;
   }
 
   // Token
   Future<void> setToken(String token) async {
-    await _prefs.setString(_tokenKey, token);
+    final prefs = await _ensurePrefs();
+    await prefs.setString(_tokenKey, token);
   }
 
   Future<String?> getToken() async {
-    return _prefs.getString(_tokenKey);
+    final prefs = await _ensurePrefs();
+    return prefs.getString(_tokenKey);
   }
 
   // User
   Future<void> setUser(User user) async {
-    await _prefs.setString(_userKey, jsonEncode(user.toJson()));
+    final prefs = await _ensurePrefs();
+    await prefs.setString(_userKey, jsonEncode(user.toJson()));
   }
 
   Future<User?> getUser() async {
-    final userJson = _prefs.getString(_userKey);
+    final prefs = await _ensurePrefs();
+    final userJson = prefs.getString(_userKey);
     if (userJson != null) {
       return User.fromJson(jsonDecode(userJson));
     }
@@ -36,14 +64,17 @@ class StorageService {
 
   // Clear
   Future<void> clearAll() async {
-    await _prefs.clear();
+    final prefs = await _ensurePrefs();
+    await prefs.clear();
   }
 
   Future<void> removeToken() async {
-    await _prefs.remove(_tokenKey);
+    final prefs = await _ensurePrefs();
+    await prefs.remove(_tokenKey);
   }
 
   Future<void> removeUser() async {
-    await _prefs.remove(_userKey);
+    final prefs = await _ensurePrefs();
+    await prefs.remove(_userKey);
   }
 }

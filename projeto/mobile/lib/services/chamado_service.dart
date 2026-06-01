@@ -12,8 +12,7 @@ class ChamadoService {
       
       // response is List<Map<String, dynamic>>
       return response.map((item) => Chamado.fromJson(item)).toList();
-    } catch (e) {
-      print('Get chamados error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -25,8 +24,7 @@ class ChamadoService {
       // response is Map<String, dynamic>
       // Handle both direct data and nested 'data' key
       return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
-    } catch (e) {
-      print('Get chamado error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -51,8 +49,7 @@ class ChamadoService {
       
       // response is Map<String, dynamic>
       return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
-    } catch (e) {
-      print('Create chamado error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -76,8 +73,7 @@ class ChamadoService {
       
       // response is Map<String, dynamic>
       return Chamado.fromJson(response.containsKey('data') ? response['data'] : response);
-    } catch (e) {
-      print('Update chamado error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -86,8 +82,7 @@ class ChamadoService {
     try {
       await _apiService.deleteChamado(id);
       return true;
-    } catch (e) {
-      print('Delete chamado error: $e');
+    } catch (_) {
       return false;
     }
   }

@@ -29,8 +29,7 @@ class AuthService {
         return true;
       }
       return false;
-    } catch (e) {
-      print('Login error: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -52,8 +51,7 @@ class AuthService {
         }
       }
       return true;
-    } catch (e) {
-      print('Register error: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -61,29 +59,42 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _apiService.logout();
-    } catch (e) {
-      print('Logout error: $e');
+    } catch (_) {
     } finally {
       _apiService.clearToken();
       await _storageService.clearAll();
     }
   }
 
-  Future<bool> restoreSession() async {
+  Future<bool> restoreSession({
+    Duration timeout = const Duration(seconds: 5),
+  }) {
+    return _restoreSession().timeout(timeout, onTimeout: () => false);
+  }
+
+  Future<bool> _restoreSession() async {
     try {
       final token = await _storageService.getToken();
       if (token != null) {
         _apiService.setToken(token);
-        
+
+        final storedUser = await _storageService.getUser();
+        if (storedUser != null) {
+          _apiService.setCurrentUser(storedUser.toJson());
+          return true;
+        }
+
         final response = await _apiService.getCurrentUser();
         final userData = response['user'] ?? response;
-        final user = User.fromJson(Map<String, dynamic>.from(userData is Map ? userData : {}));
+        final user = User.fromJson(
+          Map<String, dynamic>.from(userData is Map ? userData : {}),
+        );
         await _storageService.setUser(user);
         return true;
       }
       return false;
-    } catch (e) {
-      print('Restore session error: $e');
+    } catch (_) {
+      _apiService.clearToken();
       return false;
     }
   }

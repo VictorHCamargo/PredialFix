@@ -23,93 +23,155 @@ import 'services/equipamento_service.dart';
 import 'services/estoque_service.dart';
 import 'services/orcamento_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize StorageService
-  final storageService = StorageService();
-  await storageService.init();
-  
-  runApp(MyApp(storageService: storageService));
+  runApp(const AppInitializer());
 }
 
-class MyApp extends StatefulWidget {
-  final StorageService storageService;
-
-  const MyApp({required this.storageService, super.key});
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<AppInitializer> createState() => _AppInitializerState();
 }
 
-class _MyAppState extends State<MyApp> {
-  late ApiService _apiService;
-  late AuthService _authService;
-  String _initialRoute = '/login';
-  bool _isLoading = true;
+class _AppInitializerState extends State<AppInitializer> {
+  final ApiService _apiService = ApiService();
+  final StorageService _storageService = StorageService();
+  late final AuthService _authService = AuthService(
+    apiService: _apiService,
+    storageService: _storageService,
+  );
+
+  Future<_AppBootstrap>? _startupFuture;
 
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _startupFuture = _initializeApp();
+      });
+    });
   }
 
-  Future<void> _initializeApp() async {
-    _apiService = ApiService();
-    _authService = AuthService(
-      apiService: _apiService,
-      storageService: widget.storageService,
+  Future<_AppBootstrap> _initializeApp() async {
+    try {
+      await _storageService.init().timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // StorageService remains lazy; login can still render if startup storage
+      // takes too long during Android cold start.
+    }
+
+    final isAuthenticated = await _authService.restoreSession(
+      timeout: const Duration(seconds: 5),
     );
 
-    // Try to restore session
-    final isAuthenticated = await _authService.restoreSession();
-    
-    setState(() {
-      _initialRoute = isAuthenticated ? '/home' : '/login';
-      _isLoading = false;
-    });
+    return _AppBootstrap(
+      apiService: _apiService,
+      storageService: _storageService,
+      authService: _authService,
+      initialRoute: isAuthenticated ? '/home' : '/login',
+    );
+  }
+
+  _AppBootstrap _fallbackBootstrap() {
+    return _AppBootstrap(
+      apiService: _apiService,
+      storageService: _storageService,
+      authService: _authService,
+      initialRoute: '/login',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
+    return FutureBuilder<_AppBootstrap>(
+      future: _startupFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return MyApp(bootstrap: snapshot.data!);
+        }
+
+        if (snapshot.hasError) {
+          return MyApp(bootstrap: _fallbackBootstrap());
+        }
+
+        return const _StartupSplash();
+      },
+    );
+  }
+}
+
+class _AppBootstrap {
+  final ApiService apiService;
+  final StorageService storageService;
+  final AuthService authService;
+  final String initialRoute;
+
+  const _AppBootstrap({
+    required this.apiService,
+    required this.storageService,
+    required this.authService,
+    required this.initialRoute,
+  });
+}
+
+class _StartupSplash extends StatelessWidget {
+  const _StartupSplash();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'PredialFix',
+      theme: AppTheme.appTheme,
+      home: const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-      );
-    }
+      ),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  final _AppBootstrap bootstrap;
+
+  const MyApp({required this.bootstrap, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final apiService = bootstrap.apiService;
 
     return MultiProvider(
       providers: [
-        Provider<ApiService>(create: (_) => _apiService),
-        Provider<StorageService>(create: (_) => widget.storageService),
-        Provider<AuthService>(create: (_) => _authService),
+        Provider<ApiService>.value(value: apiService),
+        Provider<StorageService>.value(value: bootstrap.storageService),
+        Provider<AuthService>.value(value: bootstrap.authService),
         Provider<ChamadoService>(
-          create: (context) => ChamadoService(apiService: _apiService),
+          create: (_) => ChamadoService(apiService: apiService),
         ),
         Provider<ReferenceService>(
-          create: (context) => ReferenceService(apiService: _apiService),
+          create: (_) => ReferenceService(apiService: apiService),
         ),
         Provider<FeedbackService>(
-          create: (context) => FeedbackService(apiService: _apiService),
+          create: (_) => FeedbackService(apiService: apiService),
         ),
         Provider<EquipamentoService>(
-          create: (context) => EquipamentoService(apiService: _apiService),
+          create: (_) => EquipamentoService(apiService: apiService),
         ),
         Provider<EstoqueService>(
-          create: (context) => EstoqueService(apiService: _apiService),
+          create: (_) => EstoqueService(apiService: apiService),
         ),
         Provider<OrcamentoService>(
-          create: (context) => OrcamentoService(apiService: _apiService),
+          create: (_) => OrcamentoService(apiService: apiService),
         ),
       ],
       child: MaterialApp(
         title: 'PredialFix',
         theme: AppTheme.appTheme,
-        initialRoute: _initialRoute,
+        initialRoute: bootstrap.initialRoute,
         routes: {
           '/': (context) => const LoginScreen(),
           '/login': (context) => const LoginScreen(),

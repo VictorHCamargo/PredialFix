@@ -10,8 +10,7 @@ class EstoqueService {
     try {
       final response = await _apiService.getEstoque();
       return response.map((item) => EstoqueInterno.fromJson(item)).toList();
-    } catch (e) {
-      print('Get estoque error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -42,8 +41,7 @@ class EstoqueService {
 
       final response = await _apiService.createEstoque(data);
       return EstoqueInterno.fromJson(response);
-    } catch (e) {
-      print('Create estoque error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -75,8 +73,7 @@ class EstoqueService {
 
       final response = await _apiService.updateEstoque(id, data);
       return EstoqueInterno.fromJson(response);
-    } catch (e) {
-      print('Update estoque error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -85,8 +82,7 @@ class EstoqueService {
     try {
       await _apiService.deleteEstoque(id);
       return true;
-    } catch (e) {
-      print('Delete estoque error: $e');
+    } catch (_) {
       return false;
     }
   }

@@ -18,26 +18,46 @@ class _HomeScreenState extends State<HomeScreen> {
   int _emAndamento = 0;
   int _concluidos = 0;
   List<Chamado> _chamadasRecentes = [];
+  bool _isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadData(context.read<ChamadoService>());
+    }
   }
 
-  Future<void> _loadData() async {
-    final chamadoService = context.read<ChamadoService>();
-    
+  Future<void> _loadData(ChamadoService chamadoService) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       final chamados = await chamadoService.getChamados();
+      if (!mounted) return;
+
       setState(() {
         _totalChamados = chamados.length;
         _emAndamento = chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length;
         _concluidos = chamados.where((c) => c.status.toLowerCase() == 'concluido').length;
         _chamadasRecentes = chamados.take(3).toList();
+        _isLoading = false;
       });
-    } catch (e) {
-      print('Erro ao carregar chamados: $e');
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = 'Erro ao carregar chamados';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar chamados')),
+      );
     }
   }
 
@@ -46,7 +66,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Home'), elevation: 4),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () =>
+                            _loadData(context.read<ChamadoService>()),
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

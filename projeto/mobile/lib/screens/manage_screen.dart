@@ -15,28 +15,43 @@ class ManageScreen extends StatefulWidget {
 class _ManageScreenState extends State<ManageScreen> {
   List<Chamado> _chamados = [];
   bool _isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
   String? _selectedStatus;
-  late ChamadoService _chamadoService;
 
   @override
-  void initState() {
-    super.initState();
-    _loadChamados();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadChamados(context.read<ChamadoService>());
+    }
   }
 
-  Future<void> _loadChamados() async {
-    _chamadoService = context.read<ChamadoService>();
+  Future<void> _loadChamados(ChamadoService chamadoService) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final chamados = await _chamadoService.getChamados();
+      final chamados = await chamadoService.getChamados();
+      if (!mounted) return;
+
       setState(() {
         _chamados = chamados;
         _isLoading = false;
       });
-    } catch (e) {
-      print('Erro ao carregar chamados: $e');
+    } catch (_) {
+      if (!mounted) return;
+
       setState(() {
+        _errorMessage = 'Erro ao carregar chamados';
         _isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar chamados')),
+      );
     }
   }
 
@@ -60,6 +75,21 @@ class _ManageScreenState extends State<ManageScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () =>
+                            _loadChamados(context.read<ChamadoService>()),
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
           : SingleChildScrollView(
               child: Column(
                 children: [

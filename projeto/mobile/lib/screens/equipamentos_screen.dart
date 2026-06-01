@@ -15,32 +15,56 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
   late EquipamentoService equipamentoService;
   List<Equipamento> equipamentos = [];
   bool isLoading = true;
+  bool _loaded = false;
+  String? errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    equipamentoService = context.read<EquipamentoService>();
-    _loadEquipamentos();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      equipamentoService = context.read<EquipamentoService>();
+      _loadEquipamentos();
+    }
   }
 
   Future<void> _loadEquipamentos() async {
-    setState(() => isLoading = true);
-    final items = await equipamentoService.getEquipamentos();
     setState(() {
-      equipamentos = items;
-      isLoading = false;
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      final items = await equipamentoService.getEquipamentos();
+      if (!mounted) return;
+
+      setState(() {
+        equipamentos = items;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'Erro ao carregar equipamentos';
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar equipamentos')),
+      );
+    }
   }
 
   void _showFormDialog({Equipamento? equipamento}) {
     final tagController = TextEditingController(text: equipamento?.tagIdentificacao);
     final nomeController = TextEditingController(text: equipamento?.nome);
     final marcaController = TextEditingController(text: equipamento?.marca);
+    final screenContext = context;
     String selectedStatus = equipamento?.status ?? 'ativo';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(equipamento == null ? 'Novo Equipamento' : 'Editar Equipamento'),
         content: SingleChildScrollView(
           child: Column(
@@ -94,7 +118,7 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -110,10 +134,17 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                   status: selectedStatus,
                 );
                 if (newEquip != null) {
-                  Navigator.pop(context);
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
                   _loadEquipamentos();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(content: Text('Equipamento criado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao criar equipamento'),
+                    ),
                   );
                 }
               } else {
@@ -125,10 +156,17 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                   status: selectedStatus,
                 );
                 if (updated != null) {
-                  Navigator.pop(context);
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
                   _loadEquipamentos();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(content: Text('Equipamento atualizado!')),
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('Erro ao atualizar equipamento'),
+                    ),
                   );
                 }
               }
@@ -137,18 +175,24 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      tagController.dispose();
+      nomeController.dispose();
+      marcaController.dispose();
+    });
   }
 
   void _deleteEquipamento(int id) {
+    final screenContext = context;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirmação'),
         content: const Text('Tem certeza que deseja deletar este equipamento?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -156,12 +200,18 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
               backgroundColor: Colors.red,
             ),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               final success = await equipamentoService.deleteEquipamento(id);
+              if (!mounted) return;
+
               if (success) {
                 _loadEquipamentos();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(screenContext).showSnackBar(
                   const SnackBar(content: Text('Equipamento deletado!')),
+                );
+              } else {
+                ScaffoldMessenger.of(screenContext).showSnackBar(
+                  const SnackBar(content: Text('Erro ao deletar equipamento')),
                 );
               }
             },
@@ -181,6 +231,20 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _loadEquipamentos,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
           : equipamentos.isEmpty
               ? Center(
                   child: Column(

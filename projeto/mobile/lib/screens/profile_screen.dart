@@ -15,21 +15,39 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   User? _user;
   bool _isLoading = true;
+  bool _loaded = false;
+  String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser(context.read<AuthService>());
+    }
   }
 
-  Future<void> _loadUser() async {
-    final authService = context.read<AuthService>();
-    final user = await authService.getCurrentUser();
-    
-    setState(() {
-      _user = user;
-      _isLoading = false;
-    });
+  Future<void> _loadUser(AuthService authService) async {
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+
+      setState(() {
+        _user = user;
+        _errorMessage = null;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = 'Erro ao carregar perfil';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao carregar perfil')),
+      );
+    }
   }
 
   Future<void> _handleLogout() async {
@@ -51,7 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _user == null
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : _user == null
               ? const Center(
                   child: Text('Nenhum usuário carregado'),
                 )

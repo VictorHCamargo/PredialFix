@@ -10,8 +10,7 @@ class EquipamentoService {
     try {
       final response = await _apiService.getEquipamentos();
       return response.map((item) => Equipamento.fromJson(item)).toList();
-    } catch (e) {
-      print('Get equipamentos error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -32,8 +31,7 @@ class EquipamentoService {
 
       final response = await _apiService.createEquipamento(data);
       return Equipamento.fromJson(response);
-    } catch (e) {
-      print('Create equipamento error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -55,8 +53,7 @@ class EquipamentoService {
 
       final response = await _apiService.updateEquipamento(id, data);
       return Equipamento.fromJson(response);
-    } catch (e) {
-      print('Update equipamento error: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -65,8 +62,7 @@ class EquipamentoService {
     try {
       await _apiService.deleteEquipamento(id);
       return true;
-    } catch (e) {
-      print('Delete equipamento error: $e');
+    } catch (_) {
       return false;
     }
   }
