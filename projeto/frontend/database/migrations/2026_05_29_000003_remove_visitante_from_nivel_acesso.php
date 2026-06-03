@@ -18,7 +18,7 @@ return new class extends Migration {
                 'tecnico_manutencao',
                 'professor',
                 'aluno',
-            ])->default('aluno')->index()->change();
+            ])->default('aluno')->change();
         });
     }
 

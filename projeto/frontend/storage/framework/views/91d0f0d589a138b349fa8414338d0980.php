@@ -4,7 +4,7 @@ $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'brand' => 'SENAI',
     'color' => 'red',
-    'itemColor' => 'red'
+    'itemColor' => 'red',
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -23,7 +23,7 @@ unset($__newAttributes);
 foreach (array_filter(([
     'brand' => 'SENAI',
     'color' => 'red',
-    'itemColor' => 'red'
+    'itemColor' => 'red',
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -45,19 +45,20 @@ unset($__defined_vars, $__key, $__value); ?>
         'dark' => 'bg-gray-900',
     ];
 
-    $safeColor = $color ?? 'red';
-    $bgClass = $bgMap[$safeColor] ?? $bgMap['red'];
+    $bgClass = $bgMap[$color ?? 'red'] ?? $bgMap['red'];
+    $naoLidas = auth()->check()
+        ? \App\Models\Notificacao::where('id_usuario', auth()->id())
+            ->where('lida', false)
+            ->count()
+        : 0;
 ?>
 
 <nav class="<?php echo e($bgClass); ?> flex items-center justify-between px-4 py-0 shadow-md">
-    <div class="flex items-center gap-1 py-2">
-        <div class="flex items-center gap-2">
-            <img src="<?php echo e(asset('images/SENAI_LOGO.png')); ?>" alt="SENAI Logo" class="h-10" />
-        </div>
+    <div class="flex items-center gap-2 py-2">
+        <img src="<?php echo e(asset('images/SENAI_LOGO.png')); ?>" alt="SENAI Logo" class="h-10" />
     </div>
-    <div class="flex h-full items-center">
-        
 
+    <div class="flex h-full items-center">
         <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-item','data' => ['href' => ''.e(route('dashboard')).'','route' => 'dashboard','color' => $itemColor]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -67,9 +68,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['href' => ''.e(route('dashboard')).'','route' => 'dashboard','color' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($itemColor)]); ?>
-            Home
-         <?php echo $__env->renderComponent(); ?>
+<?php $component->withAttributes(['href' => ''.e(route('dashboard')).'','route' => 'dashboard','color' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($itemColor)]); ?>Home <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal6cced52613a484e7295a90162a92d81b)): ?>
 <?php $attributes = $__attributesOriginal6cced52613a484e7295a90162a92d81b; ?>
@@ -148,6 +147,30 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
 <?php endif; ?>
 
+        <?php if(Auth::user()->isAdmin()): ?>
+            <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-item','data' => ['href' => ''.e(route('admin.usuarios.index')).'','route' => 'admin.usuarios.*','color' => $itemColor]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('nav-item'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['href' => ''.e(route('admin.usuarios.index')).'','route' => 'admin.usuarios.*','color' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($itemColor)]); ?>
+                Usuários
+             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal6cced52613a484e7295a90162a92d81b)): ?>
+<?php $attributes = $__attributesOriginal6cced52613a484e7295a90162a92d81b; ?>
+<?php unset($__attributesOriginal6cced52613a484e7295a90162a92d81b); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal6cced52613a484e7295a90162a92d81b)): ?>
+<?php $component = $__componentOriginal6cced52613a484e7295a90162a92d81b; ?>
+<?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
+<?php endif; ?>
+        <?php endif; ?>
+
         <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-item','data' => ['href' => ''.e(route('profile.show')).'','route' => 'profile.show','color' => $itemColor,'border' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -169,6 +192,20 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $component = $__componentOriginal6cced52613a484e7295a90162a92d81b; ?>
 <?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
 <?php endif; ?>
+
+        <a
+            href="<?php echo e(route('notificacoes.index')); ?>"
+            class="relative flex items-center gap-2 px-5 py-4 text-sm font-medium text-white transition hover:bg-red-700 <?php echo e(request()->routeIs('notificacoes.*') ? 'bg-red-700' : ''); ?>"
+            aria-label="Notificacoes"
+        >
+            <span>🔔</span>
+            <?php if($naoLidas > 0): ?>
+                <span class="absolute right-3 top-2 min-w-5 rounded-full bg-yellow-400 px-1.5 py-0.5 text-center text-[10px] font-bold text-gray-900">
+                    <?php echo e($naoLidas); ?>
+
+                </span>
+            <?php endif; ?>
+        </a>
 
         <?php echo e($slot ?? ''); ?>
 
