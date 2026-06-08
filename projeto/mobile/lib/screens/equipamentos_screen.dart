@@ -132,26 +132,31 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
               ),
               onPressed: () async {
                 if (equipamento == null) {
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(screenContext);
                   final newEquip = await equipamentoService.createEquipamento(
                     tagIdentificacao: tagController.text,
                     nome: nomeController.text,
                     marca: marcaController.text,
                     status: selectedStatus,
                   );
+                  if (!mounted) return;
                   if (newEquip != null) {
-                    Navigator.pop(context);
+                    navigator.pop();
                     _loadEquipamentos();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Equipamento criado!')),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Erro ao criar equipamento'),
                       ),
                     );
                   }
                 } else {
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(screenContext);
                   final updated = await equipamentoService.updateEquipamento(
                     equipamento.id,
                     tagIdentificacao: tagController.text,
@@ -159,14 +164,15 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                     marca: marcaController.text,
                     status: selectedStatus,
                   );
+                  if (!mounted) return;
                   if (updated != null) {
-                    Navigator.pop(context);
+                    navigator.pop();
                     _loadEquipamentos();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Equipamento atualizado!')),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Erro ao atualizar equipamento'),
                       ),
@@ -203,16 +209,17 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(dialogContext);
+              final messenger = ScaffoldMessenger.of(screenContext);
               final success = await equipamentoService.deleteEquipamento(id);
               if (!mounted) return;
 
               if (success) {
                 _loadEquipamentos();
-                ScaffoldMessenger.of(screenContext).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('Equipamento deletado!')),
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('Erro ao deletar equipamento')),
                 );
               }
@@ -234,7 +241,22 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-          ? Center(child: Text(_errorMessage!))
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _loadEquipamentos,
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : equipamentos.isEmpty
           ? Center(
               child: Column(
@@ -299,8 +321,10 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                         PopupMenuItem(
                           child: const Text('Editar'),
                           onTap: () {
-                            Future.delayed(Duration.zero, () {
-                              _showFormDialog(equipamento: equip);
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                _showFormDialog(equipamento: equip);
+                              }
                             });
                           },
                         ),
@@ -310,8 +334,10 @@ class _EquipamentosScreenState extends State<EquipamentosScreen> {
                             style: TextStyle(color: Colors.red),
                           ),
                           onTap: () {
-                            Future.delayed(Duration.zero, () {
-                              _deleteEquipamento(equip.id);
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                _deleteEquipamento(equip.id);
+                              }
                             });
                           },
                         ),

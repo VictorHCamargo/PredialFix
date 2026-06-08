@@ -25,7 +25,6 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
     if (!_loaded) {
       _loaded = true;
       orcamentoService = context.read<OrcamentoService>();
-      chamadoService = context.read<ChamadoService>();
       _loadOrcamentos();
     }
   }
@@ -127,7 +126,7 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
               onPressed: () async {
                 final valor = double.tryParse(valorController.text);
                 if (valor == null || selectedChamadoId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(screenContext).showSnackBar(
                     const SnackBar(
                       content: Text('Preencha todos os campos corretamente'),
                     ),
@@ -135,20 +134,23 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
                   return;
                 }
 
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(screenContext);
                 final newOrcamento = await orcamentoService.createOrcamento(
                   idChamado: selectedChamadoId!,
                   valor: valor,
                   descricao: descricaoController.text,
                 );
 
+                if (!mounted) return;
                 if (newOrcamento != null) {
-                  Navigator.pop(context);
+                  navigator.pop();
                   _loadOrcamentos();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(content: Text('Orçamento criado!')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(content: Text('Erro ao criar orçamento')),
                   );
                 }
@@ -196,7 +198,22 @@ class _OrcamentosScreenState extends State<OrcamentosScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-          ? Center(child: Text(_errorMessage!))
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _loadOrcamentos,
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : Column(
               children: [
                 // Filtro de status

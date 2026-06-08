@@ -14,7 +14,7 @@ class ApiService {
     },
     {
       'id': 2,
-      'nome': 'Gerente de ManutenÃ§Ã£o',
+      'nome': 'Gerente de Manutenção',
       'email': 'gerente@predialfix.com',
       'senha': 'gerente123',
       'role': 'gerente_manutencao',
@@ -23,7 +23,7 @@ class ApiService {
     },
     {
       'id': 3,
-      'nome': 'TÃ©cnico de ManutenÃ§Ã£o',
+      'nome': 'Técnico de Manutenção',
       'email': 'tecnico@predialfix.com',
       'senha': 'tecnico123',
       'role': 'tecnico_manutencao',
@@ -32,7 +32,7 @@ class ApiService {
     },
     {
       'id': 4,
-      'nome': 'Professor JoÃ£o Silva',
+      'nome': 'Professor João Silva',
       'email': 'professor@predialfix.com',
       'senha': 'prof123',
       'role': 'professor',
@@ -41,7 +41,7 @@ class ApiService {
     },
     {
       'id': 5,
-      'nome': 'JoÃ£o Aluno',
+      'nome': 'João Aluno',
       'email': 'joao@student.com',
       'senha': 'aluno123',
       'role': 'aluno',
@@ -88,7 +88,7 @@ class ApiService {
       'id_local': 5,
       'id_tipo': 2,
       'status': 'pendente',
-      'prioridade': 'mÃ©dia',
+      'prioridade': 'média',
       'data_abertura': '2024-05-21T14:00:00',
       'data_fechamento': null,
       'data_prazo': '2024-05-28T18:00:00',
@@ -100,7 +100,7 @@ class ApiService {
       'id_local': 2,
       'id_tipo': 3,
       'status': 'concluido',
-      'prioridade': 'mÃ©dia',
+      'prioridade': 'média',
       'data_abertura': '2024-05-15T09:00:00',
       'data_fechamento': '2024-05-18T16:30:00',
       'data_prazo': '2024-05-20T18:00:00',
@@ -127,7 +127,7 @@ class ApiService {
     {
       'id': 3,
       'nome': 'Bloco B, Sala 1',
-      'descricao': 'LaboratÃ³rio de EletrÃ´nica',
+      'descricao': 'Laboratório de Eletrônica',
       'bloco': 'B',
       'andar': 2,
       'data_criacao': '2024-01-15T08:00:00',
@@ -135,7 +135,7 @@ class ApiService {
     {
       'id': 4,
       'nome': 'Bloco B, Sala 2',
-      'descricao': 'LaboratÃ³rio de HidrÃ¡ulica',
+      'descricao': 'Laboratório de Hidráulica',
       'bloco': 'B',
       'andar': 2,
       'data_criacao': '2024-01-15T08:00:00',
@@ -153,23 +153,23 @@ class ApiService {
   static final List<Map<String, dynamic>> _mockTiposProblema = [
     {
       'id': 1,
-      'nome': 'ElÃ©trica',
-      'descricao': 'Problemas com sistemas elÃ©tricos',
+      'nome': 'Elétrica',
+      'descricao': 'Problemas com sistemas elétricos',
       'categoria': 'Infraestrutura',
       'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 2,
-      'nome': 'HidrÃ¡ulica',
-      'descricao': 'Problemas com sistemas hidrÃ¡ulicos',
+      'nome': 'Hidráulica',
+      'descricao': 'Problemas com sistemas hidráulicos',
       'categoria': 'Infraestrutura',
       'data_criacao': '2024-01-15T08:00:00',
     },
     {
       'id': 3,
       'nome': 'HVAC',
-      'descricao': 'Ar condicionado e ventilaÃ§Ã£o',
-      'categoria': 'ClimatizaÃ§Ã£o',
+      'descricao': 'Ar condicionado e ventilação',
+      'categoria': 'Climatização',
       'data_criacao': '2024-01-15T08:00:00',
     },
     {
@@ -181,8 +181,8 @@ class ApiService {
     },
     {
       'id': 5,
-      'nome': 'MecÃ¢nica',
-      'descricao': 'Problemas com equipamentos mecÃ¢nicos',
+      'nome': 'Mecânica',
+      'descricao': 'Problemas com equipamentos mecânicos',
       'categoria': 'Equipamentos',
       'data_criacao': '2024-01-15T08:00:00',
     },
@@ -199,21 +199,21 @@ class ApiService {
     {
       'id': 2,
       'tag_identificacao': 'EQUIP-002',
-      'nome': 'Bomba HidrÃ¡ulica',
+      'nome': 'Bomba Hidráulica',
       'marca': 'Bosch',
       'status': 'ativo',
     },
     {
       'id': 3,
       'tag_identificacao': 'EQUIP-003',
-      'nome': 'Painel ElÃ©trico',
+      'nome': 'Painel Elétrico',
       'marca': 'Schneider',
       'status': 'manutencao',
     },
     {
       'id': 4,
       'tag_identificacao': 'EQUIP-004',
-      'nome': 'Motor TrifÃ¡sico',
+      'nome': 'Motor Trifásico',
       'marca': 'WEG',
       'status': 'ativo',
     },
@@ -229,10 +229,10 @@ class ApiService {
   static final List<Map<String, dynamic>> _mockEstoque = [
     {
       'id': 1,
-      'nome_item': 'Cabo ElÃ©trico 2.5mm',
-      'descricao': 'Cabo de cobre para instalaÃ§Ã£o elÃ©trica',
+      'nome_item': 'Cabo Elétrico 2.5mm',
+      'descricao': 'Cabo de cobre para instalação elétrica',
       'quantidade': 50,
-      'categoria': 'ElÃ©trica',
+      'categoria': 'Elétrica',
       'localizacao': 'Bloco A - Almoxarifado',
       'valor_unitario': 12.50,
       'valor_total': 625.00,
@@ -243,10 +243,10 @@ class ApiService {
     },
     {
       'id': 2,
-      'nome_item': 'LÃ¢mpada LED 20W',
-      'descricao': 'LÃ¢mpada LED branca fria',
+      'nome_item': 'Lâmpada LED 20W',
+      'descricao': 'Lâmpada LED branca fria',
       'quantidade': 120,
-      'categoria': 'ElÃ©trica',
+      'categoria': 'Elétrica',
       'localizacao': 'Bloco B - Almoxarifado',
       'valor_unitario': 8.00,
       'valor_total': 960.00,
@@ -257,24 +257,24 @@ class ApiService {
     },
     {
       'id': 3,
-      'nome_item': 'Mangueira HidrÃ¡ulica',
-      'descricao': 'Mangueira de pressÃ£o sÃ©rie SAE 100 R2',
+      'nome_item': 'Mangueira Hidráulica',
+      'descricao': 'Mangueira de pressão série SAE 100 R2',
       'quantidade': 15,
-      'categoria': 'HidrÃ¡ulica',
+      'categoria': 'Hidráulica',
       'localizacao': 'Bloco C - Almoxarifado',
       'valor_unitario': 45.00,
       'valor_total': 675.00,
       'codigo_patrimonio': 'PAT-HID-001',
       'status_item': 'indisponivel',
       'data_entrada': '2024-01-20T09:00:00',
-      'observacoes': 'Em manutenÃ§Ã£o',
+      'observacoes': 'Em manutenção',
     },
     {
       'id': 4,
-      'nome_item': 'Ã“leo HidrÃ¡ulico ISO 46',
-      'descricao': 'Ã“leo hidrÃ¡ulico para sistemas de pressÃ£o',
+      'nome_item': 'Óleo Hidráulico ISO 46',
+      'descricao': 'Óleo hidráulico para sistemas de pressão',
       'quantidade': 8,
-      'categoria': 'HidrÃ¡ulica',
+      'categoria': 'Hidráulica',
       'localizacao': 'Bloco A - Almoxarifado',
       'valor_unitario': 85.00,
       'valor_total': 680.00,
@@ -286,7 +286,7 @@ class ApiService {
     {
       'id': 5,
       'nome_item': 'Parafuso Estrutural M16',
-      'descricao': 'Parafuso de aÃ§o para estrutura civil',
+      'descricao': 'Parafuso de aço para estrutura civil',
       'quantidade': 500,
       'categoria': 'Civil',
       'localizacao': 'Bloco B - Almoxarifado',
@@ -295,7 +295,7 @@ class ApiService {
       'codigo_patrimonio': 'PAT-CIV-001',
       'status_item': 'disponivel',
       'data_entrada': '2024-01-10T11:00:00',
-      'observacoes': 'Estoque crÃ­tico',
+      'observacoes': 'Estoque crítico',
     },
   ];
 
@@ -304,7 +304,7 @@ class ApiService {
       'id': 1,
       'id_chamado': 1,
       'valor': 1500.00,
-      'descricao': 'SubstituiÃ§Ã£o de lÃ¢mpadas LED em 5 salas',
+      'descricao': 'Substituição de lâmpadas LED em 5 salas',
       'data_verificacao': '2024-05-22T10:00:00',
       'aprovacao': true,
     },
@@ -312,7 +312,7 @@ class ApiService {
       'id': 2,
       'id_chamado': 2,
       'valor': 3200.00,
-      'descricao': 'Reparo da bomba hidrÃ¡ulica',
+      'descricao': 'Reparo da bomba hidráulica',
       'data_verificacao': '2024-05-23T14:30:00',
       'aprovacao': false,
     },
@@ -324,7 +324,7 @@ class ApiService {
       'id_chamado': 1,
       'status_anterior': 'pendente',
       'status_novo': 'em_andamento',
-      'descricao': 'Iniciada manutenÃ§Ã£o preventiva',
+      'descricao': 'Iniciada manutenção preventiva',
       'id_usuario': 3,
       'prioridade': 'alta',
       'data_mudanca': '2024-05-20T11:30:00',
@@ -334,10 +334,21 @@ class ApiService {
       'id_chamado': 3,
       'status_anterior': 'em_andamento',
       'status_novo': 'concluido',
-      'descricao': 'ManutenÃ§Ã£o finalizada com sucesso',
+      'descricao': 'Manutenção finalizada com sucesso',
       'id_usuario': 3,
-      'prioridade': 'mÃ©dia',
+      'prioridade': 'média',
       'data_mudanca': '2024-05-18T16:30:00',
+    },
+  ];
+
+  static final List<Map<String, dynamic>> _mockFeedbacks = [
+    {
+      'id': 1,
+      'id_chamado': 3,
+      'id_usuario': 4,
+      'classificacao': 5,
+      'comentario': 'Atendimento concluído com rapidez.',
+      'data_criacao': '2024-05-19T10:00:00',
     },
   ];
 
@@ -345,6 +356,103 @@ class ApiService {
   Map<String, dynamic>? _currentUser;
 
   ApiService();
+
+  static const Set<String> _rolesComVisaoGeral = {
+    'administrador',
+    'gerente_manutencao',
+    'tecnico_manutencao',
+    'professor',
+  };
+
+  static const Set<String> _rolesComAlteracaoStatus = {
+    'administrador',
+    'gerente_manutencao',
+    'tecnico_manutencao',
+  };
+
+  bool get _podeVerTodosChamados {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComVisaoGeral.contains(role);
+  }
+
+  bool get _podeAlterarStatus {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComAlteracaoStatus.contains(role);
+  }
+
+  bool get _podeGerenciarEquipamentos {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComAlteracaoStatus.contains(role);
+  }
+
+  bool _chamadoEstaAberto(Map<String, dynamic> chamado) {
+    final status = (chamado['status'] as String? ?? '').toLowerCase();
+    return status == 'pendente' || status == 'aberto';
+  }
+
+  bool _usuarioDonoChamado(Map<String, dynamic> chamado) {
+    return chamado['id_usuario'] == _currentUser?['id'];
+  }
+
+  bool _podeEditarChamado(Map<String, dynamic> chamado) {
+    final role = _currentUser?['role'] as String?;
+    if (role == 'administrador') return true;
+    if (role == null || role == 'aluno') return false;
+    return _usuarioDonoChamado(chamado) && _chamadoEstaAberto(chamado);
+  }
+
+  bool _podeExcluirChamado(Map<String, dynamic> chamado) {
+    final role = _currentUser?['role'] as String?;
+    if (role == 'administrador') return true;
+    if (role == 'professor') {
+      return _usuarioDonoChamado(chamado) && _chamadoEstaAberto(chamado);
+    }
+    return false;
+  }
+
+  Map<String, dynamic> _semSenha(Map<String, dynamic> user) {
+    return Map<String, dynamic>.from(user)..remove('senha');
+  }
+
+  Map<String, dynamic> _chamadoComRelacionamentos(
+    Map<String, dynamic> chamado,
+  ) {
+    final enriched = Map<String, dynamic>.from(chamado);
+
+    final local = _mockLocais.firstWhere(
+      (item) => item['id'] == chamado['id_local'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (local.isNotEmpty) {
+      enriched['local'] = Map<String, dynamic>.from(local);
+    }
+
+    final tipoProblema = _mockTiposProblema.firstWhere(
+      (item) => item['id'] == chamado['id_tipo'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (tipoProblema.isNotEmpty) {
+      enriched['tipo_problema'] = Map<String, dynamic>.from(tipoProblema);
+    }
+
+    final equipamento = _mockEquipamentos.firstWhere(
+      (item) => item['id'] == chamado['id_equipamento'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (equipamento.isNotEmpty) {
+      enriched['equipamento'] = Map<String, dynamic>.from(equipamento);
+    }
+
+    final usuario = _mockUsers.firstWhere(
+      (item) => item['id'] == chamado['id_usuario'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (usuario.isNotEmpty) {
+      enriched['usuario'] = _semSenha(usuario);
+    }
+
+    return enriched;
+  }
 
   Future<void> _simulateAsync() async {
     await Future.microtask(() {});
@@ -356,7 +464,7 @@ class ApiService {
   }
 
   void setCurrentUser(Map<String, dynamic> user) {
-    _currentUser = Map<String, dynamic>.from(user)..remove('senha');
+    _currentUser = _semSenha(user);
   }
 
   void clearToken() {
@@ -373,21 +481,21 @@ class ApiService {
     // Simula delay de requisição
     await _simulateAsync();
 
-    // Procura o usuÃ¡rio nos dados mock
+    // Procura o usuário nos dados mock
     final userMap = _mockUsers.firstWhere(
       (u) => u['email'] == email && u['senha'] == password,
       orElse: () => <String, dynamic>{},
     );
 
     if (userMap.isEmpty) {
-      throw Exception('Email ou senha invÃ¡lidos');
+      throw Exception('Email ou senha inválidos');
     }
 
     // Gera um token fake
     final token =
         'mock_token_${userMap['id']}_${DateTime.now().millisecondsSinceEpoch}';
     _token = token;
-    _currentUser = Map.from(userMap)..remove('senha'); // Remove senha
+    _currentUser = _semSenha(userMap);
 
     return {'token': token, 'user': _currentUser};
   }
@@ -403,15 +511,15 @@ class ApiService {
 
     // Valida campos
     if (password != passwordConfirmation) {
-      throw Exception('Senhas nÃ£o conferem');
+      throw Exception('Senhas não conferem');
     }
 
-    // Verifica se email jÃ¡ existe
+    // Verifica se email já existe
     if (_mockUsers.any((u) => u['email'] == email)) {
-      throw Exception('Email jÃ¡ cadastrado');
+      throw Exception('Email já cadastrado');
     }
 
-    // Cria novo usuÃ¡rio mock
+    // Cria novo usuário mock
     final newId = _mockUsers.length + 1;
     final newUser = {
       'id': newId,
@@ -425,7 +533,7 @@ class ApiService {
 
     _mockUsers.add(newUser);
 
-    // Faz login automÃ¡tico
+    // Faz login automático
     return login(email, password);
   }
 
@@ -440,10 +548,88 @@ class ApiService {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
     return {'user': _currentUser};
+  }
+
+  Future<Map<String, dynamic>> updateCurrentUser(
+    Map<String, dynamic> data,
+  ) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final userId = _currentUser!['id'];
+    final index = _mockUsers.indexWhere((u) => u['id'] == userId);
+    if (index == -1) {
+      throw Exception('Usuário não encontrado');
+    }
+
+    final email = data['email'] as String?;
+    if (email != null &&
+        _mockUsers.any((u) => u['id'] != userId && u['email'] == email)) {
+      throw Exception('Email já cadastrado');
+    }
+
+    _mockUsers[index].addAll({
+      if (data.containsKey('nome')) 'nome': data['nome'],
+      if (data.containsKey('email')) 'email': data['email'],
+      if (data.containsKey('telefone')) 'telefone': data['telefone'],
+      if (data.containsKey('cpf')) 'cpf': data['cpf'],
+    });
+
+    _currentUser = _semSenha(_mockUsers[index]);
+    return {'user': _currentUser};
+  }
+
+  Future<void> updatePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmation,
+  ) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    if (newPassword != confirmation) {
+      throw Exception('As senhas não conferem');
+    }
+
+    if (newPassword.length < 8) {
+      throw Exception('A nova senha deve ter no mínimo 8 caracteres');
+    }
+
+    final index = _mockUsers.indexWhere((u) => u['id'] == _currentUser!['id']);
+    if (index == -1 || _mockUsers[index]['senha'] != currentPassword) {
+      throw Exception('Senha atual incorreta');
+    }
+
+    _mockUsers[index]['senha'] = newPassword;
+  }
+
+  Future<void> deleteCurrentUser(String password) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final userId = _currentUser!['id'];
+    final index = _mockUsers.indexWhere((u) => u['id'] == userId);
+    if (index == -1 || _mockUsers[index]['senha'] != password) {
+      throw Exception('Senha incorreta');
+    }
+
+    _mockUsers.removeAt(index);
+    _mockChamados.removeWhere((c) => c['id_usuario'] == userId);
+    _mockFeedbacks.removeWhere((f) => f['id_usuario'] == userId);
+    clearToken();
   }
 
   // Chamado methods
@@ -451,23 +637,30 @@ class ApiService {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
     final userId = _currentUser!['id'];
-
-    // Filtra chamados do usuÃ¡rio
-    return _mockChamados
-        .where((c) => c['id_usuario'] == userId)
-        .map((c) => Map<String, dynamic>.from(c))
+    final chamados = (_podeVerTodosChamados
+            ? _mockChamados
+            : _mockChamados.where((c) => c['id_usuario'] == userId))
+        .map(_chamadoComRelacionamentos)
         .toList();
+
+    chamados.sort((a, b) {
+      final dataA = DateTime.tryParse(a['data_abertura'] as String? ?? '');
+      final dataB = DateTime.tryParse(b['data_abertura'] as String? ?? '');
+      return (dataB ?? DateTime(0)).compareTo(dataA ?? DateTime(0));
+    });
+
+    return chamados;
   }
 
   Future<Map<String, dynamic>> getChamado(int id) async {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
     final chamado = _mockChamados.firstWhere(
@@ -476,17 +669,21 @@ class ApiService {
     );
 
     if (chamado.isEmpty) {
-      throw Exception('Chamado nÃ£o encontrado');
+      throw Exception('Chamado não encontrado');
     }
 
-    return Map<String, dynamic>.from(chamado);
+    if (!_podeVerTodosChamados && chamado['id_usuario'] != _currentUser!['id']) {
+      throw Exception('Acesso negado');
+    }
+
+    return _chamadoComRelacionamentos(chamado);
   }
 
   Future<Map<String, dynamic>> createChamado(Map<String, dynamic> data) async {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
     final newId =
@@ -501,8 +698,13 @@ class ApiService {
       'descricao': data['descricao'],
       'id_local': data['id_local'],
       'id_tipo': data['id_tipo'],
+      'id_equipamento': data['id_equipamento'],
+      'tipo_chamado': data['tipo_chamado'] ?? 'interno',
+      'secao_tecnica': data['secao_tecnica'],
+      'complexidade': data['complexidade'],
+      'tipo_trabalho': data['tipo_trabalho'],
       'status': 'pendente',
-      'prioridade': data['prioridade'] ?? 'mÃ©dia',
+      'prioridade': data['prioridade'] ?? 'média',
       'data_abertura': DateTime.now().toIso8601String(),
       'data_fechamento': null,
       'data_prazo': data['data_prazo'],
@@ -510,7 +712,7 @@ class ApiService {
 
     _mockChamados.add(newChamado);
 
-    return Map<String, dynamic>.from(newChamado);
+    return _chamadoComRelacionamentos(newChamado);
   }
 
   Future<Map<String, dynamic>> updateChamado(
@@ -520,28 +722,57 @@ class ApiService {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
     final index = _mockChamados.indexWhere((c) => c['id'] == id);
     if (index == -1) {
-      throw Exception('Chamado nÃ£o encontrado');
+      throw Exception('Chamado não encontrado');
     }
+
+    final isStatusUpdate = data.containsKey('status');
+    if (isStatusUpdate && !_podeAlterarStatus) {
+      throw Exception('Acesso negado');
+    }
+
+    if (!isStatusUpdate && !_podeEditarChamado(_mockChamados[index])) {
+      throw Exception('Acesso negado');
+    }
+
+    final statusAnterior = _mockChamados[index]['status'];
 
     // Atualiza chamado
     _mockChamados[index].addAll(data);
 
-    return Map<String, dynamic>.from(_mockChamados[index]);
+    if (data.containsKey('status') && data['status'] != statusAnterior) {
+      if (data['status'] == 'concluido') {
+        _mockChamados[index]['data_fechamento'] = DateTime.now()
+            .toIso8601String();
+      } else {
+        _mockChamados[index]['data_fechamento'] = null;
+      }
+    }
+
+    return _chamadoComRelacionamentos(_mockChamados[index]);
   }
 
   Future<void> deleteChamado(int id) async {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
-    _mockChamados.removeWhere((c) => c['id'] == id);
+    final index = _mockChamados.indexWhere((c) => c['id'] == id);
+    if (index == -1) {
+      throw Exception('Chamado não encontrado');
+    }
+
+    if (!_podeExcluirChamado(_mockChamados[index])) {
+      throw Exception('Acesso negado');
+    }
+
+    _mockChamados.removeAt(index);
   }
 
   // Feedback methods
@@ -549,11 +780,10 @@ class ApiService {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
-    // Retorna lista vazia de feedbacks (apenas estrutura)
-    return [];
+    return _mockFeedbacks.map((f) => Map<String, dynamic>.from(f)).toList();
   }
 
   Future<Map<String, dynamic>> createFeedback(
@@ -563,17 +793,92 @@ class ApiService {
     await _simulateAsync();
 
     if (_currentUser == null) {
-      throw Exception('UsuÃ¡rio nÃ£o autenticado');
+      throw Exception('Usuário não autenticado');
     }
 
-    return {
-      'id': 1,
+    if (_currentUser!['role'] == 'aluno') {
+      throw Exception('Acesso negado');
+    }
+
+    final chamado = _mockChamados.firstWhere(
+      (c) => c['id'] == idChamado,
+      orElse: () => <String, dynamic>{},
+    );
+    if (chamado.isEmpty || chamado['status'] != 'concluido') {
+      throw Exception('Apenas chamados concluídos podem ser avaliados');
+    }
+
+    if (_mockFeedbacks.any((f) => f['id_chamado'] == idChamado)) {
+      throw Exception('Este chamado já foi avaliado');
+    }
+
+    final newId =
+        _mockFeedbacks
+            .fold<int>(0, (max, f) => f['id'] > max ? f['id'] : max)
+            .toInt() +
+        1;
+    final feedback = {
+      'id': newId,
       'id_chamado': idChamado,
       'id_usuario': _currentUser!['id'],
       'classificacao': data['avaliacao'],
       'comentario': data['comentario'],
       'data_criacao': DateTime.now().toIso8601String(),
     };
+
+    _mockFeedbacks.add(feedback);
+    return Map<String, dynamic>.from(feedback);
+  }
+
+  Future<Map<String, dynamic>> updateFeedback(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final index = _mockFeedbacks.indexWhere((f) => f['id'] == id);
+    if (index == -1) {
+      throw Exception('Avaliação não encontrada');
+    }
+
+    if (_mockFeedbacks[index]['id_usuario'] != _currentUser!['id'] &&
+        _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    _mockFeedbacks[index].addAll({
+      if (data.containsKey('avaliacao')) 'classificacao': data['avaliacao'],
+      if (data.containsKey('comentario')) 'comentario': data['comentario'],
+    });
+
+    return Map<String, dynamic>.from(_mockFeedbacks[index]);
+  }
+
+  Future<void> deleteFeedback(int id) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final feedback = _mockFeedbacks.firstWhere(
+      (f) => f['id'] == id,
+      orElse: () => <String, dynamic>{},
+    );
+    if (feedback.isEmpty) {
+      throw Exception('Avaliação não encontrada');
+    }
+
+    if (feedback['id_usuario'] != _currentUser!['id'] &&
+        _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    _mockFeedbacks.removeWhere((f) => f['id'] == id);
   }
 
   // Reference data methods
@@ -591,7 +896,7 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getEquipamentos() async {
     await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeVerTodosChamados) {
       throw Exception('Acesso negado');
     }
 
@@ -603,7 +908,7 @@ class ApiService {
   ) async {
     await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
@@ -630,12 +935,12 @@ class ApiService {
   ) async {
     await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
     final index = _mockEquipamentos.indexWhere((e) => e['id'] == id);
-    if (index == -1) throw Exception('Equipamento nÃ£o encontrado');
+    if (index == -1) throw Exception('Equipamento não encontrado');
 
     _mockEquipamentos[index].addAll(data);
     return Map<String, dynamic>.from(_mockEquipamentos[index]);
@@ -644,7 +949,7 @@ class ApiService {
   Future<void> deleteEquipamento(int id) async {
     await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
@@ -714,7 +1019,7 @@ class ApiService {
     }
 
     final index = _mockEstoque.indexWhere((e) => e['id'] == id);
-    if (index == -1) throw Exception('Item nÃ£o encontrado');
+    if (index == -1) throw Exception('Item não encontrado');
 
     final itemAtual = _mockEstoque[index];
     itemAtual.addAll(data);
@@ -741,7 +1046,7 @@ class ApiService {
     _mockEstoque.removeWhere((e) => e['id'] == id);
   }
 
-  // OrÃ§amento methods
+  // Orçamento methods
   Future<List<Map<String, dynamic>>> getOrcamentos() async {
     await _simulateAsync();
 
@@ -759,7 +1064,7 @@ class ApiService {
   ) async {
     await _simulateAsync();
 
-    if (_currentUser == null) throw Exception('UsuÃ¡rio nÃ£o autenticado');
+    if (_currentUser == null) throw Exception('Usuário não autenticado');
 
     final newId =
         _mockOrcamentos
@@ -789,13 +1094,13 @@ class ApiService {
     }
 
     final index = _mockOrcamentos.indexWhere((o) => o['id'] == id);
-    if (index == -1) throw Exception('OrÃ§amento nÃ£o encontrado');
+    if (index == -1) throw Exception('Orçamento não encontrado');
 
     _mockOrcamentos[index]['aprovacao'] = true;
     return Map<String, dynamic>.from(_mockOrcamentos[index]);
   }
 
-  // HistÃ³rico methods
+  // Histórico methods
   Future<List<Map<String, dynamic>>> getHistorico(int idChamado) async {
     await _simulateAsync();
 
@@ -808,7 +1113,7 @@ class ApiService {
   Future<Map<String, dynamic>> addHistorico(Map<String, dynamic> data) async {
     await _simulateAsync();
 
-    if (_currentUser == null) throw Exception('UsuÃ¡rio nÃ£o autenticado');
+    if (_currentUser == null) throw Exception('Usuário não autenticado');
 
     final newId =
         _mockHistorico

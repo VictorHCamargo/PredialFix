@@ -1,6 +1,7 @@
 import 'user.dart';
 import 'local.dart';
 import 'tipo_problema.dart';
+import 'equipamento.dart';
 
 class Chamado {
   final int id;
@@ -8,14 +9,20 @@ class Chamado {
   final String descricao;
   final int idLocal;
   final int idTipo;
+  final int? idEquipamento;
+  final String? tipoChamado;
   final String status;
   final String? prioridade;
+  final String? secaoTecnica;
+  final String? complexidade;
+  final String? tipoTrabalho;
   final DateTime dataAbertura;
   final DateTime? dataFechamento;
   final DateTime? dataPrazo;
   final User? usuario;
   final Local? local;
   final TipoProblema? tipoProblema;
+  final Equipamento? equipamento;
   final List<dynamic>? historico;
   final List<dynamic>? feedback;
 
@@ -25,14 +32,20 @@ class Chamado {
     required this.descricao,
     required this.idLocal,
     required this.idTipo,
+    this.idEquipamento,
+    this.tipoChamado,
     required this.status,
     this.prioridade,
+    this.secaoTecnica,
+    this.complexidade,
+    this.tipoTrabalho,
     DateTime? dataAbertura,
     this.dataFechamento,
     this.dataPrazo,
     this.usuario,
     this.local,
     this.tipoProblema,
+    this.equipamento,
     this.historico,
     this.feedback,
   }) : dataAbertura = dataAbertura ?? DateTime.now();
@@ -40,6 +53,8 @@ class Chamado {
   // Getter para exibir o status de forma legível
   String get displayStatus {
     switch (status.toLowerCase()) {
+      case 'aberto':
+        return 'Aberto';
       case 'pendente':
         return 'Pendente';
       case 'em andamento':
@@ -78,8 +93,13 @@ class Chamado {
       descricao: json['descricao'] as String,
       idLocal: json['id_local'] as int,
       idTipo: json['id_tipo'] as int,
+      idEquipamento: json['id_equipamento'] as int?,
+      tipoChamado: json['tipo_chamado'] as String?,
       status: json['status'] as String,
       prioridade: json['prioridade'] as String?,
+      secaoTecnica: json['secao_tecnica'] as String?,
+      complexidade: json['complexidade'] as String?,
+      tipoTrabalho: json['tipo_trabalho'] as String?,
       dataAbertura: json['data_abertura'] != null 
         ? DateTime.parse(json['data_abertura'] as String)
         : null,
@@ -98,6 +118,9 @@ class Chamado {
       tipoProblema: json['tipo_problema'] != null 
         ? TipoProblema.fromJson(json['tipo_problema'] as Map<String, dynamic>)
         : null,
+      equipamento: json['equipamento'] != null
+        ? Equipamento.fromJson(json['equipamento'] as Map<String, dynamic>)
+        : null,
     );
   }
 
@@ -108,14 +131,20 @@ class Chamado {
       'descricao': descricao,
       'id_local': idLocal,
       'id_tipo': idTipo,
+      'id_equipamento': idEquipamento,
+      'tipo_chamado': tipoChamado,
       'status': status,
       'prioridade': prioridade,
+      'secao_tecnica': secaoTecnica,
+      'complexidade': complexidade,
+      'tipo_trabalho': tipoTrabalho,
       'data_abertura': dataAbertura.toIso8601String(),
       'data_fechamento': dataFechamento?.toIso8601String(),
       'data_prazo': dataPrazo?.toIso8601String(),
       'usuario': usuario?.toJson(),
       'local': local?.toJson(),
       'tipo_problema': tipoProblema?.toJson(),
+      'equipamento': equipamento?.toJson(),
     };
   }
 

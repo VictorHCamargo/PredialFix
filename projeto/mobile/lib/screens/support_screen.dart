@@ -34,6 +34,7 @@ class _SupportScreenState extends State<SupportScreen> {
     try {
       await Future.microtask(() {});
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mensagem enviada! Entraremos em contato em breve.'),

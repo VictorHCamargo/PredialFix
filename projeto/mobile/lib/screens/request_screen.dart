@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/chamado_service.dart';
+import '../services/equipamento_service.dart';
 import '../services/reference_service.dart';
+import '../models/equipamento.dart';
 import '../models/local.dart';
 import '../models/tipo_problema.dart';
 import 'app_drawer.dart';
@@ -18,6 +20,12 @@ class _RequestScreenState extends State<RequestScreen> {
   final _descricaoController = TextEditingController();
   Local? _selectedLocal;
   TipoProblema? _selectedTipo;
+  Equipamento? _selectedEquipamento;
+  String _selectedTipoChamado = 'interno';
+  String? _selectedPrioridade;
+  String? _selectedSecaoTecnica;
+  String? _selectedComplexidade;
+  String? _selectedTipoTrabalho;
   bool _isLoading = false;
   bool _isReferenceLoading = true;
   bool _loaded = false;
@@ -26,6 +34,7 @@ class _RequestScreenState extends State<RequestScreen> {
 
   List<Local> _locais = [];
   List<TipoProblema> _tipos = [];
+  List<Equipamento> _equipamentos = [];
 
   @override
   void didChangeDependencies() {
@@ -38,15 +47,21 @@ class _RequestScreenState extends State<RequestScreen> {
 
   Future<void> _loadReferences() async {
     final referenceService = context.read<ReferenceService>();
+    final equipamentoService = context.read<EquipamentoService>();
 
     try {
       final locais = await referenceService.getLocais();
       final tipos = await referenceService.getTiposProblema();
+      var equipamentos = <Equipamento>[];
+      try {
+        equipamentos = await equipamentoService.getEquipamentos();
+      } catch (_) {}
 
       if (!mounted) return;
       setState(() {
         _locais = locais;
         _tipos = tipos;
+        _equipamentos = equipamentos;
         _errorMessage = null;
         _isReferenceLoading = false;
       });
@@ -84,6 +99,12 @@ class _RequestScreenState extends State<RequestScreen> {
         descricao: _descricaoController.text,
         idLocal: _selectedLocal!.id,
         idTipo: _selectedTipo!.id,
+        idEquipamento: _selectedEquipamento?.id,
+        tipoChamado: _selectedTipoChamado,
+        prioridade: _selectedPrioridade,
+        secaoTecnica: _selectedSecaoTecnica,
+        complexidade: _selectedComplexidade,
+        tipoTrabalho: _selectedTipoTrabalho,
       );
 
       if (!mounted) return;
@@ -94,24 +115,39 @@ class _RequestScreenState extends State<RequestScreen> {
           _descricaoController.clear();
           _selectedLocal = null;
           _selectedTipo = null;
+          _selectedEquipamento = null;
+          _selectedTipoChamado = 'interno';
+          _selectedPrioridade = null;
+          _selectedSecaoTecnica = null;
+          _selectedComplexidade = null;
+          _selectedTipoTrabalho = null;
         });
 
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil('/manage', (route) => false);
-          }
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chamado criado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/manage', (route) => false);
       } else {
         setState(() {
           _errorMessage = 'Erro ao criar chamado';
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao criar chamado')),
+        );
       }
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'Erro ao criar chamado';
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao criar chamado')),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -123,6 +159,39 @@ class _RequestScreenState extends State<RequestScreen> {
   void dispose() {
     _descricaoController.dispose();
     super.dispose();
+  }
+
+  InputDecoration _fieldDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: AppTheme.inputBackgroundColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: AppTheme.primaryColor,
+          width: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppTheme.textPrimaryColor,
+      ),
+    );
   }
 
   @override
@@ -217,7 +286,7 @@ class _RequestScreenState extends State<RequestScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Tipo de Problema *',
+                      'Tipo de problema *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -260,6 +329,146 @@ class _RequestScreenState extends State<RequestScreen> {
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    _fieldLabel('Tipo de chamado *'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _selectedTipoChamado,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'interno',
+                          child: Text('Interno'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'externo',
+                          child: Text('Externo'),
+                        ),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedTipoChamado = value ?? 'interno';
+                              });
+                            },
+                      decoration: _fieldDecoration(),
+                    ),
+                    const SizedBox(height: 16),
+                    _fieldLabel('Equipamento'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<Equipamento?>(
+                      value: _selectedEquipamento,
+                      hint: const Text('Sem equipamento vinculado'),
+                      items: [
+                        const DropdownMenuItem<Equipamento?>(
+                          value: null,
+                          child: Text('Sem equipamento vinculado'),
+                        ),
+                        ..._equipamentos.map(
+                          (equipamento) => DropdownMenuItem<Equipamento?>(
+                            value: equipamento,
+                            child: Text(equipamento.toString()),
+                          ),
+                        ),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _selectedEquipamento = value);
+                            },
+                      decoration: _fieldDecoration(),
+                    ),
+                    const SizedBox(height: 20),
+                    _fieldLabel('Dados técnicos opcionais'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _selectedPrioridade,
+                      hint: const Text('Prioridade'),
+                      items: const [
+                        DropdownMenuItem(value: 'baixa', child: Text('Baixa')),
+                        DropdownMenuItem(value: 'media', child: Text('Média')),
+                        DropdownMenuItem(value: 'alta', child: Text('Alta')),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _selectedPrioridade = value);
+                            },
+                      decoration: _fieldDecoration(),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedSecaoTecnica,
+                      hint: const Text('Seção técnica'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'eletrica',
+                          child: Text('Elétrica'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'hidraulica',
+                          child: Text('Hidráulica'),
+                        ),
+                        DropdownMenuItem(value: 'civil', child: Text('Civil')),
+                        DropdownMenuItem(
+                          value: 'mecanica',
+                          child: Text('Mecânica'),
+                        ),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _selectedSecaoTecnica = value);
+                            },
+                      decoration: _fieldDecoration(),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedComplexidade,
+                      hint: const Text('Complexidade'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'simples',
+                          child: Text('Simples'),
+                        ),
+                        DropdownMenuItem(value: 'media', child: Text('Média')),
+                        DropdownMenuItem(
+                          value: 'complexa',
+                          child: Text('Complexa'),
+                        ),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _selectedComplexidade = value);
+                            },
+                      decoration: _fieldDecoration(),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedTipoTrabalho,
+                      hint: const Text('Tipo de trabalho'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'preventiva',
+                          child: Text('Preventiva'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'corretiva',
+                          child: Text('Corretiva'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'melhoria',
+                          child: Text('Melhoria'),
+                        ),
+                      ],
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _selectedTipoTrabalho = value);
+                            },
+                      decoration: _fieldDecoration(),
                     ),
                     const SizedBox(height: 16),
                     const Text(

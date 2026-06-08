@@ -53,9 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _errorMessage = 'Email ou senha inválidos';
         });
       }
-    } catch (e) {
+    } catch (_) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = 'Erro ao fazer login: ${e.toString()}';
+        _errorMessage = 'Erro ao fazer login. Tente novamente.';
       });
     } finally {
       if (mounted) {

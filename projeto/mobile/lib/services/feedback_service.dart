@@ -31,4 +31,32 @@ class FeedbackService {
       return null;
     }
   }
+
+  Future<Feedback?> updateFeedback({
+    required int id,
+    required int avaliacao,
+    String? comentario,
+  }) async {
+    try {
+      final response = await _apiService.updateFeedback(id, {
+        'avaliacao': avaliacao,
+        'comentario': comentario,
+      });
+
+      return Feedback.fromJson(
+        response.containsKey('data') ? response['data'] : response,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> deleteFeedback(int id) async {
+    try {
+      await _apiService.deleteFeedback(id);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

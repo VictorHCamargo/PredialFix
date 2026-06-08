@@ -193,6 +193,8 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                     double.tryParse(valorUnitarioController.text) ?? 0.0;
 
                 if (item == null) {
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(screenContext);
                   final newItem = await estoqueService.createEstoque(
                     nomeItem: nomeController.text,
                     descricao: descricaoController.text,
@@ -206,18 +208,21 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                         ? null
                         : obsController.text,
                   );
+                  if (!mounted) return;
                   if (newItem != null) {
-                    Navigator.pop(context);
+                    navigator.pop();
                     _loadEstoque();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Item criado!')),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Erro ao criar item')),
                     );
                   }
                 } else {
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(screenContext);
                   final updated = await estoqueService.updateEstoque(
                     item.id,
                     nomeItem: nomeController.text,
@@ -232,14 +237,15 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                         ? null
                         : obsController.text,
                   );
+                  if (!mounted) return;
                   if (updated != null) {
-                    Navigator.pop(context);
+                    navigator.pop();
                     _loadEstoque();
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Item atualizado!')),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Erro ao atualizar item')),
                     );
                   }
@@ -294,20 +300,17 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(dialogContext);
+              final messenger = ScaffoldMessenger.of(screenContext);
               final success = await estoqueService.deleteEstoque(id);
               if (!mounted) return;
 
               if (success) {
                 _loadEstoque();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Item deletado!')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Erro ao deletar item')),
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Item deletado!')),
                 );
               } else {
-                ScaffoldMessenger.of(screenContext).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('Erro ao deletar item')),
                 );
               }
@@ -329,7 +332,22 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
-          ? Center(child: Text(_errorMessage!))
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _loadEstoque,
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : Column(
               children: [
                 // Filtro de status
@@ -405,12 +423,12 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                                             PopupMenuItem(
                                               child: const Text('Editar'),
                                               onTap: () {
-                                                Future.delayed(
-                                                  Duration.zero,
-                                                  () {
+                                                WidgetsBinding.instance
+                                                    .addPostFrameCallback((_) {
+                                                  if (mounted) {
                                                     _showFormDialog(item: item);
-                                                  },
-                                                );
+                                                  }
+                                                });
                                               },
                                             ),
                                             PopupMenuItem(
@@ -421,12 +439,12 @@ class _EstoqueScreenState extends State<EstoqueScreen> {
                                                 ),
                                               ),
                                               onTap: () {
-                                                Future.delayed(
-                                                  Duration.zero,
-                                                  () {
+                                                WidgetsBinding.instance
+                                                    .addPostFrameCallback((_) {
+                                                  if (mounted) {
                                                     _deleteItem(item.id);
-                                                  },
-                                                );
+                                                  }
+                                                });
                                               },
                                             ),
                                           ],

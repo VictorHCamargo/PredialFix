@@ -15,6 +15,17 @@ class _AppDrawerState extends State<AppDrawer> {
   User? _user;
   bool _loaded = false;
 
+  bool get _canUseAdmin {
+    final role = _user?.role;
+    return role == 'administrador' ||
+        role == 'gerente_manutencao' ||
+        role == 'tecnico_manutencao';
+  }
+
+  bool get _canEvaluate {
+    return _user != null && _user!.role != 'aluno';
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -106,22 +117,24 @@ class _AppDrawerState extends State<AppDrawer> {
                       Navigator.pushNamed(context, '/manage');
                     },
                   ),
-                  _buildDrawerItem(
-                    icon: Icons.admin_panel_settings,
-                    title: 'Painel Admin',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/admin');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.star,
-                    title: 'Avaliar',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/ratings');
-                    },
-                  ),
+                  if (_canUseAdmin)
+                    _buildDrawerItem(
+                      icon: Icons.admin_panel_settings,
+                      title: 'Painel Admin',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/admin');
+                      },
+                    ),
+                  if (_canEvaluate)
+                    _buildDrawerItem(
+                      icon: Icons.star,
+                      title: 'Avaliar',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/ratings');
+                      },
+                    ),
                   _buildDrawerItem(
                     icon: Icons.support_agent,
                     title: 'Suporte',

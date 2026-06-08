@@ -83,9 +83,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _errorMessage = 'Erro ao registrar. Tente novamente.';
         });
       }
-    } catch (e) {
+    } catch (_) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = 'Erro: ${e.toString()}';
+        _errorMessage = 'Erro ao registrar. Tente novamente.';
       });
     } finally {
       if (mounted) {

@@ -91,18 +91,26 @@ class AuthService {
   Future<bool> _restoreSession() async {
     try {
       final token = await _storageService.getToken();
-      if (token != null) {
-        _apiService.setToken(token);
+      if (token == null) {
+        return false;
+      }
 
-        final response = await _apiService.getCurrentUser();
-        final userData = response['user'] ?? response;
-        final user = User.fromJson(
-          Map<String, dynamic>.from(userData is Map ? userData : {}),
-        );
-        await _storageService.setUser(user);
+      _apiService.setToken(token);
+
+      final storedUser = await _storageService.getUser();
+      if (storedUser != null) {
+        _apiService.setCurrentUser(storedUser.toJson());
         return true;
       }
-      return false;
+
+      final response = await _apiService.getCurrentUser();
+      final userData = response['user'] ?? response;
+      final user = User.fromJson(
+        Map<String, dynamic>.from(userData is Map ? userData : {}),
+      );
+      _apiService.setCurrentUser(user.toJson());
+      await _storageService.setUser(user);
+      return true;
     } catch (_) {
       return false;
     }
@@ -110,6 +118,58 @@ class AuthService {
 
   Future<User?> getCurrentUser() async {
     return await _storageService.getUser();
+  }
+
+  Future<User?> updateProfile({
+    required String nome,
+    required String email,
+    String? telefone,
+    String? cpf,
+  }) async {
+    try {
+      final response = await _apiService.updateCurrentUser({
+        'nome': nome,
+        'email': email,
+        'telefone': telefone,
+        'cpf': cpf,
+      });
+
+      final userData = response['user'] ?? response;
+      final user = User.fromJson(
+        Map<String, dynamic>.from(userData is Map ? userData : {}),
+      );
+      await _storageService.setUser(user);
+      return user;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmation,
+  }) async {
+    try {
+      await _apiService.updatePassword(
+        currentPassword,
+        newPassword,
+        confirmation,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccount(String password) async {
+    try {
+      await _apiService.deleteCurrentUser(password);
+      await _storageService.clearAll();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   bool isAuthenticated() {
