@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
         'chamados.destroy',
     );
 
-    // ============ ESTOQUE (apenas admin e gerente) ============
+    // ============ ESTOQUE (apenas admin e tecnico) ============
     // Você pode adicionar middleware customizado aqui se desejar
     Route::resource('estoque', EstoqueInternoController::class);
 });
@@ -98,7 +98,7 @@ protected $routeMiddleware = [
 ];
 
 // Use nas rotas:
-Route::middleware(['auth', 'access:administrador,gerente_manutencao'])->group(function () {
+Route::middleware(['auth', 'access:administrador,tecnico_manutencao'])->group(function () {
     Route::resource('estoque', EstoqueInternoController::class);
 });
 */

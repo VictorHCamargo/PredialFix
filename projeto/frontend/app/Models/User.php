@@ -39,20 +39,12 @@ class User extends Authenticatable {
         return $this->nivel_acesso === 'administrador';
     }
 
-    public function isGerenteManutencao() {
-        return $this->nivel_acesso === 'gerente_manutencao';
-    }
-
     public function isTecnicoManutencao() {
         return $this->nivel_acesso === 'tecnico_manutencao';
     }
 
     public function isEquipeManutencao() {
-        return in_array($this->nivel_acesso, ['gerente_manutencao', 'tecnico_manutencao']);
-    }
-
-    public function isAluno() {
-        return $this->nivel_acesso === 'aluno';
+        return $this->isTecnicoManutencao();
     }
 
     public function isProfessor() {
@@ -62,24 +54,20 @@ class User extends Authenticatable {
     public function canSeeDashboard() {
         return in_array($this->nivel_acesso, [
             'administrador',
-            'gerente_manutencao',
             'tecnico_manutencao',
             'professor',
-            'aluno',
         ]);
     }
 
     public function canManageTickets() {
         return in_array($this->nivel_acesso, [
             'administrador',
-            'gerente_manutencao',
             'tecnico_manutencao',
         ]);
     }
 
     public function canRateTickets() {
         return in_array($this->nivel_acesso, [
-            'aluno',
             'professor',
             'administrador',
         ]);

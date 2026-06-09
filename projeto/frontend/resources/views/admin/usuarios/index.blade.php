@@ -50,10 +50,8 @@
         @php
             $nivelLabels = [
                 'administrador' => 'Administrador',
-                'gerente_manutencao' => 'Gerente de manutencao',
                 'tecnico_manutencao' => 'Tecnico de manutencao',
                 'professor' => 'Professor',
-                'aluno' => 'Aluno',
             ];
         @endphp
 

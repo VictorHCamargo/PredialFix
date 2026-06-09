@@ -17,14 +17,14 @@ class Local {
 
   factory Local.fromJson(Map<String, dynamic> json) {
     return Local(
-      id: json['id'] as int,
-      nome: json['nome'] as String,
-      descricao: json['descricao'] as String,
+      id: (json['id'] ?? json['id_local']) as int,
+      nome: (json['nome'] ?? json['sala_setor']) as String,
+      descricao: (json['descricao'] ?? json['sala_setor']) as String,
       bloco: json['bloco'] as String?,
       andar: json['andar'] as int?,
-      dataCriacao: json['data_criacao'] != null 
-        ? DateTime.parse(json['data_criacao'] as String)
-        : null,
+      dataCriacao: json['data_criacao'] != null
+          ? DateTime.parse(json['data_criacao'] as String)
+          : null,
     );
   }
 

@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::table('usuarios', function (Blueprint $table) {
             $table->enum('nivel_acesso', [
                 'administrador',
-                'gerente_manutencao', 
                 'tecnico_manutencao',
                 'professor',
-                'aluno',
                 'visitante'
             ])->default('visitante')->index()->comment('Nível de acesso do usuário');
             

@@ -72,10 +72,8 @@
                                 @php
                                     $niveis = [
                                         'administrador' => 'Administrador',
-                                        'gerente_manutencao' => 'Gerente de Manutenção',
                                         'tecnico_manutencao' => 'Técnico de Manutenção',
                                         'professor' => 'Professor',
-                                        'aluno' => 'Aluno',
                                     ];
                                 @endphp
                                 {{
@@ -85,14 +83,12 @@
                             </div>
                         </div>
 
-                        @if (!$user->isAluno())
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-600"
-                                    >Setor/Departamento</label
-                                >
-                                <p class="text-gray-800">{{ $user->setor ?? 'Não informado' }}</p>
-                            </div>
-                        @endif
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-600"
+                                >Setor/Departamento</label
+                            >
+                            <p class="text-gray-800">{{ $user->setor ?? 'Não informado' }}</p>
+                        </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-medium text-gray-600"

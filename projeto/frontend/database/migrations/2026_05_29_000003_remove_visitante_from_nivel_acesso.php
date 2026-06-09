@@ -9,16 +9,14 @@ return new class extends Migration {
     public function up(): void {
         DB::table('usuarios')
             ->where('nivel_acesso', 'visitante')
-            ->update(['nivel_acesso' => 'aluno']);
+            ->update(['nivel_acesso' => 'professor']);
 
         Schema::table('usuarios', function (Blueprint $table) {
             $table->enum('nivel_acesso', [
                 'administrador',
-                'gerente_manutencao',
                 'tecnico_manutencao',
                 'professor',
-                'aluno',
-            ])->default('aluno')->change();
+            ])->default('professor')->change();
         });
     }
 
@@ -26,10 +24,8 @@ return new class extends Migration {
         Schema::table('usuarios', function (Blueprint $table) {
             $table->enum('nivel_acesso', [
                 'administrador',
-                'gerente_manutencao',
                 'tecnico_manutencao',
                 'professor',
-                'aluno',
                 'visitante',
             ])->default('visitante')->index()->change();
         });

@@ -75,13 +75,6 @@ class ChamadoApiController extends Controller {
     public function store(Request $request): JsonResponse {
         $user = $request->user();
 
-        if ($user->isAluno()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Alunos nao podem criar chamados',
-            ], 403);
-        }
-
         $validated = $request->validate([
             'descricao' => 'required|string',
             'id_patrimonio' => 'nullable|string|max:100',
@@ -171,13 +164,6 @@ class ChamadoApiController extends Controller {
                 'success' => false,
                 'message' => 'Chamado nao encontrado',
             ], 404);
-        }
-
-        if ($user->isAluno()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sua funcao nao tem permissao para atualizar este chamado',
-            ], 403);
         }
 
         if ($user->isProfessor()) {
@@ -370,17 +356,24 @@ class ChamadoApiController extends Controller {
             ], 404);
         }
 
-        if ($user->isProfessor() || $user->isAluno()) {
+        if ($user->isProfessor()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sua funcao nao tem permissao para alterar o status de chamados',
             ], 403);
         }
 
+        if ($request->filled('nomeTecnicoResponsavel') && !$request->filled('nome_tecnico_responsavel')) {
+            $request->merge([
+                'nome_tecnico_responsavel' => $request->input('nomeTecnicoResponsavel'),
+            ]);
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
             'prioridade' => 'nullable|in:baixa,media,alta',
             'status_descricao' => 'nullable|string',
+            'nome_tecnico_responsavel' => 'required_if:status,concluido|nullable|string|min:3|max:100',
         ]);
 
         $statusAtual = $chamado->status;
@@ -410,11 +403,15 @@ class ChamadoApiController extends Controller {
             $chamado->status = $novoStatus;
             $chamado->status_descricao = $descricao !== '' ? $descricao : null;
             $chamado->id_usuario_responsavel = $user->id_usuario;
+            $chamado->nome_tecnico_responsavel = $novoStatus === 'concluido'
+                ? trim((string) $validated['nome_tecnico_responsavel'])
+                : null;
             $chamado->data_ultimo_status = now();
             $chamado->data_conclusao = $novoStatus === 'concluido' ? now() : null;
 
             if ($novoStatus === 'cancelado') {
                 $chamado->data_conclusao = null;
+                $chamado->nome_tecnico_responsavel = null;
             }
 
             $chamado->save();
@@ -473,6 +470,7 @@ class ChamadoApiController extends Controller {
         $chamado->status_descricao = $justificativa;
         $chamado->data_ultimo_status = now();
         $chamado->data_conclusao = null;
+        $chamado->nome_tecnico_responsavel = null;
         $chamado->id_usuario_responsavel = $user->id_usuario;
         $chamado->save();
 

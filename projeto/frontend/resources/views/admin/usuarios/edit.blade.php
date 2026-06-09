@@ -70,10 +70,8 @@
                     <label for="nivel_acesso" class="mb-1 block text-sm font-semibold text-gray-800">Nivel de acesso</label>
                     <select id="nivel_acesso" name="nivel_acesso" required class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                         <option value="administrador" @selected(old('nivel_acesso', $usuario->nivel_acesso) === 'administrador')>Administrador</option>
-                        <option value="gerente_manutencao" @selected(old('nivel_acesso', $usuario->nivel_acesso) === 'gerente_manutencao')>Gerente de manutencao</option>
                         <option value="tecnico_manutencao" @selected(old('nivel_acesso', $usuario->nivel_acesso) === 'tecnico_manutencao')>Tecnico de manutencao</option>
                         <option value="professor" @selected(old('nivel_acesso', $usuario->nivel_acesso) === 'professor')>Professor</option>
-                        <option value="aluno" @selected(old('nivel_acesso', $usuario->nivel_acesso) === 'aluno')>Aluno</option>
                     </select>
                 </div>
 

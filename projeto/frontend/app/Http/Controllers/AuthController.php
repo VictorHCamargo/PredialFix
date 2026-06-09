@@ -70,7 +70,7 @@ class AuthController extends Controller {
     }
 
     /**
-     * Processa o registro de novo usuário (apenas alunos).
+     * Processa o registro de novo usuário.
      */
     public function register(Request $request) {
         $request->validate(
@@ -93,12 +93,12 @@ class AuthController extends Controller {
             ],
         );
 
-        // Registra automaticamente como aluno
+        // Registra automaticamente como professor
         $user = User::create([
             'nome' => $request->nome,
             'email' => $request->email,
             'senha' => Hash::make($request->senha),
-            'nivel_acesso' => 'aluno',
+            'nivel_acesso' => 'professor',
             'ativo' => true,
         ]);
 

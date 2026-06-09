@@ -204,7 +204,7 @@
                                             Ver
                                         </a>
 
-                                        <?php if(!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada()): ?>
+                                        <?php if($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada()): ?>
                                             <a href="<?php echo e(route('avaliar.create', $chamado->id_chamado)); ?>" class="rounded bg-purple-600 px-3 py-1 font-semibold text-white hover:bg-purple-700">
                                                 Avaliar
                                             </a>
@@ -279,13 +279,11 @@
             <?php endif; ?>
         </div>
 
-        <?php if (! (auth()->user()->isAluno())): ?>
-            <div class="flex justify-center">
-                <a href="<?php echo e(route('chamados.create')); ?>" class="rounded-full bg-red-600 px-8 py-4 text-sm font-bold text-white hover:bg-red-700">
-                    Relatar novo problema
-                </a>
-            </div>
-        <?php endif; ?>
+        <div class="flex justify-center">
+            <a href="<?php echo e(route('chamados.create')); ?>" class="rounded-full bg-red-600 px-8 py-4 text-sm font-bold text-white hover:bg-red-700">
+                Relatar novo problema
+            </a>
+        </div>
     </main>
 
     <?php if (isset($component)) { $__componentOriginal8a8716efb3c62a45938aca52e78e0322 = $component; } ?>

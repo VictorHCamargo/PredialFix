@@ -57,12 +57,6 @@ class ChamadoController extends Controller {
         /** @var User $user */
         $user = Auth::user();
 
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.index')->withErrors([
-                'create' => 'Alunos nao podem criar chamados. Entre em contato com a equipe de manutencao.',
-            ]);
-        }
-
         $locais = Local::all();
         $tipos = TipoProblema::all();
         $equipamentos = Equipamento::where('status', 'ativo')->get();
@@ -73,12 +67,6 @@ class ChamadoController extends Controller {
     public function store(Request $request) {
         /** @var User $user */
         $user = $request->user();
-
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.index')->withErrors([
-                'create' => 'Alunos nao podem criar chamados.',
-            ]);
-        }
 
         $data = $request->validate([
             'descricao' => 'required|string',
@@ -160,12 +148,6 @@ class ChamadoController extends Controller {
         /** @var User $user */
         $user = Auth::user();
 
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.show', $id)->withErrors([
-                'edit' => 'Alunos nao podem editar chamados.',
-            ]);
-        }
-
         $chamado = Chamado::findOrFail($id);
 
         if (!$user->canEditTicket($chamado)) {
@@ -186,9 +168,15 @@ class ChamadoController extends Controller {
         /** @var User $user */
         $user = Auth::user();
 
-        if ($user->isAluno() || $user->isProfessor()) {
+        if ($user->isProfessor()) {
             return back()->withErrors([
                 'status' => 'Seu nivel de acesso nao permite alterar o status do chamado.',
+            ]);
+        }
+
+        if ($request->filled('nomeTecnicoResponsavel') && !$request->filled('nome_tecnico_responsavel')) {
+            $request->merge([
+                'nome_tecnico_responsavel' => $request->input('nomeTecnicoResponsavel'),
             ]);
         }
 
@@ -196,6 +184,7 @@ class ChamadoController extends Controller {
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
             'status_descricao' => 'nullable|string',
             'prioridade' => 'nullable|in:baixa,media,alta',
+            'nome_tecnico_responsavel' => 'required_if:status,concluido|nullable|string|min:3|max:100',
         ]);
 
         $novoStatus = $request->status;
@@ -222,11 +211,15 @@ class ChamadoController extends Controller {
         $chamado->status = $novoStatus;
         $chamado->status_descricao = $descricao !== '' ? $descricao : null;
         $chamado->id_usuario_responsavel = $user->id_usuario;
+        $chamado->nome_tecnico_responsavel = $novoStatus === 'concluido'
+            ? trim((string) $request->nome_tecnico_responsavel)
+            : null;
         $chamado->data_ultimo_status = now();
         $chamado->data_conclusao = $novoStatus === 'concluido' ? now() : null;
 
         if ($novoStatus === 'cancelado') {
             $chamado->data_conclusao = null;
+            $chamado->nome_tecnico_responsavel = null;
         }
 
         $chamado->save();
@@ -267,12 +260,6 @@ class ChamadoController extends Controller {
     public function update(Request $request, string $id) {
         /** @var User $user */
         $user = $request->user();
-
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.show', $id)->withErrors([
-                'edit' => 'Alunos nao podem editar chamados.',
-            ]);
-        }
 
         $chamado = Chamado::findOrFail($id);
 
@@ -424,6 +411,7 @@ class ChamadoController extends Controller {
         $chamado->status_descricao = $justificativa;
         $chamado->data_ultimo_status = now();
         $chamado->data_conclusao = null;
+        $chamado->nome_tecnico_responsavel = null;
         $chamado->id_usuario_responsavel = $user->id_usuario;
         $chamado->save();
 

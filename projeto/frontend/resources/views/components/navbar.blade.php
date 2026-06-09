@@ -29,15 +29,13 @@
     <div class="flex h-full items-center">
         <x-nav-item href="{{ route('dashboard') }}" route="dashboard" :color="$itemColor">Home</x-nav-item>
 
-        @if (!Auth::user()->isAluno())
-            <x-nav-item href="{{ route('chamados.create') }}" route="chamados.create" :color="$itemColor">
-                Novo Chamado
-            </x-nav-item>
+        <x-nav-item href="{{ route('chamados.create') }}" route="chamados.create" :color="$itemColor">
+            Novo Chamado
+        </x-nav-item>
 
-            <x-nav-item href="{{ route('chamados.index') }}" route="chamados.index" :color="$itemColor" :border="false">
-                Gerenciar Chamados
-            </x-nav-item>
-        @endif
+        <x-nav-item href="{{ route('chamados.index') }}" route="chamados.index" :color="$itemColor" :border="false">
+            Gerenciar Chamados
+        </x-nav-item>
 
         <x-nav-item href="{{ route('avaliar.index') }}" route="avaliar.index" :color="$itemColor" :border="false">
             Avaliar

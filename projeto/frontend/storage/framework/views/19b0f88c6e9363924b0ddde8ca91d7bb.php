@@ -168,12 +168,6 @@
                 </div>
             <?php endif; ?>
 
-            <?php if(Auth::user()->isAluno()): ?>
-                <div class="rounded border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                    Alunos nao definem prioridade, seccao tecnica, complexidade ou tipo de trabalho.
-                </div>
-            <?php endif; ?>
-
             <div class="pt-2">
                 <button type="submit" class="rounded bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-700">
                     Enviar chamado

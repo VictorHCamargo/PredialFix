@@ -24,6 +24,7 @@ class Chamado extends Model {
         'tipo_chamado',
         'id_patrimonio',
         'status_descricao',
+        'nome_tecnico_responsavel',
         'data_ultimo_status',
     ];
 

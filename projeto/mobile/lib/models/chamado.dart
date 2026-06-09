@@ -13,6 +13,7 @@ class Chamado {
   final DateTime dataAbertura;
   final DateTime? dataFechamento;
   final DateTime? dataPrazo;
+  final String? nomeTecnicoResponsavel;
   final User? usuario;
   final Local? local;
   final TipoProblema? tipoProblema;
@@ -30,6 +31,7 @@ class Chamado {
     DateTime? dataAbertura,
     this.dataFechamento,
     this.dataPrazo,
+    this.nomeTecnicoResponsavel,
     this.usuario,
     this.local,
     this.tipoProblema,
@@ -73,31 +75,38 @@ class Chamado {
 
   factory Chamado.fromJson(Map<String, dynamic> json) {
     return Chamado(
-      id: json['id'] as int,
+      id: (json['id'] ?? json['id_chamado']) as int,
       idUsuario: json['id_usuario'] as int,
       descricao: json['descricao'] as String,
       idLocal: json['id_local'] as int,
       idTipo: json['id_tipo'] as int,
       status: json['status'] as String,
       prioridade: json['prioridade'] as String?,
-      dataAbertura: json['data_abertura'] != null 
-        ? DateTime.parse(json['data_abertura'] as String)
-        : null,
-      dataFechamento: json['data_fechamento'] != null 
-        ? DateTime.parse(json['data_fechamento'] as String)
-        : null,
-      dataPrazo: json['data_prazo'] != null 
-        ? DateTime.parse(json['data_prazo'] as String)
-        : null,
-      usuario: json['usuario'] != null 
-        ? User.fromJson(json['usuario'] as Map<String, dynamic>)
-        : null,
-      local: json['local'] != null 
-        ? Local.fromJson(json['local'] as Map<String, dynamic>)
-        : null,
-      tipoProblema: json['tipo_problema'] != null 
-        ? TipoProblema.fromJson(json['tipo_problema'] as Map<String, dynamic>)
-        : null,
+      dataAbertura: json['data_abertura'] != null
+          ? DateTime.parse(json['data_abertura'] as String)
+          : null,
+      dataFechamento:
+          (json['data_fechamento'] ?? json['data_conclusao']) != null
+          ? DateTime.parse(
+              (json['data_fechamento'] ?? json['data_conclusao']) as String,
+            )
+          : null,
+      dataPrazo: json['data_prazo'] != null
+          ? DateTime.parse(json['data_prazo'] as String)
+          : null,
+      nomeTecnicoResponsavel: json['nome_tecnico_responsavel'] as String?,
+      usuario: json['usuario'] != null
+          ? User.fromJson(json['usuario'] as Map<String, dynamic>)
+          : null,
+      local: json['local'] != null
+          ? Local.fromJson(json['local'] as Map<String, dynamic>)
+          : null,
+      tipoProblema: (json['tipo_problema'] ?? json['tipoProblema']) != null
+          ? TipoProblema.fromJson(
+              (json['tipo_problema'] ?? json['tipoProblema'])
+                  as Map<String, dynamic>,
+            )
+          : null,
     );
   }
 
@@ -113,6 +122,7 @@ class Chamado {
       'data_abertura': dataAbertura.toIso8601String(),
       'data_fechamento': dataFechamento?.toIso8601String(),
       'data_prazo': dataPrazo?.toIso8601String(),
+      'nome_tecnico_responsavel': nomeTecnicoResponsavel,
       'usuario': usuario?.toJson(),
       'local': local?.toJson(),
       'tipo_problema': tipoProblema?.toJson(),
@@ -165,4 +175,3 @@ class Chamado {
     ];
   }
 }
-

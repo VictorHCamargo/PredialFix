@@ -19,16 +19,6 @@ class UsersSeeder extends Seeder {
         ]);
 
         User::create([
-            'nome' => 'Gerente de Manutencao',
-            'email' => 'gerente@predialfix.com',
-            'senha' => Hash::make('gerente123'),
-            'nivel_acesso' => 'gerente_manutencao',
-            'cod_entrada' => 8888,
-            'setor' => 'Manutencao',
-            'ativo' => true,
-        ]);
-
-        User::create([
             'nome' => 'Tecnico de Manutencao',
             'email' => 'tecnico@predialfix.com',
             'senha' => Hash::make('tecnico123'),
@@ -47,31 +37,5 @@ class UsersSeeder extends Seeder {
             'ativo' => true,
         ]);
 
-        User::create([
-            'nome' => 'Joao Aluno',
-            'email' => 'joao@student.com',
-            'senha' => Hash::make('aluno123'),
-            'nivel_acesso' => 'aluno',
-            'setor' => 'Classe 1',
-            'ativo' => true,
-        ]);
-
-        User::create([
-            'nome' => 'Maria Aluna',
-            'email' => 'maria@student.com',
-            'senha' => Hash::make('aluno123'),
-            'nivel_acesso' => 'aluno',
-            'setor' => 'Classe 1',
-            'ativo' => true,
-        ]);
-
-        User::create([
-            'nome' => 'Pedro Aluno',
-            'email' => 'pedro@student.com',
-            'senha' => Hash::make('aluno123'),
-            'nivel_acesso' => 'aluno',
-            'setor' => 'Classe 2',
-            'ativo' => true,
-        ]);
     }
 }

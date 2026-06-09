@@ -26,7 +26,7 @@ class NotificacaoHelper {
     }
 
     public static function equipeManutencaoAtiva(): array {
-        return User::whereIn('nivel_acesso', ['gerente_manutencao', 'tecnico_manutencao'])
+        return User::where('nivel_acesso', 'tecnico_manutencao')
             ->where('ativo', true)
             ->pluck('id_usuario')
             ->all();

@@ -178,7 +178,7 @@
                                             Ver
                                         </a>
 
-                                        @if (!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
+                                        @if ($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
                                             <a href="{{ route('avaliar.create', $chamado->id_chamado) }}" class="rounded bg-purple-600 px-3 py-1 font-semibold text-white hover:bg-purple-700">
                                                 Avaliar
                                             </a>
@@ -252,13 +252,11 @@
             @endif
         </div>
 
-        @unless(auth()->user()->isAluno())
-            <div class="flex justify-center">
-                <a href="{{ route('chamados.create') }}" class="rounded-full bg-red-600 px-8 py-4 text-sm font-bold text-white hover:bg-red-700">
-                    Relatar novo problema
-                </a>
-            </div>
-        @endunless
+        <div class="flex justify-center">
+            <a href="{{ route('chamados.create') }}" class="rounded-full bg-red-600 px-8 py-4 text-sm font-bold text-white hover:bg-red-700">
+                Relatar novo problema
+            </a>
+        </div>
     </main>
 
     <x-footer />

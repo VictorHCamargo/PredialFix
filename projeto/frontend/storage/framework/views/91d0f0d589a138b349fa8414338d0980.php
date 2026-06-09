@@ -79,8 +79,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
 <?php endif; ?>
 
-        <?php if(!Auth::user()->isAluno()): ?>
-            <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
+        <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-item','data' => ['href' => ''.e(route('chamados.create')).'','route' => 'chamados.create','color' => $itemColor]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('nav-item'); ?>
@@ -90,8 +89,8 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['href' => ''.e(route('chamados.create')).'','route' => 'chamados.create','color' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($itemColor)]); ?>
-                Novo Chamado
-             <?php echo $__env->renderComponent(); ?>
+            Novo Chamado
+         <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal6cced52613a484e7295a90162a92d81b)): ?>
 <?php $attributes = $__attributesOriginal6cced52613a484e7295a90162a92d81b; ?>
@@ -102,7 +101,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
 <?php endif; ?>
 
-            <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
+        <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.nav-item','data' => ['href' => ''.e(route('chamados.index')).'','route' => 'chamados.index','color' => $itemColor,'border' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('nav-item'); ?>
@@ -112,8 +111,8 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['href' => ''.e(route('chamados.index')).'','route' => 'chamados.index','color' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($itemColor),'border' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
-                Gerenciar Chamados
-             <?php echo $__env->renderComponent(); ?>
+            Gerenciar Chamados
+         <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal6cced52613a484e7295a90162a92d81b)): ?>
 <?php $attributes = $__attributesOriginal6cced52613a484e7295a90162a92d81b; ?>
@@ -123,7 +122,6 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $component = $__componentOriginal6cced52613a484e7295a90162a92d81b; ?>
 <?php unset($__componentOriginal6cced52613a484e7295a90162a92d81b); ?>
 <?php endif; ?>
-        <?php endif; ?>
 
         <?php if (isset($component)) { $__componentOriginal6cced52613a484e7295a90162a92d81b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6cced52613a484e7295a90162a92d81b = $attributes; } ?>

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->text('descricao');
             $table->timestamp('data_abertura');
             $table->timestamp('data_conclusao')->nullable();
+            $table->string('nome_tecnico_responsavel', 100)->nullable();
             $table->enum('prioridade', ['baixa', 'media', 'alta'])->nullable();
             $table->enum('status', ['aberto', 'em_andamento', 'concluido', 'cancelado']);
             $table->enum('tipo_chamado', ['interno', 'externo'])->default('externo');

@@ -37,7 +37,7 @@ class UserController extends Controller {
             'email' => 'required|email|unique:usuarios,email',
             'senha' => 'required|string|min:8',
             'setor' => 'nullable|string|max:100',
-            'nivel_acesso' => 'required|in:administrador,gerente_manutencao,tecnico_manutencao,professor,aluno',
+            'nivel_acesso' => 'required|in:administrador,tecnico_manutencao,professor',
             'cod_entrada' => 'nullable|integer',
         ]);
 
@@ -66,7 +66,7 @@ class UserController extends Controller {
             'nome' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('usuarios', 'email')->ignore($usuario->id_usuario, 'id_usuario')],
             'setor' => 'nullable|string|max:100',
-            'nivel_acesso' => 'required|in:administrador,gerente_manutencao,tecnico_manutencao,professor,aluno',
+            'nivel_acesso' => 'required|in:administrador,tecnico_manutencao,professor',
             'cod_entrada' => 'nullable|integer',
             'senha' => 'nullable|string|min:8',
         ]);

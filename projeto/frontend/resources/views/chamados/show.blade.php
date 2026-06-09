@@ -143,6 +143,13 @@
                                 <p class="text-gray-800">{{ $chamado->data_conclusao->format('d/m/Y H:i') }}</p>
                             </div>
                         @endif
+
+                        @if ($chamado->status === 'concluido' && $chamado->nome_tecnico_responsavel)
+                            <div>
+                                <p class="text-xs font-medium text-gray-500">Tecnico responsavel</p>
+                                <p class="text-gray-800">{{ $chamado->nome_tecnico_responsavel }}</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -214,7 +221,7 @@
                             </a>
                         @endif
 
-                        @if (!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
+                        @if ($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
                             <a href="{{ route('avaliar.create', $chamado->id_chamado) }}" class="block w-full rounded bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-purple-700">
                                 Avaliar chamado
                             </a>
@@ -281,6 +288,20 @@
                         <label for="status_descricao" class="mb-2 block text-sm font-medium text-gray-700">Descricao / justificativa</label>
                         <textarea id="status_descricao" name="status_descricao" rows="4" class="w-full rounded border border-gray-300 px-4 py-2 text-sm" placeholder="Descreva a mudanca de status..."></textarea>
                         <p class="mt-1 text-xs text-gray-500">Se o status for cancelado, a justificativa deve ter pelo menos 10 caracteres.</p>
+                    </div>
+
+                    <div id="tecnicoResponsavelContainer" class="hidden">
+                        <label for="nome_tecnico_responsavel" class="mb-2 block text-sm font-medium text-gray-700">Tecnico responsavel</label>
+                        <input
+                            id="nome_tecnico_responsavel"
+                            name="nome_tecnico_responsavel"
+                            type="text"
+                            value="{{ old('nome_tecnico_responsavel', $chamado->nome_tecnico_responsavel) }}"
+                            minlength="3"
+                            maxlength="100"
+                            class="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                            placeholder="Nome completo do tecnico"
+                        />
                     </div>
 
                     <div class="flex gap-3 border-t border-gray-200 pt-4">
@@ -352,12 +373,16 @@
             const status = document.getElementById('status').value;
             const prioridadeContainer = document.getElementById('prioridadeContainer');
             const descricaoContainer = document.getElementById('descricaoContainer');
+            const tecnicoResponsavelContainer = document.getElementById('tecnicoResponsavelContainer');
             const descricao = document.getElementById('status_descricao');
+            const tecnicoResponsavel = document.getElementById('nome_tecnico_responsavel');
 
             prioridadeContainer.classList.add('hidden');
             descricaoContainer.classList.add('hidden');
+            tecnicoResponsavelContainer.classList.add('hidden');
             descricao.required = false;
             descricao.minLength = 0;
+            tecnicoResponsavel.required = false;
 
             if (status === 'em_andamento') {
                 prioridadeContainer.classList.remove('hidden');
@@ -370,6 +395,11 @@
             if (status === 'cancelado') {
                 descricao.required = true;
                 descricao.minLength = 10;
+            }
+
+            if (status === 'concluido') {
+                tecnicoResponsavelContainer.classList.remove('hidden');
+                tecnicoResponsavel.required = true;
             }
         }
 
