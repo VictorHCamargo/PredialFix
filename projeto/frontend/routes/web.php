@@ -66,6 +66,7 @@ Route::middleware('auth.custom')->group(function () {
         Route::get('/usuarios/{id}/edit', [UserController::class, 'edit'])->name('usuarios.edit');
         Route::put('/usuarios/{id}', [UserController::class, 'update'])->name('usuarios.update');
         Route::patch('/usuarios/{id}/toggle', [UserController::class, 'toggleAtivo'])->name('usuarios.toggle');
+        Route::delete('/usuarios/{id}', [UserController::class, 'destroy'])->name('usuarios.destroy');
     });
 
     Route::get('/avaliar', [\App\Http\Controllers\FeedbackController::class, 'index'])->name('avaliar.index');

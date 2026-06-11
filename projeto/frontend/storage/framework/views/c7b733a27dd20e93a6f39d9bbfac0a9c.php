@@ -121,6 +121,14 @@
 
                                             </button>
                                         </form>
+
+                                        <form method="POST" action="<?php echo e(route('admin.usuarios.destroy', $usuario->id_usuario)); ?>" onsubmit="return confirm('Tem certeza que deseja deletar este funcionario? Esta ação é irreversível.')">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+                                            <button type="submit" class="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">
+                                                Deletar
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

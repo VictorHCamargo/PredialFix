@@ -141,7 +141,11 @@ class ChamadoController extends Controller {
             'historicoStatus.usuario',
         ])->findOrFail($id);
 
-        return view('chamados.show', compact('chamado'));
+        /** @var User $user */
+        $user = Auth::user();
+        $tecnicos = $user->isAdmin() ? User::where('nivel_acesso', 'tecnico_manutencao')->get() : collect([]);
+
+        return view('chamados.show', compact('chamado', 'tecnicos'));
     }
 
     public function edit(string $id) {
@@ -180,12 +184,23 @@ class ChamadoController extends Controller {
             ]);
         }
 
-        $request->validate([
+        $rules = [
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
             'status_descricao' => 'nullable|string',
             'prioridade' => 'nullable|in:baixa,media,alta',
-            'nome_tecnico_responsavel' => 'required_if:status,concluido|nullable|string|min:3|max:100',
-        ]);
+        ];
+
+        // Se admin, pode escolher técnico via select; se técnico, é obrigatório mas preenchido automaticamente
+        if ($user->isAdmin()) {
+            $rules['id_usuario_responsavel'] = 'required_if:status,concluido|nullable|exists:usuarios,id_usuario';
+        } else if ($user->isTecnico()) {
+            $rules['id_usuario_responsavel'] = 'required_if:status,concluido';
+        }
+
+        // Manter compatibilidade com campo antigo
+        $rules['nome_tecnico_responsavel'] = 'nullable|string|min:3|max:100';
+
+        $request->validate($rules);
 
         $novoStatus = $request->status;
         $statusAtual = $chamado->status;
@@ -210,10 +225,23 @@ class ChamadoController extends Controller {
 
         $chamado->status = $novoStatus;
         $chamado->status_descricao = $descricao !== '' ? $descricao : null;
-        $chamado->id_usuario_responsavel = $user->id_usuario;
-        $chamado->nome_tecnico_responsavel = $novoStatus === 'concluido'
-            ? trim((string) $request->nome_tecnico_responsavel)
-            : null;
+
+        // Definir responsável baseado no tipo de usuário
+        if ($novoStatus === 'concluido') {
+            if ($user->isAdmin() && $request->filled('id_usuario_responsavel')) {
+                // Admin selecionou um técnico via select
+                $chamado->id_usuario_responsavel = $request->id_usuario_responsavel;
+                $tecnicoSelecionado = User::find($request->id_usuario_responsavel);
+                $chamado->nome_tecnico_responsavel = $tecnicoSelecionado->nome ?? null;
+            } elseif ($user->isTecnico()) {
+                // Técnico auto-preenche seu próprio ID
+                $chamado->id_usuario_responsavel = $user->id_usuario;
+                $chamado->nome_tecnico_responsavel = $user->nome;
+            }
+        } else {
+            $chamado->id_usuario_responsavel = null;
+            $chamado->nome_tecnico_responsavel = null;
+        }
         $chamado->data_ultimo_status = now();
         $chamado->data_conclusao = $novoStatus === 'concluido' ? now() : null;
 
@@ -383,9 +411,10 @@ class ChamadoController extends Controller {
         $user = Auth::user();
         $chamado = Chamado::findOrFail($id);
 
-        if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
+        // Apenas Admins podem cancelar chamados
+        if (!$user->isAdmin()) {
             return back()->withErrors([
-                'delete' => 'Sem permissao para cancelar chamados.',
+                'delete' => 'Apenas administradores podem cancelar chamados.',
             ]);
         }
 
@@ -433,22 +462,25 @@ class ChamadoController extends Controller {
 
     private function validarTransicaoStatus(User $user, string $statusAtual, string $novoStatus): bool {
         if ($user->isAdmin()) {
-            return true;
+            return true; // Admins podem fazer qualquer alteração de status
         }
 
         if (!$user->isEquipeManutencao()) {
+            return false; // Apenas Admins e Técnicos podem alterar status
+        }
+
+        // Técnicos NÃO podem alterar status de chamados cancelados
+        if ($statusAtual === 'cancelado') {
             return false;
         }
 
+        // Técnicos NÃO podem cancelar chamados
         if ($novoStatus === 'cancelado') {
-            return true;
+            return false;
         }
 
-        if ($statusAtual === 'aberto' && $novoStatus === 'em_andamento') {
-            return true;
-        }
-
-        if ($statusAtual === 'em_andamento' && $novoStatus === 'concluido') {
+        // Técnicos podem alterar para 'em andamento' ou 'concluído' de qualquer status (exceto cancelado)
+        if ($novoStatus === 'em_andamento' || $novoStatus === 'concluido') {
             return true;
         }
 

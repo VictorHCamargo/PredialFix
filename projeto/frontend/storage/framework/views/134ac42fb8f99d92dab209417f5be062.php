@@ -137,7 +137,7 @@
                                         </p>
                                         <div class="flex flex-wrap gap-4 text-xs text-gray-500">
                                             <span>
-                                                <strong>Local:</strong> <?php echo e($chamado->local->nome ?? '—'); ?>
+                                                <strong>Local:</strong> <?php echo e($chamado->local?->sala_setor ?? '—'); ?> <?php echo e($chamado->local?->bloco ? '- Bloco ' . $chamado->local->bloco : ''); ?>
 
                                             </span>
                                             <span>

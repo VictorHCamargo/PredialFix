@@ -22,8 +22,12 @@
     @php
         $user = auth()->user();
         $podeAlterarStatus = $user->isAdmin() || $user->isEquipeManutencao();
-        $podeEditar = $user->isAdmin() || $user->isEquipeManutencao() || ($user->isProfessor() && $chamado->id_usuario === $user->id_usuario && in_array($chamado->status, ['aberto', 'em_andamento']));
-        $podeCancelar = ($user->isAdmin() || $user->isEquipeManutencao()) && $chamado->status !== 'cancelado';
+        // Admin pode editar qualquer um, Técnico só os que criou, Professor os seus em status aberto/em andamento
+        $podeEditar = $user->isAdmin() 
+            || ($user->isTecnico() && $chamado->id_usuario === $user->id_usuario)
+            || ($user->isProfessor() && $chamado->id_usuario === $user->id_usuario && in_array($chamado->status, ['aberto', 'em_andamento']));
+        // Apenas Admins podem cancelar
+        $podeCancelar = $user->isAdmin() && $chamado->status !== 'cancelado';
     @endphp
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
@@ -291,17 +295,37 @@
                     </div>
 
                     <div id="tecnicoResponsavelContainer" class="hidden">
-                        <label for="nome_tecnico_responsavel" class="mb-2 block text-sm font-medium text-gray-700">Tecnico responsavel</label>
-                        <input
-                            id="nome_tecnico_responsavel"
-                            name="nome_tecnico_responsavel"
-                            type="text"
-                            value="{{ old('nome_tecnico_responsavel', $chamado->nome_tecnico_responsavel) }}"
-                            minlength="3"
-                            maxlength="100"
-                            class="w-full rounded border border-gray-300 px-4 py-2 text-sm"
-                            placeholder="Nome completo do tecnico"
-                        />
+                        @php
+                            $isAdmin = auth()->user()->isAdmin();
+                            $isTecnico = auth()->user()->isTecnico();
+                        @endphp
+
+                        @if ($isAdmin && $tecnicos->count() > 0)
+                            <label for="id_usuario_responsavel" class="mb-2 block text-sm font-medium text-gray-700">Selecione o tecnico responsavel</label>
+                            <select
+                                id="id_usuario_responsavel"
+                                name="id_usuario_responsavel"
+                                class="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                            >
+                                <option value="">-- Selecione um técnico --</option>
+                                @foreach ($tecnicos as $tecnico)
+                                    <option value="{{ $tecnico->id_usuario }}" {{ old('id_usuario_responsavel') == $tecnico->id_usuario ? 'selected' : '' }}>
+                                        {{ $tecnico->nome }} (ID: {{ $tecnico->id_usuario }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        @elseif ($isTecnico)
+                            <p class="mb-2 block text-sm font-medium text-gray-700">Tecnico responsavel</p>
+                            <div class="rounded border border-green-300 bg-green-50 px-4 py-3">
+                                <p class="text-sm text-gray-800">
+                                    <strong>{{ auth()->user()->nome }}</strong> (você será automaticamente definido como responsável)
+                                </p>
+                            </div>
+                            <!-- Input hidden para enviar o ID do técnico automaticamente -->
+                            <input type="hidden" name="id_usuario_responsavel" value="{{ auth()->user()->id_usuario }}" />
+                        @else
+                            <p class="text-sm text-yellow-700">Você não tem permissão para definir o técnico responsável.</p>
+                        @endif
                     </div>
 
                     <div class="flex gap-3 border-t border-gray-200 pt-4">
@@ -375,14 +399,16 @@
             const descricaoContainer = document.getElementById('descricaoContainer');
             const tecnicoResponsavelContainer = document.getElementById('tecnicoResponsavelContainer');
             const descricao = document.getElementById('status_descricao');
-            const tecnicoResponsavel = document.getElementById('nome_tecnico_responsavel');
+            const idUsuarioResponsavel = document.getElementById('id_usuario_responsavel');
 
             prioridadeContainer.classList.add('hidden');
             descricaoContainer.classList.add('hidden');
             tecnicoResponsavelContainer.classList.add('hidden');
             descricao.required = false;
             descricao.minLength = 0;
-            tecnicoResponsavel.required = false;
+            if (idUsuarioResponsavel) {
+                idUsuarioResponsavel.required = false;
+            }
 
             if (status === 'em_andamento') {
                 prioridadeContainer.classList.remove('hidden');
@@ -399,7 +425,9 @@
 
             if (status === 'concluido') {
                 tecnicoResponsavelContainer.classList.remove('hidden');
-                tecnicoResponsavel.required = true;
+                if (idUsuarioResponsavel) {
+                    idUsuarioResponsavel.required = true;
+                }
             }
         }
 

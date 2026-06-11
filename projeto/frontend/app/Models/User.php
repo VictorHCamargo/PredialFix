@@ -43,6 +43,10 @@ class User extends Authenticatable {
         return $this->nivel_acesso === 'tecnico_manutencao';
     }
 
+    public function isTecnico() {
+        return $this->isTecnicoManutencao();
+    }
+
     public function isEquipeManutencao() {
         return $this->isTecnicoManutencao();
     }
@@ -74,10 +78,17 @@ class User extends Authenticatable {
     }
 
     public function canEditTicket(Chamado $chamado) {
-        if ($this->isAdmin() || $this->isEquipeManutencao()) {
+        // Admins podem editar qualquer chamado
+        if ($this->isAdmin()) {
             return true;
         }
 
+        // Técnicos podem editar APENAS chamados que criaram
+        if ($this->isTecnico()) {
+            return $chamado->id_usuario === $this->id_usuario;
+        }
+
+        // Professores podem editar apenas seus próprios chamados em status aberto ou em andamento
         if ($this->isProfessor()) {
             return $chamado->id_usuario === $this->id_usuario
                 && in_array($chamado->status, ['aberto', 'em_andamento']);

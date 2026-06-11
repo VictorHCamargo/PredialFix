@@ -106,7 +106,7 @@
                                         </p>
                                         <div class="flex flex-wrap gap-4 text-xs text-gray-500">
                                             <span>
-                                                <strong>Local:</strong> {{ $chamado->local->nome ?? '—' }}
+                                                <strong>Local:</strong> {{ $chamado->local?->sala_setor ?? '—' }} {{ $chamado->local?->bloco ? '- Bloco ' . $chamado->local->bloco : '' }}
                                             </span>
                                             <span>
                                                 <strong>Aberto em:</strong> {{ $chamado->data_abertura ? \Carbon\Carbon::parse($chamado->data_abertura)->format('d/m/Y') : '—' }}

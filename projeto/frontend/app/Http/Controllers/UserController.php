@@ -91,4 +91,13 @@ class UserController extends Controller {
 
         return back()->with('success', 'Status do funcionario alterado.');
     }
+
+    public function destroy(string $id) {
+        $this->apenasAdmin();
+
+        $usuario = User::findOrFail($id);
+        $usuario->delete();
+
+        return back()->with('success', 'Funcionario deletado.');
+    }
 }
