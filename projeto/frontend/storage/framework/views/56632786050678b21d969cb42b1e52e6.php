@@ -92,11 +92,8 @@
                                 <?php
                                     $niveis = [
                                         'administrador' => 'Administrador',
-                                        'gerente_manutencao' => 'Gerente de Manutenção',
                                         'tecnico_manutencao' => 'Técnico de Manutenção',
                                         'professor' => 'Professor',
-                                        'aluno' => 'Aluno',
-                                        'visitante' => 'Visitante',
                                     ];
                                 ?>
                                 <?php echo e($niveis[$user->nivel_acesso] ??
@@ -105,14 +102,12 @@
                             </div>
                         </div>
 
-                        <?php if(!$user->isAluno()): ?>
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-600"
-                                    >Setor/Departamento</label
-                                >
-                                <p class="text-gray-800"><?php echo e($user->setor ?? 'Não informado'); ?></p>
-                            </div>
-                        <?php endif; ?>
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-600"
+                                >Setor/Departamento</label
+                            >
+                            <p class="text-gray-800"><?php echo e($user->setor ?? 'Não informado'); ?></p>
+                        </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-medium text-gray-600"
@@ -224,7 +219,7 @@
                                         <div class="flex items-center gap-1">
                                             <?php for($i = 1; $i <= 5; $i++): ?>
                                                 <span
-                                                    class="text-lg <?php if($i <= $feedback->avaliacao): ?> text-yellow-400 <?php else: ?> text-gray-300 <?php endif; ?>"
+                                                    class="text-lg <?php if($i <= $feedback->nota): ?> text-yellow-400 <?php else: ?> text-gray-300 <?php endif; ?>"
                                                     >★</span
                                                 >
                                             <?php endfor; ?>

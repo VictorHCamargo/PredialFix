@@ -15,7 +15,9 @@ class ReferenceApiController extends Controller
     public function getLocais(): JsonResponse
     {
         try {
-            $locais = Local::all(['id_local', 'nome', 'descricao']);
+            $locais = Local::query()
+                ->selectRaw('id_local, id_local as id, sala_setor, sala_setor as nome, sala_setor as descricao, bloco, andar')
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -35,7 +37,9 @@ class ReferenceApiController extends Controller
     public function getTiposProblema(): JsonResponse
     {
         try {
-            $tipos = TipoProblema::all(['id_tipo', 'nome', 'descricao']);
+            $tipos = TipoProblema::query()
+                ->selectRaw('id_tipo, id_tipo as id, categoria, categoria as nome')
+                ->get();
 
             return response()->json([
                 'success' => true,

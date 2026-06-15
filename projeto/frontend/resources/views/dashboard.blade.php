@@ -86,7 +86,7 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-3 mb-2">
                                             <p class="font-semibold text-gray-800 truncate">
-                                                {{ $chamado->tipoProblema?->nome ?? 'Tipo não especificado' }}
+                                                {{ $chamado->tipoProblema?->categoria ?? '—' }}
                                             </p>
                                             @php
                                                 $statusMap = [
@@ -106,7 +106,7 @@
                                         </p>
                                         <div class="flex flex-wrap gap-4 text-xs text-gray-500">
                                             <span>
-                                                <strong>Local:</strong> {{ $chamado->local->nome ?? '—' }}
+                                                <strong>Local:</strong> {{ $chamado->local?->sala_setor ?? '—' }} {{ $chamado->local?->bloco ? '- Bloco ' . $chamado->local->bloco : '' }}
                                             </span>
                                             <span>
                                                 <strong>Aberto em:</strong> {{ $chamado->data_abertura ? \Carbon\Carbon::parse($chamado->data_abertura)->format('d/m/Y') : '—' }}
@@ -184,16 +184,14 @@
                 </div>
 
                 <!-- Botão de ação -->
-                @unless(auth()->user()->isAluno())
-                    <div class="mt-6">
-                        <a href="{{ route('chamados.create') }}" class="w-full flex items-center justify-center gap-2 bg-senai-red hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-lg transition duration-200 hover:shadow-xl active:scale-95">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Novo Chamado
-                        </a>
-                    </div>
-                @endunless
+                <div class="mt-6">
+                    <a href="{{ route('chamados.create') }}" class="w-full flex items-center justify-center gap-2 bg-senai-red hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-lg transition duration-200 hover:shadow-xl active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Novo Chamado
+                    </a>
+                </div>
             </div>
         </div>
     </main>

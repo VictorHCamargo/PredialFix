@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chamado #{{ $chamado->id_chamado }} – PredialFix</title>
+    <title>Chamado #{{ $chamado->id_chamado }} - PredialFix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -19,35 +19,50 @@
 <body class="flex min-h-screen flex-col bg-gray-50 font-sans">
     <x-navbar />
 
+    @php
+        $user = auth()->user();
+        $podeAlterarStatus = $user->isAdmin() || $user->isEquipeManutencao();
+        // Admin pode editar qualquer um, Técnico só os que criou, Professor os seus em status aberto/em andamento
+        $podeEditar = $user->isAdmin() 
+            || ($user->isTecnico() && $chamado->id_usuario === $user->id_usuario)
+            || ($user->isProfessor() && $chamado->id_usuario === $user->id_usuario && in_array($chamado->status, ['aberto', 'em_andamento']));
+        // Apenas Admins podem cancelar
+        $podeCancelar = $user->isAdmin() && $chamado->status !== 'cancelado';
+        $podeAvaliar = $user->canRateTicket($chamado);
+    @endphp
+
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
-        {{-- Breadcrumb --}}
-        <div class="mb-6">
-            <nav class="text-sm text-gray-600">
-                <a href="{{ route('chamados.index') }}" class="hover:text-gray-800">Chamados</a>
-                <span class="mx-2">/</span>
-                <span class="font-semibold text-gray-800">Chamado #{{ $chamado->id_chamado }}</span>
-            </nav>
+        <div class="mb-6 text-sm text-gray-600">
+            <a href="{{ route('chamados.index') }}" class="hover:text-gray-800">Chamados</a>
+            <span class="mx-2">/</span>
+            <span class="font-semibold text-gray-800">Chamado #{{ $chamado->id_chamado }}</span>
         </div>
 
-        {{-- Alertas --}}
         @if (session('success'))
             <div class="mb-6 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
                 {{ session('success') }}
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="mb-6 rounded border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+                <ul class="list-disc space-y-1 pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {{-- Conteúdo Principal --}}
             <div class="space-y-6 lg:col-span-2">
-                {{-- Card Informações Básicas --}}
                 <div class="rounded-lg bg-white p-6 shadow">
-                    <div class="mb-4 flex items-start justify-between">
+                    <div class="mb-4 flex items-start justify-between gap-4">
                         <div>
-                            <h1 class="mb-2 text-2xl font-bold text-gray-800">
-                                Chamado #{{ $chamado->id_chamado }}
-                            </h1>
-                            <p class="text-gray-600">{{ $chamado->descricao }}</p>
+                            <h1 class="text-2xl font-bold text-gray-800">Chamado #{{ $chamado->id_chamado }}</h1>
+                            <p class="mt-2 text-gray-600">{{ $chamado->descricao }}</p>
                         </div>
+
                         @php
                             $statusColors = [
                                 'aberto' => 'bg-blue-100 text-blue-700',
@@ -56,444 +71,373 @@
                                 'cancelado' => 'bg-red-100 text-red-700',
                             ];
                         @endphp
-                        <span
-                            class="inline-block {{ $statusColors[$chamado->status] ?? '' }} px-4 py-2 rounded-lg font-semibold text-lg"
-                        >
-                            {{
-                                ucfirst(
-                                    str_replace('_', ' ', $chamado->status),
-                                )
-                            }}
+                        <span class="inline-block rounded-lg px-4 py-2 font-semibold {{ $statusColors[$chamado->status] ?? '' }}">
+                            {{ ucfirst(str_replace('_', ' ', $chamado->status)) }}
                         </span>
                     </div>
 
-                    <div class="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
-                            <p class="mb-1 text-xs font-medium text-gray-600">Tipo</p>
-                            <p class="text-sm font-semibold text-gray-800">{{
-                                ucfirst(
-                                    str_replace('_', ' ', $chamado->tipo_chamado),
-                                )
-                            }}</p>
+                            <p class="text-xs font-medium text-gray-500">Abertura</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->data_abertura->format('d/m/Y H:i') }}</p>
                         </div>
-
                         <div>
-                            <p class="mb-1 text-xs font-medium text-gray-600">Aberto em</p>
-                            <p class="text-sm font-semibold text-gray-800">
-                                {{
-                                    $chamado->data_abertura->format(
-                                        'd/m/Y H:i',
-                                    )
-                                }}
-                            </p>
+                            <p class="text-xs font-medium text-gray-500">Local</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->local->sala_setor ?? '—' }} {{ $chamado->local->bloco ? '- Bloco ' . $chamado->local->bloco : '' }}</p>
                         </div>
-
                         <div>
-                            <p class="mb-1 text-xs font-medium text-gray-600">Local</p>
-                            <p class="text-sm font-semibold text-gray-800">
-                                {{ $chamado->local->sala_setor ?? '—' }}
-                                @if ($chamado->local->bloco)
-                                    - Bloco {{ $chamado->local->bloco }}
-                                @endif
-                            </p>
+                            <p class="text-xs font-medium text-gray-500">Prioridade</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->prioridade ? ucfirst($chamado->prioridade) : '—' }}</p>
                         </div>
-
-                        @if ($chamado->prioridade)
-                            <div>
-                                <p class="mb-1 text-xs font-medium text-gray-600">Prioridade</p>
-                                @php
-                                    $priorityColors = [
-                                        'alta' => 'text-red-700',
-                                        'media' => 'text-yellow-700',
-                                        'baixa' => 'text-green-700',
-                                    ];
-                                @endphp
-                                <p
-                                    class="text-sm font-semibold {{ $priorityColors[$chamado->prioridade] ?? '' }}"
-                                >
-                                    {{ ucfirst($chamado->prioridade) }}
-                                </p>
-                            </div>
-                        @endif
                     </div>
                 </div>
 
-                {{-- Card Detalhes Adicionais --}}
                 <div class="rounded-lg bg-white p-6 shadow">
-                    <h2 class="mb-4 text-lg font-semibold text-gray-800">Informações Adicionais</h2>
+                    <h2 class="mb-4 text-lg font-semibold text-gray-800">Solicitante</h2>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500">Nome</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->usuario->nome ?? 'Desconhecido' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500">E-mail</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->usuario->email ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500">ID</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->usuario->id_usuario ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500">Cracha</p>
+                            <p class="font-semibold text-gray-800">{{ $chamado->usuario->cod_entrada ?? '—' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-lg bg-white p-6 shadow">
+                    <h2 class="mb-4 text-lg font-semibold text-gray-800">Informacoes adicionais</h2>
 
                     <div class="space-y-4">
                         <div>
-                            <p class="mb-1 text-xs font-medium text-gray-600">Criado por</p>
-                            <p class="text-sm text-gray-800">{{
-                                $chamado->usuario->nome ??
-                                    'Desconhecido'
-                            }}</p>
+                            <p class="text-xs font-medium text-gray-500">Tipo de problema</p>
+                            <p class="text-gray-800">{{ $chamado->tipoProblema->categoria ?? '—' }}</p>
                         </div>
 
                         <div>
-                            <p class="mb-1 text-xs font-medium text-gray-600">Tipo de Problema</p>
-                            <p class="text-sm text-gray-800">{{
-                                $chamado->tipoProblema->categoria ??
-                                    '—'
-                            }}</p>
+                            <p class="text-xs font-medium text-gray-500">ID de patrimonio</p>
+                            <p class="text-gray-800">{{ $chamado->id_patrimonio ?? '—' }}</p>
                         </div>
 
                         @if ($chamado->equipamento)
                             <div>
-                                <p class="mb-1 text-xs font-medium text-gray-600">Equipamento</p>
-                                <p class="text-sm text-gray-800">{{ $chamado->equipamento->nome ?? '—' }}</p>
+                                <p class="text-xs font-medium text-gray-500">Equipamento</p>
+                                <p class="text-gray-800">{{ $chamado->equipamento->nome ?? '—' }}</p>
                             </div>
                         @endif
 
                         @if ($chamado->status_descricao)
                             <div>
-                                <p class="mb-1 text-xs font-medium text-gray-600">Descrição do Status</p>
-                                <p class="rounded bg-gray-100 p-3 text-sm text-gray-800">{{ $chamado->status_descricao }}</p>
+                                <p class="text-xs font-medium text-gray-500">Descricao do status</p>
+                                <p class="rounded bg-gray-100 p-3 text-gray-800">{{ $chamado->status_descricao }}</p>
                             </div>
                         @endif
 
                         @if ($chamado->data_conclusao)
                             <div>
-                                <p class="mb-1 text-xs font-medium text-gray-600">Concluído em</p>
-                                <p class="text-sm text-gray-800">{{
-                                    $chamado->data_conclusao->format(
-                                        'd/m/Y H:i',
-                                    )
-                                }}</p>
+                                <p class="text-xs font-medium text-gray-500">Concluido em</p>
+                                <p class="text-gray-800">{{ $chamado->data_conclusao->format('d/m/Y H:i') }}</p>
+                            </div>
+                        @endif
+
+                        @if ($chamado->status === 'concluido' && $chamado->nome_tecnico_responsavel)
+                            <div>
+                                <p class="text-xs font-medium text-gray-500">Tecnico responsavel</p>
+                                <p class="text-gray-800">{{ $chamado->nome_tecnico_responsavel }}</p>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                {{-- Histórico de Status --}}
                 <div class="rounded-lg bg-white p-6 shadow">
-                    <h2 class="mb-4 text-lg font-semibold text-gray-800">Histórico de Status</h2>
+                    <h2 class="mb-4 text-lg font-semibold text-gray-800">Historico de status</h2>
 
-                    @if ($chamado->historicoStatus->count() > 0)
-                        <div class="space-y-3">
+                    <div class="mb-4 rounded bg-gray-50 p-3 text-sm text-gray-700">
+                        <span class="font-semibold">Solicitante:</span>
+                        {{ $chamado->usuario->nome ?? 'Desconhecido' }}
+                        | ID: {{ $chamado->usuario->id_usuario ?? '-' }}
+                        | {{ $chamado->usuario->email ?? '-' }}
+                        @if ($chamado->usuario?->cod_entrada)
+                            | Cracha: {{ $chamado->usuario->cod_entrada }}
+                        @endif
+                    </div>
+
+                    @if ($chamado->historicoStatus->count())
+                        <div class="space-y-4">
                             @foreach ($chamado->historicoStatus->reverse() as $historico)
-                                <div class="border-l-4 border-gray-300 py-2 pl-4">
-                                    <div class="mb-1 flex items-start justify-between">
+                                <div class="border-l-4 border-gray-300 pl-4">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
                                         <div>
                                             <p class="text-sm font-semibold text-gray-800">
-                                                {{
-                                                    ucfirst(
-                                                        str_replace('_', ' ', $historico->status_anterior),
-                                                    )
-                                                }}
+                                                {{ ucfirst(str_replace('_', ' ', $historico->status_anterior)) }}
                                                 <span class="text-gray-500">→</span>
-                                                {{
-                                                    ucfirst(
-                                                        str_replace('_', ' ', $historico->status_novo),
-                                                    )
-                                                }}
+                                                {{ ucfirst(str_replace('_', ' ', $historico->status_novo)) }}
                                             </p>
-                                            <p class="text-xs text-gray-600">Por: {{ $historico->usuario->nome ?? 'Desconhecido' }}</p>
+                                            <p class="text-xs text-gray-600">
+                                                Por: {{ $historico->usuario->nome ?? 'Desconhecido' }}
+                                                @if ($historico->usuario)
+                                                    (ID: {{ $historico->usuario->id_usuario }})
+                                                @endif
+                                            </p>
+                                            @if ($historico->usuario?->email)
+                                                <p class="text-xs text-gray-500">{{ $historico->usuario->email }}</p>
+                                            @endif
+                                            @if ($historico->usuario?->cod_entrada)
+                                                <p class="text-xs text-gray-500">Cracha: {{ $historico->usuario->cod_entrada }}</p>
+                                            @endif
                                         </div>
-                                        <p class="text-xs text-gray-500">{{
-                                            $historico->created_at->format(
-                                                'd/m/Y H:i',
-                                            )
-                                        }}</p>
+                                        <p class="text-xs text-gray-500">{{ $historico->created_at->format('d/m/Y H:i') }}</p>
                                     </div>
 
                                     @if ($historico->descricao_mudanca)
-                                        <p class="mt-2 rounded bg-gray-50 p-2 text-sm text-gray-700">
-                                            {{ $historico->descricao_mudanca }}
-                                        </p>
+                                        <p class="mt-2 rounded bg-gray-50 p-3 text-sm text-gray-700">{{ $historico->descricao_mudanca }}</p>
                                     @endif
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <p class="py-4 text-center text-gray-500">Nenhuma mudança de status registrada ainda.</p>
+                        <p class="py-4 text-center text-gray-500">Nenhuma mudanca registrada ainda.</p>
                     @endif
                 </div>
             </div>
 
-            {{-- Sidebar --}}
             <div class="space-y-6">
-                {{-- Card Ações --}}
                 <div class="rounded-lg bg-white p-6 shadow">
-                    <h3 class="mb-4 font-semibold text-gray-800">Ações</h3>
-
+                    <h3 class="mb-4 font-semibold text-gray-800">Acoes</h3>
                     <div class="space-y-2">
-                        {{-- Botão Alterar Status --}}
-                        @if (auth()->check())
-                            <button
-                                onclick="openStatusModal()"
-                                class="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                            >
-                                Alterar Status
+                        @if ($podeAlterarStatus)
+                            <button type="button" onclick="openStatusModal()" class="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                Alterar status
                             </button>
                         @endif
 
-                        {{-- Botão Avaliar --}}
-                        @if (!auth()->user()->isAluno() && $chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada())
-                            <a
-                                href="{{ route('avaliar.create', $chamado->id_chamado) }}"
-                                class="block w-full rounded bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-purple-700"
-                            >
-                                Avaliar Chamado
+                        @if ($podeEditar)
+                            <a href="{{ route('chamados.edit', $chamado->id_chamado) }}" class="block w-full rounded bg-gray-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-gray-700">
+                                Editar chamado
                             </a>
                         @endif
 
-                        {{-- Botão Editar --}}
-                        @if (!auth()->user()->isAluno() && auth()->user()->id_usuario === $chamado->id_usuario && $chamado->status === 'aberto')
-                            <a
-                                href="{{ route('chamados.edit', $chamado->id_chamado) }}"
-                                class="block w-full rounded bg-gray-600 px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-gray-700"
-                            >
-                                Editar Chamado
+                        @if ($podeAvaliar)
+                            <a href="{{ route('avaliar.create', $chamado->id_chamado) }}" class="block w-full rounded bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-purple-700">
+                                Avaliar chamado
                             </a>
                         @endif
 
-                        {{-- Botão Deletar --}}
-                        @if (!auth()->user()->isAluno() && (auth()->user()->id_usuario === $chamado->id_usuario || auth()->user()->isAdmin()))
-                            <button
-                                onclick="openDeleteModal()"
-                                class="w-full rounded bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-                            >
-                                Deletar Chamado
+                        @if ($podeCancelar)
+                            <button type="button" onclick="openCancelModal()" class="w-full rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                                Cancelar chamado
                             </button>
                         @endif
 
-                        <a
-                            href="{{ route('chamados.index') }}"
-                            class="block w-full rounded bg-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-800 transition hover:bg-gray-300"
-                        >
+                        <a href="{{ route('chamados.index') }}" class="block w-full rounded bg-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-800 hover:bg-gray-300">
                             Voltar
                         </a>
                     </div>
                 </div>
 
-                {{-- Card Feedback --}}
                 @if ($chamado->feedback)
                     <div class="rounded-lg bg-white p-6 shadow">
-                        <h3 class="mb-4 font-semibold text-gray-800">Feedback do Cliente</h3>
-
-                        <div class="mb-3">
-                            <p class="mb-1 text-sm text-gray-600">Avaliação:</p>
-                            <div class="flex gap-1">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    <span
-                                        class="text-lg @if($i <= $chamado->feedback->avaliacao) text-yellow-400 @else text-gray-300 @endif"
-                                        >★</span
-                                    >
-                                @endfor
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="mb-1 text-sm text-gray-600">Comentário:</p>
-                            <p class="text-sm text-gray-800">{{ $chamado->feedback->comentario }}</p>
-                        </div>
-
-                        <p class="mt-3 text-xs text-gray-500">
-                            {{
-                                $chamado->feedback->created_at->format(
-                                    'd/m/Y H:i',
-                                )
-                            }}
-                        </p>
+                        <h3 class="mb-4 font-semibold text-gray-800">Feedback</h3>
+                        <p class="text-sm text-gray-600">Avaliacao</p>
+                        <p class="mb-3 text-lg font-semibold text-gray-800">{{ $chamado->feedback->nota }}</p>
+                        <p class="text-sm text-gray-600">Comentario</p>
+                        <p class="text-sm text-gray-800">{{ $chamado->feedback->comentario }}</p>
                     </div>
                 @endif
             </div>
         </div>
     </main>
 
-    {{-- Modal Alterar Status --}}
-    <div
-        id="statusModal"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
-    >
-        <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white shadow-lg">
-            <div class="sticky top-0 border-b border-gray-300 bg-white px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-800">Alterar Status do Chamado</h3>
-                <p class="text-sm text-gray-600">Status atual: <strong>{{
-                    ucfirst(
-                        str_replace('_', ' ', $chamado->status),
-                    )
-                }}</strong></p>
-            </div>
-
-            <form
-                method="POST"
-                action="{{ route('chamados.updateStatus', $chamado->id_chamado) }}"
-                class="space-y-4 p-6"
-            >
-                @csrf
-                @method ('PATCH')
-
-                {{-- Seletor de Status --}}
-                <div>
-                    <label for="status" class="mb-2 block text-sm font-medium text-gray-700"
-                        >Novo Status</label
-                    >
-                    <select
-                        id="status"
-                        name="status"
-                        required
-                        onchange="atualizarCampos()"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                        <option value="">Selecione um status</option>
-                        <option value="aberto">Aberto</option>
-                        <option value="em_andamento">Em Andamento</option>
-                        <option value="concluido">Concluído</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
-                    @error ('status')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+    @if ($podeAlterarStatus)
+        <div id="statusModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-md rounded-lg bg-white shadow-lg">
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Alterar status</h3>
                 </div>
 
-                {{-- Campo Prioridade (aparece ao mudar para em_andamento) --}}
-                <div id="prioridadeContainer" class="hidden">
-                    <label for="prioridade" class="mb-2 block text-sm font-medium text-gray-700"
-                        >Prioridade</label
-                    >
-                    <select
-                        id="prioridade"
-                        name="prioridade"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                        <option value="">Sem prioridade</option>
-                        <option value="baixa">Baixa</option>
-                        <option value="media">Média</option>
-                        <option value="alta">Alta</option>
-                    </select>
-                </div>
-
-                {{-- Campo Descrição --}}
-                <div id="descricaoContainer" class="hidden">
-                    <label
-                        for="status_descricao"
-                        class="mb-2 block text-sm font-medium text-gray-700"
-                        >Descrição</label
-                    >
-                    <textarea
-                        id="status_descricao"
-                        name="status_descricao"
-                        rows="4"
-                        placeholder="Descreva a mudança de status..."
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    ></textarea>
-                    <p id="descricaoRequerida" class="mt-1 hidden text-xs text-red-500">Este campo é obrigatório para este status.</p>
-                    @error ('status_descricao')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="flex gap-3 border-t border-gray-200 pt-4">
-                    <button
-                        type="button"
-                        onclick="closeStatusModal()"
-                        class="flex-1 rounded bg-gray-300 px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-400"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-                    >
-                        Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Modal Deletar --}}
-    <div
-        id="deleteModal"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50 p-4"
-    >
-        <div class="w-full max-w-sm rounded-lg bg-white shadow-lg">
-            <div class="border-b border-gray-300 px-6 py-4">
-                <h3 class="text-lg font-semibold text-red-600">Deletar Chamado?</h3>
-            </div>
-
-            <div class="px-6 py-4">
-                <p class="mb-4 text-gray-600">Você está prestes a deletar o chamado <strong>#{{ $chamado->id_chamado }}</strong>. Esta ação é <strong>irreversível</strong>.</p>
-
-                <form
-                    method="POST"
-                    action="{{ route('chamados.destroy', $chamado->id_chamado) }}"
-                    class="space-y-4"
-                >
+                <form method="POST" action="{{ route('chamados.updateStatus', $chamado->id_chamado) }}" class="space-y-4 px-6 py-5">
                     @csrf
-                    @method ('DELETE')
+                    @method('PATCH')
 
-                    <div class="flex gap-3">
-                        <button
-                            type="button"
-                            onclick="closeDeleteModal()"
-                            class="flex-1 rounded bg-gray-300 px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-400"
-                        >
+                    <div>
+                        <label for="status" class="mb-2 block text-sm font-medium text-gray-700">Novo status</label>
+                        <select id="status" name="status" required onchange="atualizarCampos()" class="w-full rounded border border-gray-300 px-4 py-2 text-sm">
+                            <option value="">Selecione um status</option>
+                            <option value="aberto">Aberto</option>
+                            <option value="em_andamento">Em andamento</option>
+                            <option value="concluido">Concluido</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div id="prioridadeContainer" class="hidden">
+                        <label for="prioridade" class="mb-2 block text-sm font-medium text-gray-700">Prioridade</label>
+                        <select id="prioridade" name="prioridade" class="w-full rounded border border-gray-300 px-4 py-2 text-sm">
+                            <option value="">Sem prioridade</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="media">Media</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+
+                    <div id="descricaoContainer" class="hidden">
+                        <label for="status_descricao" class="mb-2 block text-sm font-medium text-gray-700">Descricao / justificativa</label>
+                        <textarea id="status_descricao" name="status_descricao" rows="4" class="w-full rounded border border-gray-300 px-4 py-2 text-sm" placeholder="Descreva a mudanca de status..."></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Se o status for cancelado, a justificativa deve ter pelo menos 10 caracteres.</p>
+                    </div>
+
+                    <div id="tecnicoResponsavelContainer" class="hidden">
+                        @php
+                            $isAdmin = auth()->user()->isAdmin();
+                            $isTecnico = auth()->user()->isTecnico();
+                        @endphp
+
+                        @if ($isAdmin && $tecnicos->count() > 0)
+                            <label for="id_usuario_responsavel" class="mb-2 block text-sm font-medium text-gray-700">Selecione o tecnico responsavel</label>
+                            <select
+                                id="id_usuario_responsavel"
+                                name="id_usuario_responsavel"
+                                class="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                            >
+                                <option value="">-- Selecione um técnico --</option>
+                                @foreach ($tecnicos as $tecnico)
+                                    <option value="{{ $tecnico->id_usuario }}" {{ old('id_usuario_responsavel') == $tecnico->id_usuario ? 'selected' : '' }}>
+                                        {{ $tecnico->nome }} (ID: {{ $tecnico->id_usuario }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        @elseif ($isTecnico)
+                            <p class="mb-2 block text-sm font-medium text-gray-700">Tecnico responsavel</p>
+                            <div class="rounded border border-green-300 bg-green-50 px-4 py-3">
+                                <p class="text-sm text-gray-800">
+                                    <strong>{{ auth()->user()->nome }}</strong> (você será automaticamente definido como responsável)
+                                </p>
+                            </div>
+                            <!-- Input hidden para enviar o ID do técnico automaticamente -->
+                            <input type="hidden" name="id_usuario_responsavel" value="{{ auth()->user()->id_usuario }}" />
+                        @else
+                            <p class="text-sm text-yellow-700">Você não tem permissão para definir o técnico responsável.</p>
+                        @endif
+                    </div>
+
+                    <div class="flex gap-3 border-t border-gray-200 pt-4">
+                        <button type="button" onclick="closeStatusModal()" class="flex-1 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300">
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-                        >
-                            Deletar
+                        <button type="submit" class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                            Salvar
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
+    @endif
+
+    @if ($podeCancelar)
+        <div id="cancelModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-md rounded-lg bg-white shadow-lg">
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <h3 class="text-lg font-semibold text-red-600">Cancelar chamado</h3>
+                </div>
+
+                <form method="POST" action="{{ route('chamados.destroy', $chamado->id_chamado) }}" class="space-y-4 px-6 py-5">
+                    @csrf
+                    @method('DELETE')
+
+                    <div>
+                        <label for="justificativa_cancelamento" class="mb-2 block text-sm font-medium text-gray-700">Justificativa obrigatoria</label>
+                        <textarea id="justificativa_cancelamento" name="justificativa_cancelamento" rows="5" required minlength="10" class="w-full rounded border border-gray-300 px-4 py-2 text-sm" placeholder="Explique o motivo do cancelamento..."></textarea>
+                    </div>
+
+                    <div class="flex gap-3 border-t border-gray-200 pt-4">
+                        <button type="button" onclick="closeCancelModal()" class="flex-1 rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300">
+                            Voltar
+                        </button>
+                        <button type="submit" class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                            Confirmar cancelamento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     <x-footer />
 
     <script>
         function openStatusModal() {
-            document.getElementById('statusModal').classList.remove('hidden');
+            document.getElementById('statusModal')?.classList.remove('hidden');
+            document.getElementById('statusModal')?.classList.add('flex');
         }
 
         function closeStatusModal() {
-            document.getElementById('statusModal').classList.add('hidden');
+            document.getElementById('statusModal')?.classList.add('hidden');
+            document.getElementById('statusModal')?.classList.remove('flex');
         }
 
-        function openDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('hidden');
+        function openCancelModal() {
+            document.getElementById('cancelModal')?.classList.remove('hidden');
+            document.getElementById('cancelModal')?.classList.add('flex');
         }
 
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.add('hidden');
+        function closeCancelModal() {
+            document.getElementById('cancelModal')?.classList.add('hidden');
+            document.getElementById('cancelModal')?.classList.remove('flex');
         }
 
         function atualizarCampos() {
             const status = document.getElementById('status').value;
             const prioridadeContainer = document.getElementById('prioridadeContainer');
             const descricaoContainer = document.getElementById('descricaoContainer');
-            const descricaoRequerida = document.getElementById('descricaoRequerida');
+            const tecnicoResponsavelContainer = document.getElementById('tecnicoResponsavelContainer');
+            const descricao = document.getElementById('status_descricao');
+            const idUsuarioResponsavel = document.getElementById('id_usuario_responsavel');
 
-            // Resetar visibilidade
             prioridadeContainer.classList.add('hidden');
             descricaoContainer.classList.add('hidden');
-            descricaoRequerida.classList.add('hidden');
+            tecnicoResponsavelContainer.classList.add('hidden');
+            descricao.required = false;
+            descricao.minLength = 0;
+            if (idUsuarioResponsavel) {
+                idUsuarioResponsavel.required = false;
+            }
 
-            // Mostrar campos conforme status
             if (status === 'em_andamento') {
                 prioridadeContainer.classList.remove('hidden');
             }
 
             if (status === 'concluido' || status === 'cancelado') {
                 descricaoContainer.classList.remove('hidden');
-                descricaoRequerida.classList.remove('hidden');
+            }
+
+            if (status === 'cancelado') {
+                descricao.required = true;
+                descricao.minLength = 10;
+            }
+
+            if (status === 'concluido') {
+                tecnicoResponsavelContainer.classList.remove('hidden');
+                if (idUsuarioResponsavel) {
+                    idUsuarioResponsavel.required = true;
+                }
             }
         }
 
-        // Fechar modals ao clicar fora
         document.getElementById('statusModal')?.addEventListener('click', (e) => {
             if (e.target.id === 'statusModal') closeStatusModal();
         });
 
-        document.getElementById('deleteModal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'deleteModal') closeDeleteModal();
+        document.getElementById('cancelModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'cancelModal') closeCancelModal();
         });
     </script>
 </body>

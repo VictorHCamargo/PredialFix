@@ -15,13 +15,13 @@ class TipoProblema {
 
   factory TipoProblema.fromJson(Map<String, dynamic> json) {
     return TipoProblema(
-      id: json['id'] as int,
-      nome: json['nome'] as String,
-      descricao: json['descricao'] as String,
+      id: (json['id'] ?? json['id_tipo']) as int,
+      nome: (json['nome'] ?? json['categoria']) as String,
+      descricao: (json['descricao'] ?? json['categoria']) as String,
       categoria: json['categoria'] as String?,
-      dataCriacao: json['data_criacao'] != null 
-        ? DateTime.parse(json['data_criacao'] as String)
-        : null,
+      dataCriacao: json['data_criacao'] != null
+          ? DateTime.parse(json['data_criacao'] as String)
+          : null,
     );
   }
 

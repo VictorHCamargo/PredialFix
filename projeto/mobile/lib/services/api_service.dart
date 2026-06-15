@@ -13,15 +13,6 @@ class ApiService {
       'cpf': '11111111111',
     },
     {
-      'id': 2,
-      'nome': 'Gerente de Manutenção',
-      'email': 'gerente@predialfix.com',
-      'senha': 'gerente123',
-      'role': 'gerente_manutencao',
-      'telefone': '11988888888',
-      'cpf': '22222222222',
-    },
-    {
       'id': 3,
       'nome': 'Técnico de Manutenção',
       'email': 'tecnico@predialfix.com',
@@ -39,39 +30,12 @@ class ApiService {
       'telefone': '11966666666',
       'cpf': '44444444444',
     },
-    {
-      'id': 5,
-      'nome': 'João Aluno',
-      'email': 'joao@student.com',
-      'senha': 'aluno123',
-      'role': 'aluno',
-      'telefone': '11955555555',
-      'cpf': '55555555555',
-    },
-    {
-      'id': 6,
-      'nome': 'Maria Aluna',
-      'email': 'maria@student.com',
-      'senha': 'aluno123',
-      'role': 'aluno',
-      'telefone': '11944444444',
-      'cpf': '66666666666',
-    },
-    {
-      'id': 7,
-      'nome': 'Pedro Aluno',
-      'email': 'pedro@student.com',
-      'senha': 'aluno123',
-      'role': 'aluno',
-      'telefone': '11933333333',
-      'cpf': '77777777777',
-    },
   ];
 
   static final List<Map<String, dynamic>> _mockChamados = [
     {
       'id': 1,
-      'id_usuario': 5,
+      'id_usuario': 4,
       'descricao': 'Luz queimada na sala 101',
       'id_local': 1,
       'id_tipo': 1,
@@ -83,7 +47,7 @@ class ApiService {
     },
     {
       'id': 2,
-      'id_usuario': 6,
+      'id_usuario': 4,
       'descricao': 'Vazamento no banheiro bloco C',
       'id_local': 5,
       'id_tipo': 2,
@@ -95,7 +59,7 @@ class ApiService {
     },
     {
       'id': 3,
-      'id_usuario': 7,
+      'id_usuario': 4,
       'descricao': 'Ar condicionado desligado na sala de aula',
       'id_local': 2,
       'id_tipo': 3,
@@ -103,6 +67,7 @@ class ApiService {
       'prioridade': 'média',
       'data_abertura': '2024-05-15T09:00:00',
       'data_fechamento': '2024-05-18T16:30:00',
+      'nome_tecnico_responsavel': 'Tecnico de Manutencao',
       'data_prazo': '2024-05-20T18:00:00',
     },
   ];
@@ -520,13 +485,18 @@ class ApiService {
     }
 
     // Cria novo usuário mock
-    final newId = _mockUsers.length + 1;
+    final newId =
+        _mockUsers.fold<int>(
+          0,
+          (max, user) => (user['id'] as int) > max ? user['id'] as int : max,
+        ) +
+        1;
     final newUser = {
       'id': newId,
       'nome': nome,
       'email': email,
       'senha': password,
-      'role': 'aluno',
+      'role': 'professor',
       'telefone': null,
       'cpf': null,
     };
@@ -680,7 +650,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> createChamado(Map<String, dynamic> data) async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
@@ -707,6 +677,7 @@ class ApiService {
       'prioridade': data['prioridade'] ?? 'média',
       'data_abertura': DateTime.now().toIso8601String(),
       'data_fechamento': null,
+      'nome_tecnico_responsavel': data['nome_tecnico_responsavel'],
       'data_prazo': data['data_prazo'],
     };
 
@@ -888,7 +859,7 @@ class ApiService {
   }
 
   Future<List<Map<String, dynamic>>> getTiposProblema() async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 400));
     return _mockTiposProblema.map((t) => Map<String, dynamic>.from(t)).toList();
   }
 
@@ -906,7 +877,7 @@ class ApiService {
   Future<Map<String, dynamic>> createEquipamento(
     Map<String, dynamic> data,
   ) async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
@@ -962,7 +933,7 @@ class ApiService {
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -970,11 +941,11 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> createEstoque(Map<String, dynamic> data) async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -1014,7 +985,7 @@ class ApiService {
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -1039,7 +1010,7 @@ class ApiService {
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -1052,7 +1023,7 @@ class ApiService {
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -1062,7 +1033,7 @@ class ApiService {
   Future<Map<String, dynamic>> createOrcamento(
     Map<String, dynamic> data,
   ) async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 600));
 
     if (_currentUser == null) throw Exception('Usuário não autenticado');
 
@@ -1089,7 +1060,7 @@ class ApiService {
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
-            _currentUser!['role'] != 'gerente_manutencao')) {
+            _currentUser!['role'] != 'tecnico_manutencao')) {
       throw Exception('Acesso negado');
     }
 
@@ -1111,7 +1082,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> addHistorico(Map<String, dynamic> data) async {
-    await _simulateAsync();
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (_currentUser == null) throw Exception('Usuário não autenticado');
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editar Chamado – PredialFix SENAI</title>
+    <title>Editar Chamado - PredialFix SENAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -38,18 +38,12 @@
 <?php unset($__componentOriginala591787d01fe92c5706972626cdf7231); ?>
 <?php endif; ?>
 
-    <!-- Conteúdo -->
-    <main class="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
-        <h1 class="mb-6 text-lg font-semibold text-gray-800">
-            Editar Chamado #<?php echo e($chamado->id_chamado); ?>
-
-        </h1>
+    <main class="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+        <h1 class="mb-6 text-2xl font-bold text-gray-800">Editar chamado #<?php echo e($chamado->id_chamado); ?></h1>
 
         <?php if($errors->any()): ?>
-            <div
-                class="mb-5 rounded border border-red-300 bg-red-100 px-4 py-3 text-xs text-red-700"
-            >
-                <ul class="list-disc space-y-1 pl-4">
+            <div class="mb-5 rounded border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+                <ul class="list-disc space-y-1 pl-5">
                     <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li><?php echo e($error); ?></li>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -57,225 +51,162 @@
             </div>
         <?php endif; ?>
 
-        <form
-            method="POST"
-            action="<?php echo e(route('chamados.update', $chamado->id_chamado)); ?>"
-            enctype="multipart/form-data"
-            class="flex flex-col gap-5"
-        >
+        <form method="POST" action="<?php echo e(route('chamados.update', $chamado->id_chamado)); ?>" class="space-y-5">
             <?php echo csrf_field(); ?>
             <?php echo method_field('PUT'); ?>
 
-            <!-- Descrição do Problema -->
-            <div class="flex flex-col gap-2">
-                <label for="descricao" class="text-sm font-semibold text-gray-800">
-                    Descrição do Problema *
-                </label>
-                <textarea
-                    id="descricao"
-                    name="descricao"
-                    required
-                    placeholder="Descreva em detalhes o problema encontrado"
-                    class="focus:ring-senai-red w-full resize-none rounded border border-gray-400 px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2"
-                    rows="4"
-                    ><?php echo e(old(
-                            'descricao',
-                            $chamado->descricao,
-                        )); ?></textarea
-                >
-                <?php $__errorArgs = ['descricao'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <span class="text-xs text-red-600"><?php echo e($message); ?></span>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
+            <?php if(auth()->user()->isProfessor()): ?>
+                <div class="rounded border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                    Professores podem editar apenas a descricao enquanto o chamado estiver aberto ou em andamento.
+                </div>
 
-            <!-- Tipo de Chamado -->
-            <div class="flex flex-col gap-2">
-                <label for="tipo_chamado" class="text-sm font-semibold text-gray-800">
-                    Tipo de Chamado *
-                </label>
-                <div class="relative w-56">
-                    <select
-                        id="tipo_chamado"
-                        name="tipo_chamado"
+                <div>
+                    <label for="descricao" class="mb-1 block text-sm font-semibold text-gray-800">Descricao</label>
+                    <textarea
+                        id="descricao"
+                        name="descricao"
+                        rows="6"
                         required
-                        class="focus:ring-senai-red w-full cursor-pointer appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2"
-                    >
-                        <option value="" disabled>Selecione</option>
-                        <option
-                            value="interno"
-                            <?php echo e(old('tipo_chamado', $chamado->tipo_chamado) === 'interno'
-                                    ? 'selected'
-                                    : ''); ?>
-
-                            >Interno
-                        </option>
-                        <option
-                            value="externo"
-                            <?php echo e(old('tipo_chamado', $chamado->tipo_chamado) === 'externo'
-                                    ? 'selected'
-                                    : ''); ?>
-
-                            >Externo
-                        </option>
-                    </select>
-                    <span
-                        class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600"
-                        >▼</span
-                    >
+                        class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    ><?php echo e(old('descricao', $chamado->descricao)); ?></textarea>
                 </div>
-                <?php $__errorArgs = ['tipo_chamado'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <span class="text-xs text-red-600"><?php echo e($message); ?></span>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
+            <?php else: ?>
+                <input type="hidden" name="tipo_chamado" value="interno" />
 
-            <!-- Tipo de Incidente -->
-            <div class="flex flex-col gap-2">
-                <label for="id_tipo" class="text-sm font-semibold text-gray-800">
-                    Tipo de Incidente:
-                </label>
-                <div class="relative w-56">
-                    <select
-                        id="id_tipo"
-                        name="id_tipo"
+                <div>
+                    <label for="descricao" class="mb-1 block text-sm font-semibold text-gray-800">Descricao</label>
+                    <textarea
+                        id="descricao"
+                        name="descricao"
+                        rows="5"
                         required
-                        class="focus:ring-senai-red w-full cursor-pointer appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2"
-                    >
-                        <option value="" disabled>Selecione</option>
-                        <?php $__currentLoopData = $tipos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tipo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <option
-                                value="<?php echo e($tipo->id_tipo); ?>"
-                                <?php echo e(old('id_tipo', $chamado->id_tipo) == $tipo->id_tipo
-                                        ? 'selected'
-                                        : ''); ?>
-
-                            >
-                                <?php echo e($tipo->categoria); ?>
-
-                            </option>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </select>
-                    <span
-                        class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600"
-                        >▼</span
-                    >
+                        class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    ><?php echo e(old('descricao', $chamado->descricao)); ?></textarea>
                 </div>
-            </div>
 
-            <!-- Local -->
-            <div class="flex flex-col gap-2">
-                <label for="id_local" class="text-sm font-semibold text-gray-800"> Local </label>
-                <div class="relative w-56">
-                    <select
-                        id="id_local"
-                        name="id_local"
-                        required
-                        class="focus:ring-senai-red w-full cursor-pointer appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2"
-                    >
-                        <option value="" disabled>Selecione</option>
-                        <?php $__currentLoopData = $locais; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $local): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <option
-                                value="<?php echo e($local->id_local); ?>"
-                                <?php echo e(old('id_local', $chamado->id_local) == $local->id_local
-                                        ? 'selected'
-                                        : ''); ?>
-
-                            >
-                                <?php echo e($local->sala_setor); ?> - Bloco <?php echo e($local->bloco); ?>
-
-                            </option>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </select>
-                    <span
-                        class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600"
-                        >▼</span
-                    >
+                <div>
+                    <label for="id_patrimonio" class="mb-1 block text-sm font-semibold text-gray-800">ID de patrimonio</label>
+                    <input
+                        id="id_patrimonio"
+                        type="text"
+                        name="id_patrimonio"
+                        value="<?php echo e(old('id_patrimonio', $chamado->id_patrimonio)); ?>"
+                        class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
                 </div>
-            </div>
 
-            <!-- Equipamento -->
-            <div class="flex flex-col gap-2">
-                <label for="id_equipamento" class="text-sm font-semibold text-gray-800">
-                    Equipamento
-                </label>
-                <div class="relative w-56">
-                    <select
-                        id="id_equipamento"
-                        name="id_equipamento"
-                        class="focus:ring-senai-red w-full cursor-pointer appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 text-sm text-gray-700 focus:outline-none focus:ring-2"
-                    >
-                        <option value="">Selecione</option>
-                        <?php $__currentLoopData = $equipamentos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <option
-                                value="<?php echo e($equipamento->id_equipamento); ?>"
-                                <?php echo e(old('id_equipamento', $chamado->id_equipamento) ==
-                                    $equipamento->id_equipamento
-                                        ? 'selected'
-                                        : ''); ?>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <label for="id_tipo" class="mb-1 block text-sm font-semibold text-gray-800">Tipo de incidente</label>
+                        <select id="id_tipo" name="id_tipo" required class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <?php $__currentLoopData = $tipos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tipo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($tipo->id_tipo); ?>" <?php if(old('id_tipo', $chamado->id_tipo) == $tipo->id_tipo): echo 'selected'; endif; ?>>
+                                    <?php echo e($tipo->categoria); ?>
 
-                            >
-                                <?php echo e($equipamento->nome); ?>
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
 
-                            </option>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </select>
-                    <span
-                        class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600"
-                        >▼</span
-                    >
+                    <div>
+                        <label for="id_local" class="mb-1 block text-sm font-semibold text-gray-800">Local</label>
+                        <select id="id_local" name="id_local" required class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <?php $__currentLoopData = $locais; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $local): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($local->id_local); ?>" <?php if(old('id_local', $chamado->id_local) == $local->id_local): echo 'selected'; endif; ?>>
+                                    <?php echo e($local->sala_setor); ?> - Bloco <?php echo e($local->bloco); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="id_equipamento" class="mb-1 block text-sm font-semibold text-gray-800">Equipamento</label>
+                        <select id="id_equipamento" name="id_equipamento" class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Nenhum</option>
+                            <?php $__currentLoopData = $equipamentos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $equipamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($equipamento->id_equipamento); ?>" <?php if(old('id_equipamento', $chamado->id_equipamento) == $equipamento->id_equipamento): echo 'selected'; endif; ?>>
+                                    <?php echo e($equipamento->nome); ?>
+
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="secao_tecnica" class="mb-1 block text-sm font-semibold text-gray-800">Seccao tecnica</label>
+                        <select id="secao_tecnica" name="secao_tecnica" class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Selecione</option>
+                            <option value="eletrica" <?php if(old('secao_tecnica', $chamado->secao_tecnica) === 'eletrica'): echo 'selected'; endif; ?>>Eletrica</option>
+                            <option value="hidraulica" <?php if(old('secao_tecnica', $chamado->secao_tecnica) === 'hidraulica'): echo 'selected'; endif; ?>>Hidraulica</option>
+                            <option value="civil" <?php if(old('secao_tecnica', $chamado->secao_tecnica) === 'civil'): echo 'selected'; endif; ?>>Civil</option>
+                            <option value="mecanica" <?php if(old('secao_tecnica', $chamado->secao_tecnica) === 'mecanica'): echo 'selected'; endif; ?>>Mecanica</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="prioridade" class="mb-1 block text-sm font-semibold text-gray-800">Prioridade</label>
+                        <select id="prioridade" name="prioridade" class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Sem prioridade</option>
+                            <option value="baixa" <?php if(old('prioridade', $chamado->prioridade) === 'baixa'): echo 'selected'; endif; ?>>Baixa</option>
+                            <option value="media" <?php if(old('prioridade', $chamado->prioridade) === 'media'): echo 'selected'; endif; ?>>Media</option>
+                            <option value="alta" <?php if(old('prioridade', $chamado->prioridade) === 'alta'): echo 'selected'; endif; ?>>Alta</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="complexidade" class="mb-1 block text-sm font-semibold text-gray-800">Complexidade</label>
+                        <select id="complexidade" name="complexidade" class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Selecione</option>
+                            <option value="simples" <?php if(old('complexidade', $chamado->complexidade) === 'simples'): echo 'selected'; endif; ?>>Simples</option>
+                            <option value="media" <?php if(old('complexidade', $chamado->complexidade) === 'media'): echo 'selected'; endif; ?>>Media</option>
+                            <option value="complexa" <?php if(old('complexidade', $chamado->complexidade) === 'complexa'): echo 'selected'; endif; ?>>Complexa</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="tipo_trabalho" class="mb-1 block text-sm font-semibold text-gray-800">Tipo de trabalho</label>
+                        <select id="tipo_trabalho" name="tipo_trabalho" class="w-full rounded border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <option value="">Selecione</option>
+                            <option value="preventiva" <?php if(old('tipo_trabalho', $chamado->tipo_trabalho) === 'preventiva'): echo 'selected'; endif; ?>>Preventiva</option>
+                            <option value="corretiva" <?php if(old('tipo_trabalho', $chamado->tipo_trabalho) === 'corretiva'): echo 'selected'; endif; ?>>Corretiva</option>
+                            <option value="melhoria" <?php if(old('tipo_trabalho', $chamado->tipo_trabalho) === 'melhoria'): echo 'selected'; endif; ?>>Melhoria</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
 
-            <!-- Botões -->
-            <div class="flex gap-3 pt-3">
-                <button
-                    type="submit"
-                    class="bg-senai-red focus:ring-senai-red rounded px-8 py-3 text-sm font-bold text-white transition duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95"
-                >
-                    Salvar Alterações
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="rounded bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-700">
+                    Salvar alteracoes
                 </button>
-                <a
-                    href="<?php echo e(route('chamados.show', $chamado->id_chamado)); ?>"
-                    class="rounded bg-gray-600 px-8 py-3 text-sm font-bold text-white transition duration-200 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 active:scale-95"
-                >
+                <a href="<?php echo e(route('chamados.show', $chamado->id_chamado)); ?>" class="rounded border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                     Cancelar
                 </a>
             </div>
         </form>
     </main>
 
-    <!-- Rodapé -->
-    <footer class="bg-senai-red mt-8">
-        <div class="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-6 py-8 md:grid-cols-2">
-            <div class="text-white">
-                <h3 class="mb-3 text-sm font-bold uppercase tracking-wide">Edifício Sede FIESP</h3>
-                <p class="text-sm leading-relaxed text-red-100">Av. Paulista, 1313, São Paulo/SP<br />CEP 01311-923</p>
-            </div>
-            <div class="text-white">
-                <h3 class="mb-3 text-sm font-bold uppercase tracking-wide">
-                    Central de Relacionamento
-                </h3>
-                <p class="text-sm leading-relaxed text-red-100">(11) 3322-0050 (Telefone/WhatsApp)<br />
-                0800-055-1000 (Interior de SP,<br />somente telefone fixo)</p>
-            </div>
-        </div>
-        <div class="bg-red-900 py-3 text-center text-xs text-red-200">
-            Copyright 2026 &copy; Todos os direitos reservados.
-        </div>
-    </footer>
+    <?php if (isset($component)) { $__componentOriginal8a8716efb3c62a45938aca52e78e0322 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal8a8716efb3c62a45938aca52e78e0322 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.footer','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('footer'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal8a8716efb3c62a45938aca52e78e0322)): ?>
+<?php $attributes = $__attributesOriginal8a8716efb3c62a45938aca52e78e0322; ?>
+<?php unset($__attributesOriginal8a8716efb3c62a45938aca52e78e0322); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal8a8716efb3c62a45938aca52e78e0322)): ?>
+<?php $component = $__componentOriginal8a8716efb3c62a45938aca52e78e0322; ?>
+<?php unset($__componentOriginal8a8716efb3c62a45938aca52e78e0322); ?>
+<?php endif; ?>
 </body>
 </html>
 <?php /**PATH C:\laragon\www\PredialFix\projeto\frontend\resources\views/chamados/edit.blade.php ENDPATH**/ ?>

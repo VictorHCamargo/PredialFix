@@ -880,20 +880,48 @@ class _ManageScreenState extends State<ManageScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_errorMessage!, textAlign: TextAlign.center),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: _loadChamados,
-                          child: const Text('Tentar novamente'),
-                        ),
-                      ],
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Estatísticas
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          _buildStatCard(
+                            title: 'Total',
+                            value: '${_chamados.length}',
+                            icon: Icons.list_alt,
+                            color: AppTheme.primaryColor,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Em Andamento',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'em_andamento').length}',
+                            icon: Icons.hourglass_bottom,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Concluídos',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'concluido').length}',
+                            icon: Icons.check_circle,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            title: 'Pendentes',
+                            value:
+                                '${_chamados.where((c) => c.status.toLowerCase() == 'pendente').length}',
+                            icon: Icons.pending_actions,
+                            color: Colors.red,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 )
@@ -1097,8 +1125,20 @@ class _ManageScreenState extends State<ManageScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
+                    ),
+                    if (chamado.status.toLowerCase() == 'concluido' &&
+                        chamado.nomeTecnicoResponsavel != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Tecnico: ${chamado.nomeTecnicoResponsavel}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 8),
                 _buildStatusChip(chamado),

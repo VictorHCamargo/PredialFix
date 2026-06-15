@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [ChamadoApiController::class, 'store']);          // Criar
         Route::get('/{id}', [ChamadoApiController::class, 'show']);        // Ver detalhes
         Route::put('/{id}', [ChamadoApiController::class, 'update']);      // Atualizar
-        Route::delete('/{id}', [ChamadoApiController::class, 'destroy']);  // Deletar
+        Route::delete('/{id}', [ChamadoApiController::class, 'destroy']);  // Cancelar
         Route::patch('/{id}/status', [ChamadoApiController::class, 'updateStatus']); // Alterar status
     });
 

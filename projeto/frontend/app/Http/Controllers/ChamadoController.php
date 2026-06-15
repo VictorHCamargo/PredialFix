@@ -2,61 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Helpers\NotificacaoHelper;
 use App\Models\Chamado;
-use App\Models\Local;
-use App\Models\TipoProblema;
 use App\Models\Equipamento;
 use App\Models\HistoricoStatusChamado;
+use App\Models\Local;
+use App\Models\TipoProblema;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ChamadoController extends Controller {
     use AuthorizesRequests;
-    /**
-     * Mostrar lista de chamados com filtros e paginação
-     */
+
     public function index(Request $request) {
-        $query = Chamado::with(['usuario', 'local', 'tipoProblema']);
+        $query = Chamado::with(['usuario', 'local', 'tipoProblema', 'feedback']);
         $user = Auth::user();
 
-        // Filtrar por status se fornecido
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filtrar por tipo de chamado se fornecido
-        if ($request->filled('tipo_chamado')) {
-            $query->where('tipo_chamado', $request->tipo_chamado);
-        }
-
-        // Filtrar por prioridade se fornecido
         if ($request->filled('prioridade')) {
             $query->where('prioridade', $request->prioridade);
         }
 
-        // Usuários sem código de entrada veem apenas seus próprios chamados
-        $user = Auth::user();
-        if (!$user->cod_entrada) {
+        if (!$user->canViewAllTickets()) {
             $query->where('id_usuario', $user->id_usuario);
         }
 
-        // Ordenar por prioridade (maior primeiro) e depois por data
         $chamados = $query
             ->orderByRaw(
                 "CASE WHEN prioridade='alta' THEN 1 WHEN prioridade='media' THEN 2 WHEN prioridade='baixa' THEN 3 ELSE 4 END",
             )
             ->orderBy('data_abertura', 'desc')
-            ->paginate(10); // 10 chamados por página
+            ->paginate(10);
 
         $filtros = [
             'status' => $request->status ?? '',
-            'tipo_chamado' => $request->tipo_chamado ?? '',
             'prioridade' => $request->prioridade ?? '',
         ];
 
-        // Contar chamados por status para os cards de estatísticas
         $statusCounts = [
             'em_andamento' => Chamado::where('status', 'em_andamento')->count(),
             'concluido' => Chamado::where('status', 'concluido')->count(),
@@ -69,17 +56,11 @@ class ChamadoController extends Controller {
     public function create() {
         /** @var User $user */
         $user = Auth::user();
-        
-        // Alunos não podem criar chamados
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.index')->withErrors(
-                ['create' => 'Alunos não podem criar chamados. Entre em contato com a equipe de manutenção.']
-            );
-        }
-        
+
         $locais = Local::all();
         $tipos = TipoProblema::all();
         $equipamentos = Equipamento::where('status', 'ativo')->get();
+
         return view('chamados.create', compact('locais', 'tipos', 'equipamentos'));
     }
 
@@ -87,39 +68,68 @@ class ChamadoController extends Controller {
         /** @var User $user */
         $user = $request->user();
 
-        // Alunos não podem criar chamados
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.index')->withErrors(
-                ['create' => 'Alunos não podem criar chamados.']
-            );
-        }
-
-        // Validação completa para usuários autorizados
         $data = $request->validate([
             'descricao' => 'required|string',
-            'tipo_chamado' => 'required|in:interno,externo',
+            'id_patrimonio' => 'nullable|string|max:100',
+            'tipo_chamado' => 'nullable|in:interno',
             'prioridade' => 'nullable|in:baixa,media,alta',
             'id_local' => 'required|exists:locais,id_local',
             'id_tipo' => 'required|exists:tipo_problemas,id_tipo',
             'id_equipamento' => 'nullable|exists:equipamentos,id_equipamento',
-            'secao_tecnica' => 'nullable|string',
-            'complexidade' => 'nullable|string',
-            'tipo_trabalho' => 'nullable|string',
+            'secao_tecnica' => 'nullable|in:eletrica,hidraulica,civil,mecanica',
+            'complexidade' => 'nullable|in:simples,media,complexa',
+            'tipo_trabalho' => 'nullable|in:preventiva,corretiva,melhoria',
         ]);
 
+        $data['tipo_chamado'] = 'interno';
         $data['id_usuario'] = $user->id_usuario;
         $data['status'] = 'aberto';
         $data['data_abertura'] = now();
         $data['data_ultimo_status'] = now();
 
-        Chamado::create($data);
+        if (!$user->isAdmin() && !$user->isEquipeManutencao()) {
+            unset($data['prioridade'], $data['secao_tecnica'], $data['complexidade'], $data['tipo_trabalho']);
+        }
+
+        $idPatrimonio = trim((string) ($data['id_patrimonio'] ?? ''));
+        if ($idPatrimonio !== '') {
+            $chamadoExistente = Chamado::where('id_patrimonio', $idPatrimonio)
+                ->whereIn('status', ['aberto', 'em_andamento'])
+                ->first();
+
+            if ($chamadoExistente && !$request->boolean('confirmar_duplicado')) {
+                return back()
+                    ->withInput()
+                    ->with('alerta_duplicado', $chamadoExistente->id_chamado)
+                    ->withErrors([
+                        'id_patrimonio' => 'Ja existe um chamado ativo para este patrimonio.',
+                    ]);
+            }
+        }
+
+        $data['id_patrimonio'] = $idPatrimonio !== '' ? $idPatrimonio : null;
+
+        $chamado = Chamado::create($data);
+
+        HistoricoStatusChamado::create([
+            'id_chamado' => $chamado->id_chamado,
+            'status_anterior' => 'aberto',
+            'status_novo' => 'aberto',
+            'descricao_mudanca' => 'Chamado criado por ' . $user->nome,
+            'id_usuario' => $user->id_usuario,
+            'prioridade' => $chamado->prioridade,
+        ]);
+
+        NotificacaoHelper::disparar(
+            'Novo chamado #' . $chamado->id_chamado . ' aberto por ' . $user->nome . '.',
+            'criacao',
+            $chamado->id_chamado,
+            NotificacaoHelper::obterDestinatarios('criacao', $chamado, $user),
+        );
 
         return redirect()->route('chamados.index')->with('success', 'Chamado criado com sucesso!');
     }
 
-    /**
-     * Mostrar detalhes de um chamado
-     */
     public function show(string $id) {
         $chamado = Chamado::with([
             'usuario',
@@ -131,30 +141,23 @@ class ChamadoController extends Controller {
             'historicoStatus.usuario',
         ])->findOrFail($id);
 
-        return view('chamados.show', compact('chamado'));
+        /** @var User $user */
+        $user = Auth::user();
+        $tecnicos = $user->isAdmin() ? User::where('nivel_acesso', 'tecnico_manutencao')->get() : collect([]);
+
+        return view('chamados.show', compact('chamado', 'tecnicos'));
     }
 
-    /**
-     * Exibir formulário de edição de um chamado
-     */
     public function edit(string $id) {
         /** @var User $user */
         $user = Auth::user();
-        
-        // Alunos não podem editar chamados
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.show', $id)->withErrors(
-                ['edit' => 'Alunos não podem editar chamados.']
-            );
-        }
-        
+
         $chamado = Chamado::findOrFail($id);
 
-        // Apenas o criador do chamado pode editar (e apenas se estiver aberto)
-        if ($chamado->id_usuario !== $user->id_usuario || $chamado->status !== 'aberto') {
-            return redirect()
-                ->route('chamados.show', $id)
-                ->withErrors(['edit' => 'Você não pode editar este chamado.']);
+        if (!$user->canEditTicket($chamado)) {
+            return redirect()->route('chamados.show', $id)->withErrors([
+                'edit' => 'Voce nao pode editar este chamado.',
+            ]);
         }
 
         $locais = Local::all();
@@ -164,180 +167,323 @@ class ChamadoController extends Controller {
         return view('chamados.edit', compact('chamado', 'locais', 'tipos', 'equipamentos'));
     }
 
-    /**
-     * Atualizar status do chamado com validações baseadas no nível de acesso
-     */
     public function updateStatus(Request $request, string $id) {
         $chamado = Chamado::findOrFail($id);
         /** @var User $user */
         $user = Auth::user();
 
-        // Alunos não podem alterar status
-        if ($user->isAluno()) {
+        if ($user->isProfessor()) {
             return back()->withErrors([
-                'status' => 'Alunos não têm permissão para alterar o status de chamados.',
+                'status' => 'Seu nivel de acesso nao permite alterar o status do chamado.',
             ]);
         }
 
-        $request->validate([
+        if ($request->filled('nomeTecnicoResponsavel') && !$request->filled('nome_tecnico_responsavel')) {
+            $request->merge([
+                'nome_tecnico_responsavel' => $request->input('nomeTecnicoResponsavel'),
+            ]);
+        }
+
+        $rules = [
             'status' => 'required|in:aberto,em_andamento,concluido,cancelado',
             'status_descricao' => 'nullable|string',
             'prioridade' => 'nullable|in:baixa,media,alta',
-        ]);
+        ];
+
+        // Se admin, pode escolher técnico via select; se técnico, é obrigatório mas preenchido automaticamente
+        if ($user->isAdmin()) {
+            $rules['id_usuario_responsavel'] = 'required_if:status,concluido|nullable|exists:usuarios,id_usuario';
+        } else if ($user->isTecnico()) {
+            $rules['id_usuario_responsavel'] = 'required_if:status,concluido';
+        }
+
+        // Manter compatibilidade com campo antigo
+        $rules['nome_tecnico_responsavel'] = 'nullable|string|min:3|max:100';
+
+        $request->validate($rules);
 
         $novoStatus = $request->status;
         $statusAtual = $chamado->status;
-        $descricao = $request->status_descricao;
+        $descricao = trim((string) $request->status_descricao);
+        $responsavelAnterior = $chamado->id_usuario_responsavel;
 
-        // Validar transições de status
         if (!$this->validarTransicaoStatus($user, $statusAtual, $novoStatus)) {
             return back()->withErrors([
-                'status' => 'Você não tem permissão para realizar esta alteração de status.',
+                'status' => 'Voce nao tem permissao para realizar esta alteracao de status.',
             ]);
         }
 
-        // Validar descrição obrigatória para certas transições
-        if ($novoStatus === 'concluido' && empty($descricao)) {
+        if ($novoStatus === 'cancelado' && mb_strlen($descricao) < 10) {
             return back()->withErrors([
-                'status_descricao' => 'Descrição obrigatória ao concluir um chamado.',
+                'status_descricao' => 'A justificativa de cancelamento precisa ter pelo menos 10 caracteres.',
             ]);
         }
 
-        if ($novoStatus === 'cancelado' && empty($descricao)) {
-            return back()->withErrors([
-                'status_descricao' => 'Descrição obrigatória ao cancelar um chamado.',
-            ]);
-        }
-
-        // Validar prioridade apenas na transição para em_andamento
         if ($novoStatus === 'em_andamento' && $request->filled('prioridade')) {
             $chamado->prioridade = $request->prioridade;
         }
 
-        // Atualizar dados do chamado
         $chamado->status = $novoStatus;
-        $chamado->status_descricao = $descricao;
-        $chamado->id_usuario_responsavel = $user->id_usuario;
-        $chamado->data_ultimo_status = now();
+        $chamado->status_descricao = $descricao !== '' ? $descricao : null;
 
+        // Definir responsável baseado no tipo de usuário
         if ($novoStatus === 'concluido') {
-            $chamado->data_conclusao = now();
+            if ($user->isAdmin() && $request->filled('id_usuario_responsavel')) {
+                // Admin selecionou um técnico via select
+                $chamado->id_usuario_responsavel = $request->id_usuario_responsavel;
+                $tecnicoSelecionado = User::find($request->id_usuario_responsavel);
+                $chamado->nome_tecnico_responsavel = $tecnicoSelecionado->nome ?? null;
+            } elseif ($user->isTecnico()) {
+                // Técnico auto-preenche seu próprio ID
+                $chamado->id_usuario_responsavel = $user->id_usuario;
+                $chamado->nome_tecnico_responsavel = $user->nome;
+            }
+        } else {
+            $chamado->id_usuario_responsavel = null;
+            $chamado->nome_tecnico_responsavel = null;
+        }
+        $chamado->data_ultimo_status = now();
+        $chamado->data_conclusao = $novoStatus === 'concluido' ? now() : null;
+
+        if ($novoStatus === 'cancelado') {
+            $chamado->data_conclusao = null;
+            $chamado->nome_tecnico_responsavel = null;
         }
 
         $chamado->save();
 
-        // Registrar no histórico
         HistoricoStatusChamado::create([
             'id_chamado' => $chamado->id_chamado,
             'status_anterior' => $statusAtual,
             'status_novo' => $novoStatus,
-            'descricao_mudanca' => $descricao,
+            'descricao_mudanca' => $descricao !== ''
+                ? $descricao
+                : 'Status alterado de ' . $statusAtual . ' para ' . $novoStatus,
             'id_usuario' => $user->id_usuario,
-            'prioridade' => $request->prioridade ?? null,
+            'prioridade' => $request->filled('prioridade') ? $request->prioridade : null,
         ]);
 
-        return redirect()
-            ->route('chamados.show', $id)
-            ->with('success', 'Status atualizado com sucesso!');
-    }
+        $tipoNotificacao = $novoStatus === 'cancelado' ? 'cancelamento' : 'status';
+        $destinatarios = NotificacaoHelper::obterDestinatarios($tipoNotificacao, $chamado, $user);
+        $mensagem = 'Chamado #' . $chamado->id_chamado . ' teve o status alterado para ' . str_replace('_', ' ', $novoStatus) . '.';
 
-    /**
-     * Validar transições de status baseadas no nível de acesso
-     */
-    private function validarTransicaoStatus($user, $statusAtual, $novoStatus) {
-        // Alunos não podem alterar status
-        if ($user->isAluno()) {
-            return false;
+        if ($novoStatus === 'cancelado' && $descricao !== '') {
+            $mensagem = 'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $descricao;
         }
 
-        // Admin pode fazer qualquer transição
-        if ($user->isAdmin()) {
-            return true;
+        NotificacaoHelper::disparar($mensagem, $tipoNotificacao, $chamado->id_chamado, $destinatarios);
+
+        if ($responsavelAnterior !== $chamado->id_usuario_responsavel) {
+            NotificacaoHelper::disparar(
+                'Responsavel definido para o chamado #' . $chamado->id_chamado . '.',
+                'atribuicao',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('atribuicao', $chamado, $user),
+            );
         }
 
-        // De aberto para em_andamento: apenas gerente ou admin
-        if ($statusAtual === 'aberto' && $novoStatus === 'em_andamento') {
-            return $user->isGerenteManutenacao() || $user->isAdmin();
-        }
-
-        // De em_andamento para concluído: qualquer um pode
-        if ($statusAtual === 'em_andamento' && $novoStatus === 'concluido') {
-            return true;
-        }
-
-        // Para cancelado: apenas equipe de manutenção ou admin
-        if ($novoStatus === 'cancelado') {
-            return $user->isEquipeManutenacao() || $user->isAdmin();
-        }
-
-        return false;
+        return redirect()->route('chamados.show', $id)->with('success', 'Status atualizado com sucesso!');
     }
 
     public function update(Request $request, string $id) {
+        /** @var User $user */
         $user = $request->user();
-        
-        // Alunos não podem editar chamados
-        if ($user->isAluno()) {
-            return redirect()->route('chamados.show', $id)->withErrors(
-                ['edit' => 'Alunos não podem editar chamados.']
-            );
-        }
-        
+
         $chamado = Chamado::findOrFail($id);
 
-        // Verificar permissão para editar
         if (!$user->canEditTicket($chamado)) {
-            return redirect()
-                ->route('chamados.show', $id)
-                ->withErrors(['edit' => 'Você não pode editar este chamado.']);
+            return redirect()->route('chamados.show', $id)->withErrors([
+                'edit' => 'Voce nao pode editar este chamado.',
+            ]);
         }
 
-        // Validação completa
+        if ($user->isProfessor()) {
+            $data = $request->validate([
+                'descricao' => 'required|string',
+            ]);
+
+            $chamado->update($data);
+
+            HistoricoStatusChamado::create([
+                'id_chamado' => $chamado->id_chamado,
+                'status_anterior' => $chamado->status,
+                'status_novo' => $chamado->status,
+                'descricao_mudanca' => 'Descricao editada pelo professor: ' . $user->nome,
+                'id_usuario' => $user->id_usuario,
+            ]);
+
+            NotificacaoHelper::disparar(
+                'Chamado #' . $chamado->id_chamado . ' foi atualizado por ' . $user->nome . '.',
+                'edicao',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('edicao', $chamado, $user),
+            );
+
+            return redirect()->route('chamados.show', $id)->with('success', 'Chamado atualizado.');
+        }
+
         $data = $request->validate([
             'descricao' => 'required|string',
-            'tipo_chamado' => 'required|in:interno,externo',
+            'id_patrimonio' => 'nullable|string|max:100',
+            'tipo_chamado' => 'nullable|in:interno',
             'id_local' => 'required|exists:locais,id_local',
             'id_tipo' => 'required|exists:tipo_problemas,id_tipo',
             'id_equipamento' => 'nullable|exists:equipamentos,id_equipamento',
+            'prioridade' => 'nullable|in:baixa,media,alta',
+            'secao_tecnica' => 'nullable|in:eletrica,hidraulica,civil,mecanica',
+            'complexidade' => 'nullable|in:simples,media,complexa',
+            'tipo_trabalho' => 'nullable|in:preventiva,corretiva,melhoria',
+        ]);
+
+        $data['tipo_chamado'] = 'interno';
+        $data['id_patrimonio'] = isset($data['id_patrimonio']) ? trim((string) $data['id_patrimonio']) : null;
+        if ($data['id_patrimonio'] === '') {
+            $data['id_patrimonio'] = null;
+        }
+
+        $original = $chamado->only([
+            'descricao',
+            'id_patrimonio',
+            'tipo_chamado',
+            'id_local',
+            'id_tipo',
+            'id_equipamento',
+            'prioridade',
+            'secao_tecnica',
+            'complexidade',
+            'tipo_trabalho',
         ]);
 
         $chamado->update($data);
-        return redirect()
-            ->route('chamados.show', $id)
-            ->with('success', 'Chamado atualizado com sucesso!');
+
+        $mudancas = [];
+        foreach ($original as $campo => $valorAnterior) {
+            if ($chamado->$campo != $valorAnterior) {
+                $mudancas[] = $campo;
+            }
+        }
+
+        $descricaoMudanca = $mudancas
+            ? 'Campos alterados: ' . implode(', ', $mudancas) . '.'
+            : 'Chamado atualizado por ' . $user->nome . '.';
+
+        HistoricoStatusChamado::create([
+            'id_chamado' => $chamado->id_chamado,
+            'status_anterior' => $chamado->status,
+            'status_novo' => $chamado->status,
+            'descricao_mudanca' => $descricaoMudanca,
+            'id_usuario' => $user->id_usuario,
+            'prioridade' => $chamado->prioridade,
+        ]);
+
+        if (in_array('prioridade', $mudancas, true)) {
+            NotificacaoHelper::disparar(
+                'Prioridade do chamado #' . $chamado->id_chamado . ' foi alterada para ' . ucfirst((string) $chamado->prioridade) . '.',
+                'prioridade',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('prioridade', $chamado, $user),
+            );
+        }
+
+        if (in_array('complexidade', $mudancas, true)) {
+            NotificacaoHelper::disparar(
+                'Complexidade do chamado #' . $chamado->id_chamado . ' foi atualizada.',
+                'complexidade',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('complexidade', $chamado, $user),
+            );
+        }
+
+        if (!empty(array_diff($mudancas, ['prioridade', 'complexidade']))) {
+            NotificacaoHelper::disparar(
+                'Chamado #' . $chamado->id_chamado . ' foi atualizado.',
+                'edicao',
+                $chamado->id_chamado,
+                NotificacaoHelper::obterDestinatarios('edicao', $chamado, $user),
+            );
+        }
+
+        return redirect()->route('chamados.show', $id)->with('success', 'Chamado atualizado com sucesso!');
     }
 
-    public function destroy(string $id) {
+    public function destroy(Request $request, string $id) {
         /** @var User $user */
         $user = Auth::user();
-        
         $chamado = Chamado::findOrFail($id);
 
-        // Alunos não podem deletar
-        if ($user->isAluno()) {
+        // Apenas Admins podem cancelar chamados
+        if (!$user->isAdmin()) {
             return back()->withErrors([
-                'delete' => 'Alunos não podem deletar chamados.',
+                'delete' => 'Apenas administradores podem cancelar chamados.',
             ]);
         }
 
-        // Verificar permissão para deletar
-        if (!$this->authorize('delete', $chamado)) {
+        if ($chamado->status === 'cancelado') {
             return back()->withErrors([
-                'delete' => 'Você não tem permissão para deletar este chamado.',
+                'delete' => 'Este chamado ja esta cancelado.',
             ]);
         }
 
-        // Deletar histórico associado
-        HistoricoStatusChamado::where('id_chamado', $id)->delete();
+        $request->validate([
+            'justificativa_cancelamento' => 'required|string|min:10',
+        ]);
 
-        // Deletar feedback associado se existir
-        if ($chamado->feedback) {
-            $chamado->feedback->delete();
+        $this->cancelarChamado($chamado, $request->justificativa_cancelamento, $user);
+
+        return redirect()->route('chamados.index')->with('success', 'Chamado cancelado com justificativa registrada.');
+    }
+
+    private function cancelarChamado(Chamado $chamado, string $justificativa, User $user): void {
+        $statusAnterior = $chamado->status;
+
+        $chamado->status = 'cancelado';
+        $chamado->status_descricao = $justificativa;
+        $chamado->data_ultimo_status = now();
+        $chamado->data_conclusao = null;
+        $chamado->nome_tecnico_responsavel = null;
+        $chamado->id_usuario_responsavel = $user->id_usuario;
+        $chamado->save();
+
+        HistoricoStatusChamado::create([
+            'id_chamado' => $chamado->id_chamado,
+            'status_anterior' => $statusAnterior,
+            'status_novo' => 'cancelado',
+            'descricao_mudanca' => $justificativa,
+            'id_usuario' => $user->id_usuario,
+        ]);
+
+        NotificacaoHelper::disparar(
+            'Chamado #' . $chamado->id_chamado . ' foi cancelado: ' . $justificativa,
+            'cancelamento',
+            $chamado->id_chamado,
+            NotificacaoHelper::obterDestinatarios('cancelamento', $chamado, $user),
+        );
+    }
+
+    private function validarTransicaoStatus(User $user, string $statusAtual, string $novoStatus): bool {
+        if ($user->isAdmin()) {
+            return true; // Admins podem fazer qualquer alteração de status
         }
 
-        $chamado->delete();
-        return redirect()
-            ->route('chamados.index')
-            ->with('success', 'Chamado deletado com sucesso!');
+        if (!$user->isEquipeManutencao()) {
+            return false; // Apenas Admins e Técnicos podem alterar status
+        }
+
+        // Técnicos NÃO podem alterar status de chamados cancelados
+        if ($statusAtual === 'cancelado') {
+            return false;
+        }
+
+        // Técnicos NÃO podem cancelar chamados
+        if ($novoStatus === 'cancelado') {
+            return false;
+        }
+
+        // Técnicos podem alterar para 'em andamento' ou 'concluído' de qualquer status (exceto cancelado)
+        if ($novoStatus === 'em_andamento' || $novoStatus === 'concluido') {
+            return true;
+        }
+
+        return false;
     }
 }

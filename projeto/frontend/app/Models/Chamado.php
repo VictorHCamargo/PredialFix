@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chamado extends Model {
     protected $primaryKey = 'id_chamado';
+
     protected $fillable = [
         'descricao',
         'prioridade',
@@ -21,7 +22,9 @@ class Chamado extends Model {
         'complexidade',
         'tipo_trabalho',
         'tipo_chamado',
+        'id_patrimonio',
         'status_descricao',
+        'nome_tecnico_responsavel',
         'data_ultimo_status',
     ];
 
@@ -53,6 +56,18 @@ class Chamado extends Model {
 
     public function feedback() {
         return $this->hasOne(Feedback::class, 'id_chamado');
+    }
+
+    public function podeSerAvaliado(): bool {
+        if ($this->status !== 'concluido') {
+            return false;
+        }
+
+        if ($this->relationLoaded('feedback')) {
+            return $this->feedback === null;
+        }
+
+        return !$this->feedback()->exists();
     }
 
     public function historicoStatus() {

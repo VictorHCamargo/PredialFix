@@ -67,7 +67,7 @@ class AuthApiController extends Controller
             'nome' => 'required|string|max:255',
             'email' => 'required|email|unique:usuarios,email',
             'password' => 'required|string|min:6|confirmed',
-            'nivel_acesso' => 'nullable|in:professor,aluno,visitante',
+            'nivel_acesso' => 'nullable|in:professor',
             'setor' => 'nullable|string',
         ]);
 
@@ -76,7 +76,7 @@ class AuthApiController extends Controller
                 'nome' => $validated['nome'],
                 'email' => $validated['email'],
                 'senha' => Hash::make($validated['password']),
-                'nivel_acesso' => $validated['nivel_acesso'] ?? 'aluno',
+                'nivel_acesso' => $validated['nivel_acesso'] ?? 'professor',
                 'setor' => $validated['setor'] ?? null,
                 'ativo' => true,
             ]);
