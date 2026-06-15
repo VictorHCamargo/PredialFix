@@ -93,14 +93,6 @@ class ChamadoPolicy
      */
     public function rate(User $user, Chamado $chamado): bool
     {
-        if ($user->isProfessor()) {
-            return true;
-        }
-
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        return false;
+        return $chamado->podeSerAvaliado();
     }
 }

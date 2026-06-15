@@ -70,11 +70,19 @@ class User extends Authenticatable {
         ]);
     }
 
+    public function canViewAllTickets() {
+        return $this->isAdmin()
+            || $this->isEquipeManutencao()
+            || $this->isProfessor()
+            || $this->temCodigoEntrada();
+    }
+
     public function canRateTickets() {
-        return in_array($this->nivel_acesso, [
-            'professor',
-            'administrador',
-        ]);
+        return true;
+    }
+
+    public function canRateTicket(Chamado $chamado) {
+        return $chamado->podeSerAvaliado();
     }
 
     public function canEditTicket(Chamado $chamado) {

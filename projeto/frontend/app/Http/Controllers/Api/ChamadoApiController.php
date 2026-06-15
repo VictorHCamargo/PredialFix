@@ -15,7 +15,7 @@ class ChamadoApiController extends Controller {
         $user = $request->user();
         $query = Chamado::query()->with(['local', 'tipoProblema', 'usuario', 'usuarioResponsavel']);
 
-        if (!$user->cod_entrada) {
+        if (!$user->canViewAllTickets()) {
             $query->where('id_usuario', $user->id_usuario);
         }
 
@@ -59,7 +59,7 @@ class ChamadoApiController extends Controller {
             ], 404);
         }
 
-        if (!$user->cod_entrada && $chamado->id_usuario !== $user->id_usuario) {
+        if (!$user->canViewAllTickets() && $chamado->id_usuario !== $user->id_usuario) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sem permissao para acessar este chamado',

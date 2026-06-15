@@ -47,6 +47,7 @@
             || ($user->isProfessor() && $chamado->id_usuario === $user->id_usuario && in_array($chamado->status, ['aberto', 'em_andamento']));
         // Apenas Admins podem cancelar
         $podeCancelar = $user->isAdmin() && $chamado->status !== 'cancelado';
+        $podeAvaliar = $user->canRateTicket($chamado);
     ?>
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
@@ -253,7 +254,7 @@
                             </a>
                         <?php endif; ?>
 
-                        <?php if($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada()): ?>
+                        <?php if($podeAvaliar): ?>
                             <a href="<?php echo e(route('avaliar.create', $chamado->id_chamado)); ?>" class="block w-full rounded bg-purple-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-purple-700">
                                 Avaliar chamado
                             </a>

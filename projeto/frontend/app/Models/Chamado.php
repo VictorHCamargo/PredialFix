@@ -58,6 +58,18 @@ class Chamado extends Model {
         return $this->hasOne(Feedback::class, 'id_chamado');
     }
 
+    public function podeSerAvaliado(): bool {
+        if ($this->status !== 'concluido') {
+            return false;
+        }
+
+        if ($this->relationLoaded('feedback')) {
+            return $this->feedback === null;
+        }
+
+        return !$this->feedback()->exists();
+    }
+
     public function historicoStatus() {
         return $this->hasMany(HistoricoStatusChamado::class, 'id_chamado');
     }

@@ -204,7 +204,7 @@
                                             Ver
                                         </a>
 
-                                        <?php if($chamado->status === 'concluido' && !$chamado->feedback && auth()->user()->temCodigoEntrada()): ?>
+                                        <?php if(auth()->user()->canRateTicket($chamado)): ?>
                                             <a href="<?php echo e(route('avaliar.create', $chamado->id_chamado)); ?>" class="rounded bg-purple-600 px-3 py-1 font-semibold text-white hover:bg-purple-700">
                                                 Avaliar
                                             </a>

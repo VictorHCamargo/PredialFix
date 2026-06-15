@@ -53,6 +53,15 @@
                 </div>
             <?php endif; ?>
 
+            <?php if(session('info')): ?>
+                <div
+                    class="mb-6 rounded border border-blue-400 bg-blue-100 px-4 py-3 text-blue-700"
+                >
+                    <?php echo e(session('info')); ?>
+
+                </div>
+            <?php endif; ?>
+
             <!-- SEÇÃO 1: CRIAR NOVA AVALIAÇÃO -->
             <div class="mb-8 rounded bg-white p-6 shadow">
                 <h2 class="mb-6 text-lg font-semibold text-gray-800">Criar Nova Avaliação</h2>
@@ -82,11 +91,11 @@
                             required
                             class="focus:ring-senai-red w-full rounded border border-gray-400 px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2"
                         >
-                            <option value="" disabled selected>
+                            <option value="" disabled <?php if(!old('id_chamado')): echo 'selected'; endif; ?>>
                                 -- Escolha um chamado concluído --
                             </option>
                             <?php $__currentLoopData = $chamadosParaAvaliar; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $chamado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <option value="<?php echo e($chamado->id_chamado); ?>">
+                                <option value="<?php echo e($chamado->id_chamado); ?>" <?php if(old('id_chamado') == $chamado->id_chamado): echo 'selected'; endif; ?>>
                                     <?php echo e($chamado->tipoProblema->categoria); ?> - <?php echo e($chamado->descricao); ?>
 
                                 </option>

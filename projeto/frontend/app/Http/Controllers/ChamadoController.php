@@ -17,7 +17,7 @@ class ChamadoController extends Controller {
     use AuthorizesRequests;
 
     public function index(Request $request) {
-        $query = Chamado::with(['usuario', 'local', 'tipoProblema']);
+        $query = Chamado::with(['usuario', 'local', 'tipoProblema', 'feedback']);
         $user = Auth::user();
 
         if ($request->filled('status')) {
@@ -28,7 +28,7 @@ class ChamadoController extends Controller {
             $query->where('prioridade', $request->prioridade);
         }
 
-        if (!$user->cod_entrada) {
+        if (!$user->canViewAllTickets()) {
             $query->where('id_usuario', $user->id_usuario);
         }
 

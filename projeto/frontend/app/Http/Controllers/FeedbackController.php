@@ -22,17 +22,17 @@ class FeedbackController extends Controller {
     }
 
     public function create(string $id) {
-        $chamado = Chamado::with(['tipoProblema', 'local', 'usuario'])->findOrFail($id);
+        $chamado = Chamado::with(['tipoProblema', 'local', 'usuario', 'feedback'])->findOrFail($id);
 
         if ($chamado->feedback) {
             return redirect()
-                ->route('chamados.index')
+                ->route('avaliar.index')
                 ->with('info', 'Este chamado ja foi avaliado.');
         }
 
         if ($chamado->status !== 'concluido') {
             return redirect()
-                ->route('chamados.index')
+                ->route('avaliar.index')
                 ->with('info', 'Apenas chamados concluidos podem ser avaliados.');
         }
 
@@ -46,8 +46,20 @@ class FeedbackController extends Controller {
             'comentario' => 'nullable|string|max:1000',
         ]);
 
-        if (Feedback::where('id_chamado', $data['id_chamado'])->exists()) {
-            return redirect()->back()->with('error', 'Este chamado ja foi avaliado.');
+        $chamado = Chamado::with('feedback')->findOrFail($data['id_chamado']);
+
+        if ($chamado->feedback) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['id_chamado' => 'Este chamado ja foi avaliado.']);
+        }
+
+        if ($chamado->status !== 'concluido') {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors(['id_chamado' => 'Apenas chamados concluidos podem ser avaliados.']);
         }
 
         $data['data_feedback'] = now()->toDateString();
@@ -55,7 +67,7 @@ class FeedbackController extends Controller {
         Feedback::create($data);
 
         return redirect()
-            ->route('chamados.index')
+            ->route('chamados.show', $chamado->id_chamado)
             ->with('success', 'Avaliacao registrada com sucesso!');
     }
 }
