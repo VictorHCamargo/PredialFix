@@ -13,19 +13,37 @@ class AppDrawer extends StatefulWidget {
 
 class _AppDrawerState extends State<AppDrawer> {
   User? _user;
+  bool _loaded = false;
+
+  bool get _canUseAdmin {
+    final role = _user?.role;
+    return role == 'administrador' ||
+        role == 'gerente_manutencao' ||
+        role == 'tecnico_manutencao';
+  }
+
+  bool get _canEvaluate {
+    return _user != null && _user!.role != 'aluno';
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _loadUser();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_loaded) {
+      _loaded = true;
+      _loadUser();
+    }
   }
 
   Future<void> _loadUser() async {
     final authService = context.read<AuthService>();
-    final user = await authService.getCurrentUser();
-    setState(() {
-      _user = user;
-    });
+    try {
+      final user = await authService.getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+      });
+    } catch (_) {}
   }
 
   @override
@@ -65,10 +83,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   const SizedBox(height: 4),
                   Text(
                     _user?.email ?? '',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -102,22 +117,24 @@ class _AppDrawerState extends State<AppDrawer> {
                       Navigator.pushNamed(context, '/manage');
                     },
                   ),
-                  _buildDrawerItem(
-                    icon: Icons.admin_panel_settings,
-                    title: 'Painel Admin',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/admin');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    icon: Icons.star,
-                    title: 'Avaliar',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/ratings');
-                    },
-                  ),
+                  if (_canUseAdmin)
+                    _buildDrawerItem(
+                      icon: Icons.admin_panel_settings,
+                      title: 'Painel Admin',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/admin');
+                      },
+                    ),
+                  if (_canEvaluate)
+                    _buildDrawerItem(
+                      icon: Icons.star,
+                      title: 'Avaliar',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/ratings');
+                      },
+                    ),
                   _buildDrawerItem(
                     icon: Icons.support_agent,
                     title: 'Suporte',
@@ -162,10 +179,7 @@ class _AppDrawerState extends State<AppDrawer> {
     bool isRed = false,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isRed ? Colors.red : AppTheme.primaryColor,
-      ),
+      leading: Icon(icon, color: isRed ? Colors.red : AppTheme.primaryColor),
       title: Text(
         title,
         style: TextStyle(

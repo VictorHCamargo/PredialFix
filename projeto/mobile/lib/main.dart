@@ -23,93 +23,199 @@ import 'services/equipamento_service.dart';
 import 'services/estoque_service.dart';
 import 'services/orcamento_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize StorageService
-  final storageService = StorageService();
-  await storageService.init();
-  
-  runApp(MyApp(storageService: storageService));
+  runApp(const AppInitializer());
 }
 
-class MyApp extends StatefulWidget {
-  final StorageService storageService;
-
-  const MyApp({required this.storageService, super.key});
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<AppInitializer> createState() => _AppInitializerState();
 }
 
-class _MyAppState extends State<MyApp> {
-  late ApiService _apiService;
-  late AuthService _authService;
-  String _initialRoute = '/login';
-  bool _isLoading = true;
+class _AppInitializerState extends State<AppInitializer> {
+  Future<AppBootstrap>? _bootstrapFuture;
 
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _bootstrapFuture = _initializeApp();
+      });
+    });
   }
 
-  Future<void> _initializeApp() async {
-    _apiService = ApiService();
-    _authService = AuthService(
-      apiService: _apiService,
-      storageService: widget.storageService,
+  Future<AppBootstrap> _initializeApp() async {
+    final storageService = StorageService();
+    await storageService.init().timeout(const Duration(seconds: 5));
+
+    final apiService = ApiService();
+    final authService = AuthService(
+      apiService: apiService,
+      storageService: storageService,
     );
 
-    // Try to restore session
-    final isAuthenticated = await _authService.restoreSession();
-    
-    setState(() {
-      _initialRoute = isAuthenticated ? '/home' : '/login';
-      _isLoading = false;
-    });
+    final isAuthenticated = await authService.restoreSession().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => false,
+    );
+
+    return AppBootstrap(
+      storageService: storageService,
+      apiService: apiService,
+      authService: authService,
+      initialRoute: isAuthenticated ? '/home' : '/login',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
+    return FutureBuilder<AppBootstrap>(
+      future: _bootstrapFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return MyApp(bootstrap: snapshot.data!);
+        }
+
+        if (snapshot.hasError) {
+          return MaterialApp(
+            title: 'PredialFix',
+            theme: AppTheme.appTheme,
+            home: Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Erro ao iniciar o aplicativo',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _bootstrapFuture = _initializeApp();
+                          });
+                        },
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return MaterialApp(
+          title: 'PredialFix',
+          theme: AppTheme.appTheme,
+          home: const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           ),
-        ),
-      );
+        );
+      },
+    );
+  }
+}
+
+class AppBootstrap {
+  final StorageService storageService;
+  final ApiService apiService;
+  final AuthService authService;
+  final String initialRoute;
+
+  const AppBootstrap({
+    required this.storageService,
+    required this.apiService,
+    required this.authService,
+    required this.initialRoute,
+  });
+}
+
+class MyApp extends StatelessWidget {
+  final AppBootstrap bootstrap;
+
+  factory MyApp({
+    AppBootstrap? bootstrap,
+    StorageService? storageService,
+    Key? key,
+  }) {
+    if (bootstrap != null) {
+      return MyApp._(bootstrap: bootstrap, key: key);
     }
 
+    if (storageService == null) {
+      throw ArgumentError('bootstrap ou storageService deve ser informado');
+    }
+
+    final apiService = ApiService();
+    return MyApp._(
+      key: key,
+      bootstrap: AppBootstrap(
+        storageService: storageService,
+        apiService: apiService,
+        authService: AuthService(
+          apiService: apiService,
+          storageService: storageService,
+        ),
+        initialRoute: '/login',
+      ),
+    );
+  }
+
+  const MyApp._({required this.bootstrap, super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<ApiService>(create: (_) => _apiService),
-        Provider<StorageService>(create: (_) => widget.storageService),
-        Provider<AuthService>(create: (_) => _authService),
+        Provider<ApiService>.value(value: bootstrap.apiService),
+        Provider<StorageService>.value(value: bootstrap.storageService),
+        Provider<AuthService>.value(value: bootstrap.authService),
         Provider<ChamadoService>(
-          create: (context) => ChamadoService(apiService: _apiService),
+          create: (context) => ChamadoService(apiService: bootstrap.apiService),
         ),
         Provider<ReferenceService>(
-          create: (context) => ReferenceService(apiService: _apiService),
+          create: (context) =>
+              ReferenceService(apiService: bootstrap.apiService),
         ),
         Provider<FeedbackService>(
-          create: (context) => FeedbackService(apiService: _apiService),
+          create: (context) =>
+              FeedbackService(apiService: bootstrap.apiService),
         ),
         Provider<EquipamentoService>(
-          create: (context) => EquipamentoService(apiService: _apiService),
+          create: (context) =>
+              EquipamentoService(apiService: bootstrap.apiService),
         ),
         Provider<EstoqueService>(
-          create: (context) => EstoqueService(apiService: _apiService),
+          create: (context) => EstoqueService(apiService: bootstrap.apiService),
         ),
         Provider<OrcamentoService>(
-          create: (context) => OrcamentoService(apiService: _apiService),
+          create: (context) =>
+              OrcamentoService(apiService: bootstrap.apiService),
         ),
       ],
       child: MaterialApp(
         title: 'PredialFix',
         theme: AppTheme.appTheme,
-        initialRoute: _initialRoute,
+        initialRoute: bootstrap.initialRoute,
         routes: {
           '/': (context) => const LoginScreen(),
           '/login': (context) => const LoginScreen(),

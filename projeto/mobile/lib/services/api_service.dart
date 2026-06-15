@@ -1,4 +1,4 @@
-/// ApiService com dados MOCK (local, sem servidor)
+﻿/// ApiService com dados MOCK (local, sem servidor)
 /// O app funciona completamente offline com dados de exemplo
 class ApiService {
   // Mock data - simula um servidor local
@@ -306,14 +306,130 @@ class ApiService {
     },
   ];
 
+  static final List<Map<String, dynamic>> _mockFeedbacks = [
+    {
+      'id': 1,
+      'id_chamado': 3,
+      'id_usuario': 4,
+      'classificacao': 5,
+      'comentario': 'Atendimento concluído com rapidez.',
+      'data_criacao': '2024-05-19T10:00:00',
+    },
+  ];
+
   String? _token;
   Map<String, dynamic>? _currentUser;
 
   ApiService();
 
+  static const Set<String> _rolesComVisaoGeral = {
+    'administrador',
+    'gerente_manutencao',
+    'tecnico_manutencao',
+    'professor',
+  };
+
+  static const Set<String> _rolesComAlteracaoStatus = {
+    'administrador',
+    'gerente_manutencao',
+    'tecnico_manutencao',
+  };
+
+  bool get _podeVerTodosChamados {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComVisaoGeral.contains(role);
+  }
+
+  bool get _podeAlterarStatus {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComAlteracaoStatus.contains(role);
+  }
+
+  bool get _podeGerenciarEquipamentos {
+    final role = _currentUser?['role'] as String?;
+    return role != null && _rolesComAlteracaoStatus.contains(role);
+  }
+
+  bool _chamadoEstaAberto(Map<String, dynamic> chamado) {
+    final status = (chamado['status'] as String? ?? '').toLowerCase();
+    return status == 'pendente' || status == 'aberto';
+  }
+
+  bool _usuarioDonoChamado(Map<String, dynamic> chamado) {
+    return chamado['id_usuario'] == _currentUser?['id'];
+  }
+
+  bool _podeEditarChamado(Map<String, dynamic> chamado) {
+    final role = _currentUser?['role'] as String?;
+    if (role == 'administrador') return true;
+    if (role == null || role == 'aluno') return false;
+    return _usuarioDonoChamado(chamado) && _chamadoEstaAberto(chamado);
+  }
+
+  bool _podeExcluirChamado(Map<String, dynamic> chamado) {
+    final role = _currentUser?['role'] as String?;
+    if (role == 'administrador') return true;
+    if (role == 'professor') {
+      return _usuarioDonoChamado(chamado) && _chamadoEstaAberto(chamado);
+    }
+    return false;
+  }
+
+  Map<String, dynamic> _semSenha(Map<String, dynamic> user) {
+    return Map<String, dynamic>.from(user)..remove('senha');
+  }
+
+  Map<String, dynamic> _chamadoComRelacionamentos(
+    Map<String, dynamic> chamado,
+  ) {
+    final enriched = Map<String, dynamic>.from(chamado);
+
+    final local = _mockLocais.firstWhere(
+      (item) => item['id'] == chamado['id_local'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (local.isNotEmpty) {
+      enriched['local'] = Map<String, dynamic>.from(local);
+    }
+
+    final tipoProblema = _mockTiposProblema.firstWhere(
+      (item) => item['id'] == chamado['id_tipo'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (tipoProblema.isNotEmpty) {
+      enriched['tipo_problema'] = Map<String, dynamic>.from(tipoProblema);
+    }
+
+    final equipamento = _mockEquipamentos.firstWhere(
+      (item) => item['id'] == chamado['id_equipamento'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (equipamento.isNotEmpty) {
+      enriched['equipamento'] = Map<String, dynamic>.from(equipamento);
+    }
+
+    final usuario = _mockUsers.firstWhere(
+      (item) => item['id'] == chamado['id_usuario'],
+      orElse: () => <String, dynamic>{},
+    );
+    if (usuario.isNotEmpty) {
+      enriched['usuario'] = _semSenha(usuario);
+    }
+
+    return enriched;
+  }
+
+  Future<void> _simulateAsync() async {
+    await Future.microtask(() {});
+  }
+
   // Token management
   void setToken(String token) {
     _token = token;
+  }
+
+  void setCurrentUser(Map<String, dynamic> user) {
+    _currentUser = _semSenha(user);
   }
 
   void clearToken() {
@@ -328,7 +444,7 @@ class ApiService {
   // Authentication methods
   Future<Map<String, dynamic>> login(String email, String password) async {
     // Simula delay de requisição
-    await Future.delayed(const Duration(milliseconds: 800));
+    await _simulateAsync();
 
     // Procura o usuário nos dados mock
     final userMap = _mockUsers.firstWhere(
@@ -344,7 +460,7 @@ class ApiService {
     final token =
         'mock_token_${userMap['id']}_${DateTime.now().millisecondsSinceEpoch}';
     _token = token;
-    _currentUser = Map.from(userMap)..remove('senha'); // Remove senha
+    _currentUser = _semSenha(userMap);
 
     return {'token': token, 'user': _currentUser};
   }
@@ -356,7 +472,7 @@ class ApiService {
     String passwordConfirmation,
   ) async {
     // Simula delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    await _simulateAsync();
 
     // Valida campos
     if (password != passwordConfirmation) {
@@ -393,13 +509,13 @@ class ApiService {
 
   Future<void> logout() async {
     // Simula delay
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _simulateAsync();
     clearToken();
   }
 
   // User methods
   Future<Map<String, dynamic>> getCurrentUser() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
@@ -408,25 +524,110 @@ class ApiService {
     return {'user': _currentUser};
   }
 
-  // Chamado methods
-  Future<List<Map<String, dynamic>>> getChamados() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+  Future<Map<String, dynamic>> updateCurrentUser(
+    Map<String, dynamic> data,
+  ) async {
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
     }
 
     final userId = _currentUser!['id'];
+    final index = _mockUsers.indexWhere((u) => u['id'] == userId);
+    if (index == -1) {
+      throw Exception('Usuário não encontrado');
+    }
 
-    // Filtra chamados do usuário
-    return _mockChamados
-        .where((c) => c['id_usuario'] == userId)
-        .map((c) => Map<String, dynamic>.from(c))
+    final email = data['email'] as String?;
+    if (email != null &&
+        _mockUsers.any((u) => u['id'] != userId && u['email'] == email)) {
+      throw Exception('Email já cadastrado');
+    }
+
+    _mockUsers[index].addAll({
+      if (data.containsKey('nome')) 'nome': data['nome'],
+      if (data.containsKey('email')) 'email': data['email'],
+      if (data.containsKey('telefone')) 'telefone': data['telefone'],
+      if (data.containsKey('cpf')) 'cpf': data['cpf'],
+    });
+
+    _currentUser = _semSenha(_mockUsers[index]);
+    return {'user': _currentUser};
+  }
+
+  Future<void> updatePassword(
+    String currentPassword,
+    String newPassword,
+    String confirmation,
+  ) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    if (newPassword != confirmation) {
+      throw Exception('As senhas não conferem');
+    }
+
+    if (newPassword.length < 8) {
+      throw Exception('A nova senha deve ter no mínimo 8 caracteres');
+    }
+
+    final index = _mockUsers.indexWhere((u) => u['id'] == _currentUser!['id']);
+    if (index == -1 || _mockUsers[index]['senha'] != currentPassword) {
+      throw Exception('Senha atual incorreta');
+    }
+
+    _mockUsers[index]['senha'] = newPassword;
+  }
+
+  Future<void> deleteCurrentUser(String password) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final userId = _currentUser!['id'];
+    final index = _mockUsers.indexWhere((u) => u['id'] == userId);
+    if (index == -1 || _mockUsers[index]['senha'] != password) {
+      throw Exception('Senha incorreta');
+    }
+
+    _mockUsers.removeAt(index);
+    _mockChamados.removeWhere((c) => c['id_usuario'] == userId);
+    _mockFeedbacks.removeWhere((f) => f['id_usuario'] == userId);
+    clearToken();
+  }
+
+  // Chamado methods
+  Future<List<Map<String, dynamic>>> getChamados() async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final userId = _currentUser!['id'];
+    final chamados = (_podeVerTodosChamados
+            ? _mockChamados
+            : _mockChamados.where((c) => c['id_usuario'] == userId))
+        .map(_chamadoComRelacionamentos)
         .toList();
+
+    chamados.sort((a, b) {
+      final dataA = DateTime.tryParse(a['data_abertura'] as String? ?? '');
+      final dataB = DateTime.tryParse(b['data_abertura'] as String? ?? '');
+      return (dataB ?? DateTime(0)).compareTo(dataA ?? DateTime(0));
+    });
+
+    return chamados;
   }
 
   Future<Map<String, dynamic>> getChamado(int id) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
@@ -441,7 +642,11 @@ class ApiService {
       throw Exception('Chamado não encontrado');
     }
 
-    return Map<String, dynamic>.from(chamado);
+    if (!_podeVerTodosChamados && chamado['id_usuario'] != _currentUser!['id']) {
+      throw Exception('Acesso negado');
+    }
+
+    return _chamadoComRelacionamentos(chamado);
   }
 
   Future<Map<String, dynamic>> createChamado(Map<String, dynamic> data) async {
@@ -463,6 +668,11 @@ class ApiService {
       'descricao': data['descricao'],
       'id_local': data['id_local'],
       'id_tipo': data['id_tipo'],
+      'id_equipamento': data['id_equipamento'],
+      'tipo_chamado': data['tipo_chamado'] ?? 'interno',
+      'secao_tecnica': data['secao_tecnica'],
+      'complexidade': data['complexidade'],
+      'tipo_trabalho': data['tipo_trabalho'],
       'status': 'pendente',
       'prioridade': data['prioridade'] ?? 'média',
       'data_abertura': DateTime.now().toIso8601String(),
@@ -473,14 +683,14 @@ class ApiService {
 
     _mockChamados.add(newChamado);
 
-    return Map<String, dynamic>.from(newChamado);
+    return _chamadoComRelacionamentos(newChamado);
   }
 
   Future<Map<String, dynamic>> updateChamado(
     int id,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
@@ -491,57 +701,160 @@ class ApiService {
       throw Exception('Chamado não encontrado');
     }
 
+    final isStatusUpdate = data.containsKey('status');
+    if (isStatusUpdate && !_podeAlterarStatus) {
+      throw Exception('Acesso negado');
+    }
+
+    if (!isStatusUpdate && !_podeEditarChamado(_mockChamados[index])) {
+      throw Exception('Acesso negado');
+    }
+
+    final statusAnterior = _mockChamados[index]['status'];
+
     // Atualiza chamado
     _mockChamados[index].addAll(data);
 
-    return Map<String, dynamic>.from(_mockChamados[index]);
+    if (data.containsKey('status') && data['status'] != statusAnterior) {
+      if (data['status'] == 'concluido') {
+        _mockChamados[index]['data_fechamento'] = DateTime.now()
+            .toIso8601String();
+      } else {
+        _mockChamados[index]['data_fechamento'] = null;
+      }
+    }
+
+    return _chamadoComRelacionamentos(_mockChamados[index]);
   }
 
   Future<void> deleteChamado(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
     }
 
-    _mockChamados.removeWhere((c) => c['id'] == id);
+    final index = _mockChamados.indexWhere((c) => c['id'] == id);
+    if (index == -1) {
+      throw Exception('Chamado não encontrado');
+    }
+
+    if (!_podeExcluirChamado(_mockChamados[index])) {
+      throw Exception('Acesso negado');
+    }
+
+    _mockChamados.removeAt(index);
   }
 
   // Feedback methods
   Future<List<Map<String, dynamic>>> getFeedbacks() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
     }
 
-    // Retorna lista vazia de feedbacks (apenas estrutura)
-    return [];
+    return _mockFeedbacks.map((f) => Map<String, dynamic>.from(f)).toList();
   }
 
   Future<Map<String, dynamic>> createFeedback(
     int idChamado,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    await _simulateAsync();
 
     if (_currentUser == null) {
       throw Exception('Usuário não autenticado');
     }
 
-    return {
-      'id': 1,
+    if (_currentUser!['role'] == 'aluno') {
+      throw Exception('Acesso negado');
+    }
+
+    final chamado = _mockChamados.firstWhere(
+      (c) => c['id'] == idChamado,
+      orElse: () => <String, dynamic>{},
+    );
+    if (chamado.isEmpty || chamado['status'] != 'concluido') {
+      throw Exception('Apenas chamados concluídos podem ser avaliados');
+    }
+
+    if (_mockFeedbacks.any((f) => f['id_chamado'] == idChamado)) {
+      throw Exception('Este chamado já foi avaliado');
+    }
+
+    final newId =
+        _mockFeedbacks
+            .fold<int>(0, (max, f) => f['id'] > max ? f['id'] : max)
+            .toInt() +
+        1;
+    final feedback = {
+      'id': newId,
       'id_chamado': idChamado,
       'id_usuario': _currentUser!['id'],
       'classificacao': data['avaliacao'],
       'comentario': data['comentario'],
       'data_criacao': DateTime.now().toIso8601String(),
     };
+
+    _mockFeedbacks.add(feedback);
+    return Map<String, dynamic>.from(feedback);
+  }
+
+  Future<Map<String, dynamic>> updateFeedback(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final index = _mockFeedbacks.indexWhere((f) => f['id'] == id);
+    if (index == -1) {
+      throw Exception('Avaliação não encontrada');
+    }
+
+    if (_mockFeedbacks[index]['id_usuario'] != _currentUser!['id'] &&
+        _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    _mockFeedbacks[index].addAll({
+      if (data.containsKey('avaliacao')) 'classificacao': data['avaliacao'],
+      if (data.containsKey('comentario')) 'comentario': data['comentario'],
+    });
+
+    return Map<String, dynamic>.from(_mockFeedbacks[index]);
+  }
+
+  Future<void> deleteFeedback(int id) async {
+    await _simulateAsync();
+
+    if (_currentUser == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    final feedback = _mockFeedbacks.firstWhere(
+      (f) => f['id'] == id,
+      orElse: () => <String, dynamic>{},
+    );
+    if (feedback.isEmpty) {
+      throw Exception('Avaliação não encontrada');
+    }
+
+    if (feedback['id_usuario'] != _currentUser!['id'] &&
+        _currentUser!['role'] != 'administrador') {
+      throw Exception('Acesso negado');
+    }
+
+    _mockFeedbacks.removeWhere((f) => f['id'] == id);
   }
 
   // Reference data methods
   Future<List<Map<String, dynamic>>> getLocais() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _simulateAsync();
     return _mockLocais.map((l) => Map<String, dynamic>.from(l)).toList();
   }
 
@@ -552,9 +865,9 @@ class ApiService {
 
   // Equipamentos methods
   Future<List<Map<String, dynamic>>> getEquipamentos() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeVerTodosChamados) {
       throw Exception('Acesso negado');
     }
 
@@ -566,7 +879,7 @@ class ApiService {
   ) async {
     await Future.delayed(const Duration(milliseconds: 800));
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
@@ -591,9 +904,9 @@ class ApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
@@ -605,9 +918,9 @@ class ApiService {
   }
 
   Future<void> deleteEquipamento(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
-    if (_currentUser == null || _currentUser!['role'] != 'administrador') {
+    if (_currentUser == null || !_podeGerenciarEquipamentos) {
       throw Exception('Acesso negado');
     }
 
@@ -616,7 +929,7 @@ class ApiService {
 
   // Estoque methods
   Future<List<Map<String, dynamic>>> getEstoque() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -668,7 +981,7 @@ class ApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    await _simulateAsync();
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -693,7 +1006,7 @@ class ApiService {
   }
 
   Future<void> deleteEstoque(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -706,7 +1019,7 @@ class ApiService {
 
   // Orçamento methods
   Future<List<Map<String, dynamic>>> getOrcamentos() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _simulateAsync();
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -743,7 +1056,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> approveOrcamento(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _simulateAsync();
 
     if (_currentUser == null ||
         (_currentUser!['role'] != 'administrador' &&
@@ -760,7 +1073,7 @@ class ApiService {
 
   // Histórico methods
   Future<List<Map<String, dynamic>>> getHistorico(int idChamado) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _simulateAsync();
 
     return _mockHistorico
         .where((h) => h['id_chamado'] == idChamado)
@@ -793,3 +1106,4 @@ class ApiService {
     return Map<String, dynamic>.from(newHistorico);
   }
 }
+
