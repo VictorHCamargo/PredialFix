@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./frontend/public/images/senai_logo_red.png" alt="Banner SENAI - PredialFix" width="100%">
+    <img src="projeto\frontend\public\images\SENAI_LOGO.png" alt="Banner SENAI - PredialFix" width="100%">
 </div>
 
 # PredialFix - API de Gestão de Manutenção Predial
